@@ -1,0 +1,138 @@
+/* General container styling */
+.company-page {
+    padding: 20px; /* Add 20px padding inside the container */
+    max-width: 800px; /* Limit the maximum width of the container to 800px */
+    margin: 0 auto; /* Center the container horizontally */
+}
+
+/* Table styling */
+.company-table {
+    width: 100%; /* Set the table to take up 100% of the container width */
+    border-collapse: collapse; /* Collapse table borders into a single border */
+    margin-bottom: 20px; /* Add 20px margin below the table */
+}
+
+.company-table th, .company-table td {
+    padding: 10px; /* Add 10px padding inside table cells */
+    text-align: left; /* Align text to the left in table cells */
+    border-bottom: 1px solid #ddd; /* Add a 1px solid border at the bottom of table cells */
+}
+
+.company-table th {
+    background-color: #f2f2f2; /* Set a light grey background color for table headers */
+}
+
+/* Button styling */
+.add-company-btn, .edit-btn, .remove-btn {
+    background-color: #4CAF50; /* Set the background color to green */
+    color: white; /* Set the text color to white */
+    padding: 10px 20px; /* Add 10px vertical padding and 20px horizontal padding */
+    border: none; /* Remove default border */
+    border-radius: 5px; /* Add rounded corners with a 5px radius */
+    cursor: pointer; /* Change the cursor to a pointer on hover */
+    margin-right: 10px; /* Add 10px margin to the right of buttons */
+    transition: background-color 0.3s ease; /* Smooth transition for background color change */
+}
+
+.add-company-btn {
+    margin-bottom: 10px; /* Add 10px margin below the 'add company' button */
+}
+
+.add-company-btn:hover, .edit-btn:hover, .remove-btn:hover {
+    background-color: #45a049; /* Change background color to a darker green on hover */
+}
+
+.remove-btn {
+    background-color: #f44336; /* Set the background color to red for remove button */
+}
+
+.remove-btn:hover {
+    background-color: #e53935; /* Change background color to a darker red on hover */
+}
+
+/* Form container styling */
+.company-form-container {
+    margin-top: 20px; /* Add 20px margin above the form container */
+}
+
+/* Form styling */
+.company-form {
+    display: flex; /* Use flexbox layout for the form */
+    flex-direction: column; /* Arrange children elements in a column */
+    gap: 10px; /* Add 10px gap between form elements */
+}
+
+.company-form input, .company-form select, .company-form textarea {
+    padding: 10px; /* Add 10px padding inside form controls */
+    border: 1px solid #ccc; /* Add a 1px solid border with a light grey color */
+    border-radius: 5px; /* Add rounded corners with a 5px radius */
+    font-size: 1rem; /* Set font size to 1rem */
+}
+
+.company-submit-btn {
+    background-color: #4CAF50; /* Set the background color to green for submit button */
+    color: white; /* Set the text color to white */
+    padding: 10px; /* Add 10px padding inside the submit button */
+    border: none; /* Remove default border */
+    border-radius: 5px; /* Add rounded corners with a 5px radius */
+    cursor: pointer; /* Change the cursor to a pointer on hover */
+    transition: background-color 0.3s ease; /* Smooth transition for background color change */
+}
+
+.company-submit-btn:hover {
+    background-color: #45a049; /* Change background color to a darker green on hover */
+}
+
+/* Form error styling */
+.company-form input.error, .company-form select.error, .company-form textarea.error {
+    border-color: #f44336; /* Change border color to red for form controls with errors */
+}
+
+.company-list-container {
+    padding: 20px; /* Add 20px padding inside the company list container */
+}
+
+.add-company-btn {
+    margin-bottom: 10px; /* Add 10px margin below the 'add company' button */
+}
+
+.search-container {
+    margin-bottom: 20px; /* Add 20px margin below the search container */
+    display: flex; /* Use flexbox layout for the search container */
+    align-items: center; /* Align items vertically center within the container */
+}
+
+.search-input {
+    padding: 8px; /* Add 8px padding inside the search input */
+    margin-right: 10px; /* Add 10px margin to the right of the search input */
+    border: 1px solid #ccc; /* Add a 1px solid border with a light grey color */
+    border-radius: 4px; /* Add rounded corners with a 4px radius */
+    width: 200px; /* Set the width of the search input to 200px */
+}
+
+.search-btn {
+    padding: 8px 12px; /* Add 8px vertical padding and 12px horizontal padding */
+    border: none; /* Remove default border */
+    border-radius: 4px; /* Add rounded corners with a 4px radius */
+    background-color: #007bff; /* Set the background color to blue for the search button */
+    color: white; /* Set the text color to white */
+    cursor: pointer; /* Change the cursor to a pointer on hover */
+}
+
+.search-btn:hover {
+    background-color: #0056b3; /* Change background color to a darker blue on hover */
+}
+
+.company-table {
+    width: 100%; /* Set the table to take up 100% of the container width */
+    border-collapse: collapse; /* Collapse table borders into a single border */
+}
+
+.company-table th, .company-table td {
+    border: 1px solid #ddd; /* Add a 1px solid border with a light grey color to table cells */
+    padding: 8px; /* Add 8px padding inside table cells */
+}
+
+.company-table th {
+    background-color: #f4f4f4; /* Set a light grey background color for table headers */
+}
