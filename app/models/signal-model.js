@@ -5,7 +5,7 @@ const signalSchema = new Schema ({
     generalComment: { type: String, required: false },
 }, {timestamps: true})
 
-const subSignalSchema = new Schema ({
+const subSignalSchema = new Schema ({ 
     subSignalName: { type: String, required: true },
     signalId: {type: Schema.Types.ObjectId, ref: 'Signal', required: true},
     generalComment: { type: String, required: false },

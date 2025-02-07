@@ -11,7 +11,7 @@ companiesCltr.list = async (req, res) => {
         res.json(err)
     }
     
-}
+} 
 
 companiesCltr.create = async (req, res) => {
 

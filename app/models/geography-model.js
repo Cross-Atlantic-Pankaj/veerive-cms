@@ -4,7 +4,7 @@ const regionSchema = new Schema ({
     regionName: { type: String, required: true },
     generalComment: { type: String, required: false },
 }, {timestamps: true})
-
+ 
 const countrySchema = new Schema ({
     countryName: { type: String, required: true },
     regionId: {type: Schema.Types.ObjectId, ref: 'Region', required: true},

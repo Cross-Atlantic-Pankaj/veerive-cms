@@ -11,7 +11,7 @@ const storyOrdersCltr = {}
 //         res.json(err)
 //     }
     
-// }
+// } 
 
 storyOrdersCltr.list = async (req, res) => {
     try {

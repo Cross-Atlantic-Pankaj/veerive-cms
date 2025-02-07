@@ -11,7 +11,7 @@ subSignalsCltr.list = async (req, res) => {
         res.json(err)
     }
     
-}
+} 
 
 subSignalsCltr.create = async (req, res) => {
 

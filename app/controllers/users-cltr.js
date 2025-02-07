@@ -376,7 +376,7 @@ usersCltr.login = async (req, res) => {
                 console.error('Failed to send reminder email:', emailErr);
             }
         }
-
+ 
         // Password expired: Return error
         if (daysSinceLastUpdate >= 30) {
             return res.status(403).json({ error: 'Password expired. Please update your password to continue.' });

@@ -11,7 +11,7 @@ postTypesCltr.list = async (req, res) => {
         res.json(err)
     }
     
-}
+} 
 
 postTypesCltr.create = async (req, res) => {
 

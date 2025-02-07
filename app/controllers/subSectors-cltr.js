@@ -10,7 +10,7 @@ subSectorsCltr.list = async (req, res) => {
         console.log(err)
         res.json(err)
     }
-    
+     
 }
 
 subSectorsCltr.create = async (req, res) => {

@@ -104,7 +104,7 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'], // Allow headers for secure requests
   })
 );
-
+ 
 app.options('*', cors()); // Preflight requests for all routes
 
 

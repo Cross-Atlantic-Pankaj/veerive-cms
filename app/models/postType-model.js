@@ -8,3 +8,4 @@ const postTypeSchema = new Schema ({
 const PostType = model('PostType', postTypeSchema)
 
 export default PostType
+ 

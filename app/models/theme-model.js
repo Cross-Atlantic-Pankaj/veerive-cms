@@ -1,5 +1,5 @@
 import {Schema, model} from 'mongoose'
-
+ 
 const themeSchema = new Schema ({
     themeTitle: { type: String, required: true },
     themeDescription: { type: String, required: true },

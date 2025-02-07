@@ -11,7 +11,7 @@ signalsCltr.list = async (req, res) => {
         res.json(err)
     }
     
-}
+} 
 
 signalsCltr.create = async (req, res) => {
 

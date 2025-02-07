@@ -78,7 +78,7 @@ const authenticateUser = (req, res, next) => {
     if (!token) {
         return res.status(401).json({ error: 'Token is required' });
     }
-
+ 
     try {
         const tokenData = jwt.verify(token, process.env.JWT_SECRET); // Verify the token
         // console.log('Decoded Token Data:', tokenData); // Log the decoded data

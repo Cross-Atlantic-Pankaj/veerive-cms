@@ -11,7 +11,7 @@ profilesCltr.list = async (req, res) => {
         res.json(err)
     }
     
-}
+} 
 
 profilesCltr.show = async (req, res) => {
 

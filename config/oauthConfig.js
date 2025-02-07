@@ -201,7 +201,7 @@ const setupOAuthStrategies = () => {
             }
         )
     );
-
+ 
     // LinkedIn OAuth Strategy
     passport.use(
         new LinkedInStrategy(

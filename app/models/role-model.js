@@ -8,3 +8,4 @@ const roleSchema = new Schema ({
 const Role = model('Role', roleSchema)
 
 export default Role
+ 

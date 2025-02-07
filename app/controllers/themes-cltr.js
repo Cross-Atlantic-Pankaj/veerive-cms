@@ -11,7 +11,7 @@ themesCltr.list = async (req, res) => {
         res.json(err)
     }
     
-}
+} 
 
 themesCltr.create = async (req, res) => {
 

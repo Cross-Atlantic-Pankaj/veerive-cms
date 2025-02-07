@@ -11,7 +11,7 @@ contextsCltr.list = async (req, res) => {
         res.json(err)
     }
     
-}
+} 
 
 contextsCltr.show = async (req, res) => {
     try {

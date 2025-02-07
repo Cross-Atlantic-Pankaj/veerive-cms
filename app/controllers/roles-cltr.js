@@ -10,7 +10,7 @@ rolesCltr.list = async (req, res) => {
         console.log(err)
         res.json(err)
     }
-    
+     
 }
 
 rolesCltr.create = async (req, res) => {

@@ -3,7 +3,7 @@ import Profile from '../models/profile-model.js'
 import bcryptjs from 'bcryptjs'
 
 const registerCltr = {}
-
+ 
 registerCltr.create = async (req, res) => {
     const {email, password, firstName, lastName, company, designation, country} = req.body
 

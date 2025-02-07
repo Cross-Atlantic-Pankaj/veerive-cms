@@ -17,7 +17,7 @@ const contextSchema = new Schema ({
         postId: { type: Schema.Types.ObjectId, ref: 'Post', required: false },  // Reference to Post model
         includeInContainer: { type: Boolean, default: true }  // New boolean field
       }
-    ],
+    ], 
     //containerType: { type: String, enum: ['Type-Five', 'Type-Four', 'Type-Three', 'Type-Two', 'Type-One', 'Type-Num'], default: 'Type-One', required: true },
     containerType: { 
       type: String, 

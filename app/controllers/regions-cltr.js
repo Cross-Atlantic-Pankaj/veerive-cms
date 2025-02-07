@@ -61,4 +61,4 @@ regionsCltr.delete = async (req, res) => {
     }
 }
 
-export default regionsCltr
+export default regionsCltr 

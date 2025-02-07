@@ -12,7 +12,7 @@ sectorsCltr.list = async (req, res) => {
     }
     
 }
-
+ 
 sectorsCltr.create = async (req, res) => {
 
     try{

@@ -61,4 +61,4 @@ countriesCltr.delete = async (req, res) => {
     }
 }
 
-export default countriesCltr
+export default countriesCltr 

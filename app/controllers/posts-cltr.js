@@ -71,7 +71,7 @@ postsCltr.date = async (req, res) => {
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
             return res.status(400).send('Invalid date format');
         }
-
+ 
         // Ensure endDate is inclusive
         end.setDate(end.getDate() + 1);
 

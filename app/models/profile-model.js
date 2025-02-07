@@ -3,7 +3,7 @@ import {Schema, model} from 'mongoose'
 const profileSchema = new Schema ({
     firstName: { type: String, required: true },
     lastName: { type: String, required: false },
-    company: { type: String, required: false },
+    company: { type: String, required: false }, 
     designation: { type: String, required: false },
     userType: { type: String, enum: ['Paid', 'Free'], default: 'Free' },              // Type of user
     country: { type: Schema.Types.ObjectId, required: true },
