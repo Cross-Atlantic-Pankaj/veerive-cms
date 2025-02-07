@@ -1,0 +1,36 @@
+.container {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap to the next line */
+    gap: 20px; /* Spacing between items */
+    width: 100%; /* Ensure the container uses full width */
+}
+
+.article-container {
+    box-sizing: border-box;
+    flex: 1 1 calc(33% - 20px); /* 3 items per row, adjust based on your needs */
+    min-width: 200px; /* Minimum width to ensure readability */
+    max-width: calc(33% - 20px); /* Max width for the card */
+    background-color: #ffffff; /* Background for each container */
+    border-radius: 5px; /* Optional rounded corners */
+    padding: 10px; /* Inner padding */
+}
+
+/* Style for Type-One container (4 per row) */
+.article-container.four-per-row {
+    flex: 1 1 calc(25% - 20px); /* 4 items per row with spacing */
+    max-width: calc(25% - 20px); /* Ensure max width is 25% */
+}
+
+/* Style for other types of containers (1 per row) */
+.article-container.one-per-row {
+    flex: 1 1 100%; /* 1 item per row */
+    max-width: 100%; /* Full width */
+}
+
+.sidebar {
+    width: 300px; /* Fixed width for the sidebar */
+    height: auto; /* Can adjust based on content */
+    background-color: #f0f0f0; /* Sidebar background */
+    padding: 20px; /* Sidebar padding */
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); /* Optional shadow for effect */
+}

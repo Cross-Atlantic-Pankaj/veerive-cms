@@ -1,0 +1,52 @@
+/* ThemeDetail.css */
+.theme-tile-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Space between the tiles */
+    margin-top: 40px;
+  }
+  
+  .article-tile {
+    flex: 1 1 calc(33.33% - 20px); /* 3 tiles per row */
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  
+  @media (max-width: 768px) {
+    .article-tile {
+      flex: 1 1 calc(50% - 20px); /* 2 tiles per row on smaller screens */
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .article-tile {
+      flex: 1 1 calc(100% - 20px); /* 1 tile per row on mobile */
+    }
+  }
+  
+  /* ThemeDetail.css */
+.context-tile-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.news-tile {
+  flex: 1 1 calc(33.33% - 20px); /* 3 tiles per row */
+}
+
+@media (max-width: 768px) {
+  .news-tile {
+    flex: 1 1 calc(50% - 20px); /* 2 tiles per row on smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .news-tile {
+    flex: 1 1 calc(100% - 20px); /* 1 tile per row on mobile */
+  }
+}

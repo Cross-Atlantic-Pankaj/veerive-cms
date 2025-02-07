@@ -1,0 +1,146 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6; /* Set line height for readability */
+}
+
+/* Main layout for container and sidebar */
+.main-layout {
+    display: flex; /* Use flexbox for the main layout */
+    width: 100vw; /* Full viewport width */
+}
+
+/* Container for articles */
+.container {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap to the next line */
+    gap: 20px; /* Spacing between items */
+    flex: 1; /* Allow the container to take up remaining space */
+    width: calc(100% - 300px); /* Adjust width based on sidebar */
+    padding: 20px; /* Add some padding */
+}
+
+/* General article styles */
+.article-container {
+    box-sizing: border-box;
+    flex: 1 1 calc(33% - 20px); /* 3 items per row */
+    min-width: 200px; /* Minimum width for readability */
+    max-width: calc(33% - 20px); /* Max width for the card */
+    background-color: #ffffff; /* Background for each container */
+    border-radius: 5px; /* Optional rounded corners */
+    padding: 10px; /* Inner padding */
+}
+
+/* Type-One container style */
+.article-container.four-per-row {
+    flex: 1 1 calc(25% - 20px); /* 4 items per row */
+    max-width: calc(25% - 20px); /* Max width for 4 items */
+}
+
+/* Full width container style */
+.article-container.one-per-row {
+    flex: 1 1 100%; /* 1 item per row */
+    max-width: 100%; /* Full width */
+}
+
+/* Sidebar styles */
+.sidebar {
+    width: 300px; /* Fixed width for the sidebar */
+    height: auto; /* Can adjust based on content */
+    background-color: #f0f0f0; /* Sidebar background */
+    padding: 20px; /* Sidebar padding */
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); /* Optional shadow for effect */
+}
+
+/* Grid layout for TypeFiveContainer */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Three equal columns */
+    gap: 20px; /* Gap between grid items */
+    max-width: 1200px; /* Max width for the grid container */
+    margin: 0 auto; /* Center the grid */
+}
+
+.article {
+    background-color: #ffffff; /* Background for articles */
+    color: #000000; /* Text color for articles */
+    padding: 20px; /* Inner padding */
+    border-radius: 5px; /* Rounded corners */
+}
+
+/* Article headline style */
+.article-headline {
+    font-size: 24px; /* Font size for article headline */
+    font-weight: bold;
+    line-height: 1.3; /* Line height for article headline */
+    margin: 0; /* Remove default margin */
+}
+
+/* Specific styles for article types */
+.main-article {
+    grid-column: 1 / 3; /* Span two columns */
+}
+
+.exclusive {
+    color: #ff0000; /* Exclusive text color */
+    font-weight: bold;
+    margin-bottom: 10px; /* Space below exclusive text */
+    font-size: 18px; /* Font size for exclusive */
+    
+}
+
+.main-title {
+    font-size: 28px; /* Main title font size */
+    font-weight: bold;
+    line-height: 1.2; /* Line height for main title */
+}
+
+/* Main headline style */
+.main-headline {
+    font-size: 48px; /* Font size for the main headline */
+    font-weight: bold;
+    line-height: 1.2; /* Line height for main headline */
+    margin-bottom: 30px; /* Space below main headline */
+}
+
+.secondary-title {
+    font-size: 18px; /* Secondary title font size */
+    font-weight: bold;
+    line-height: 1.3; /* Line height for secondary title */
+}
+
+/* Bullet points style */
+.bullet-points {
+    list-style-type: disc; /* Disc style for bullet points */
+    padding-left: 20px; /* Padding for bullet points */
+    margin-bottom: 40px; /* Space below bullet points */
+}
+
+.bullet-points li {
+    font-size: 18px; /* Font size for bullet points */
+    margin-bottom: 10px; /* Space below each bullet point */
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .grid-container {
+        grid-template-columns: 1fr; /* Stack items vertically */
+    }
+
+    .main-article {
+        grid-column: 1; /* Adjust to occupy full width */
+        grid-row: auto; /* Auto row positioning */
+    }
+
+    .article-container {
+        flex: 1 1 100%; /* Stack articles vertically on small screens */
+    }
+
+    .sidebar {
+        width: 100%; /* Sidebar takes full width on small screens */
+        margin-top: 20px; /* Add space above sidebar */
+    }
+}

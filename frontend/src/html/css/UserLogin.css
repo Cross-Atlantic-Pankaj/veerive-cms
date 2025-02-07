@@ -1,0 +1,63 @@
+/* Basic reset */
+body, html {
+    margin: 0; /* Remove default margin around the body and html elements */
+    padding: 0; /* Remove default padding around the body and html elements */
+    height: 100%; /* Set the height of the body and html to 100% of the viewport height */
+    font-family: Arial, sans-serif; /* Set the default font for the document to Arial, with sans-serif as a fallback */
+}
+
+/* Centering the container */
+.login-container {
+    display: flex; /* Use Flexbox for layout */
+    justify-content: center; /* Center the content horizontally within the container */
+    align-items: center; /* Center the content vertically within the container */
+    height: 100vh; /* Set the container height to 100% of the viewport height */
+    background-color: #f5f5f5; /* Set the background color of the container to a light grey */
+}
+
+/* Styling the login card */
+.login-card {
+    background-color: white; /* Set the background color of the card to white */
+    padding: 2rem; /* Add 2rem padding inside the card */
+    border-radius: 10px; /* Add rounded corners with a 10px radius */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for depth */
+    width: 100%; /* Make the card take up the full width of its container */
+    max-width: 400px; /* Set a maximum width of 400px for the card */
+    text-align: center; /* Center-align text inside the card */
+}
+
+/* Styling the title */
+.login-title {
+    margin-bottom: 1.5rem; /* Add 1.5rem margin below the title */
+    color: #333; /* Set text color to a dark grey */
+}
+
+/* Styling the input fields */
+.login-input {
+    width: 100%; /* Make input fields take up the full width of their container */
+    padding: 0.75rem; /* Add 0.75rem padding inside the input fields */
+    margin: 0.5rem 0; /* Add 0.5rem margin above and below the input fields */
+    border-radius: 5px; /* Add rounded corners with a 5px radius */
+    border: 1px solid #ddd; /* Add a 1px solid border with a light grey color */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    font-size: 1rem; /* Set font size inside the input fields to 1rem */
+}
+
+/* Styling the login button */
+.login-button {
+    width: 100%; /* Make the button take up the full width of its container */
+    padding: 0.75rem; /* Add 0.75rem padding inside the button */
+    background-color: #2845d6; /* Set the background color of the button to a blue shade */
+    color: white; /* Set the text color of the button to white */
+    border: none; /* Remove the default border */
+    border-radius: 5px; /* Add rounded corners with a 5px radius */
+    cursor: pointer; /* Change cursor to a pointer to indicate the button is clickable */
+    font-size: 1rem; /* Set font size of the button text to 1rem */
+    margin-top: 1rem; /* Add 1rem margin above the button */
+    transition: background-color 0.3s ease; /* Smoothly transition the background color on hover */
+}
+
+/* Hover effect for the button */
+.login-button:hover {
+    background-color: #45a049; /* Change the background color to a green shade when hovered */
+}

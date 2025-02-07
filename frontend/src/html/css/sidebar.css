@@ -1,0 +1,173 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0; /* Background color for the body */
+}
+
+/* General sidebar styles */
+.sidebar {
+    width: 300px; /* Fixed width for the sidebar */
+    background-color: #ffffff; /* Sidebar background color */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+    padding: 20px; /* Inner padding */
+    height: auto; /* Allow height to adjust based on content */
+    overflow-y: hidden; /* Prevent vertical scrolling */
+}
+
+/* Sidebar header styles */
+.sidebar-header {
+    font-size: 24px; /* Font size for sidebar header */
+    font-weight: bold;
+    margin-bottom: 20px; /* Space below header */
+    color: #333; /* Text color */
+}
+
+/* News briefing styles */
+.news-briefing {
+    padding: 20px; /* Padding for the briefing */
+}
+
+.greeting {
+    font-size: 24px; /* Font size for greeting */
+    margin-bottom: 20px; /* Space below greeting */
+}
+
+.news {
+    font-size: 18px; /* Font size for news content */
+    margin-bottom: 20px; /* Space below news */
+}
+
+.news u {
+    text-decoration: none; /* Remove default underline */
+    border-bottom: 2px solid black; /* Custom underline */
+}
+
+/* Call to Action styles */
+.cta-box {
+    background-color: #f8f8f8; /* Background color for CTA box */
+    border: 1px solid #e0e0e0; /* Border for CTA box */
+    border-radius: 8px; /* Rounded corners */
+    padding: 20px; /* Padding for CTA box */
+    text-align: center; /* Center text */
+}
+
+.cta-title {
+    font-size: 20px; /* Font size for CTA title */
+    font-weight: bold;
+    margin-bottom: 10px; /* Space below title */
+}
+
+.cta-description {
+    font-size: 16px; /* Font size for CTA description */
+    margin-bottom: 20px; /* Space below description */
+}
+
+.button-container {
+    display: flex;
+    justify-content: center; /* Center buttons */
+    gap: 10px; /* Space between buttons */
+}
+
+.button {
+    padding: 10px 20px; /* Button padding */
+    border-radius: 20px; /* Rounded corners */
+    font-size: 16px; /* Font size for buttons */
+    cursor: pointer; /* Pointer cursor */
+}
+
+.create-account {
+    background-color: black; /* Background for create account button */
+    color: white; /* Text color for create account button */
+    border: none; /* No border */
+}
+
+.sign-in {
+    background-color: white; /* Background for sign-in button */
+    color: black; /* Text color for sign-in button */
+    border: 1px solid black; /* Border for sign-in button */
+}
+
+/* Latest news feed styles */
+.latest-news-feed {
+    padding: 20px; /* Padding for latest news feed */
+}
+
+.header {
+    display: flex;
+    justify-content: space-between; /* Space between header items */
+    align-items: center; /* Align items center */
+    margin-bottom: 20px; /* Space below header */
+}
+
+.latest {
+    color: red; /* Color for latest news title */
+    font-size: 24px; /* Font size for latest news title */
+    font-weight: bold;
+}
+
+.news-list {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0; /* Remove padding */
+}
+
+.news-item {
+    margin-bottom: 20px; /* Space below news items */
+}
+
+.news-title {
+    font-size: 18px; /* Font size for news title */
+    font-weight: bold;
+}
+
+/* Trending item styles */
+.trending-list {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0; /* Remove padding */
+    margin: 0; /* Remove margin */
+}
+
+.trending-item {
+    display: flex; /* Flex layout for trending items */
+    align-items: center; /* Center items vertically */
+    padding: 15px 0; /* Padding for trending items */
+    border-bottom: 1px solid #e0e0e0; /* Bottom border */
+}
+
+.trending-item:last-child {
+    border-bottom: none; /* Remove border for the last item */
+}
+
+.trending-score {
+    font-size: 18px; /* Font size for trending score */
+    font-weight: bold;
+    color: #ff6600; /* Score color */
+    margin-right: 15px; /* Space to the right */
+    min-width: 30px; /* Minimum width for score */
+    text-align: center; /* Center score */
+}
+
+.trending-content {
+    flex-grow: 1; /* Allow content to grow */
+}
+
+.trending-title {
+    font-size: 16px; /* Font size for trending title */
+    font-weight: bold;
+    color: #333; /* Color for trending title */
+    margin-bottom: 5px; /* Space below title */
+}
+
+.trending-category {
+    font-size: 14px; /* Font size for trending category */
+    color: #666; /* Color for trending category */
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%; /* Sidebar takes full width on small screens */
+        height: auto; /* Auto height for small screens */
+        max-height: 100vh; /* Limit max height */
+    }
+}
