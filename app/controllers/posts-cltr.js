@@ -1,35 +1,26 @@
 import Post from '../models/post-model.js'
 const postsCltr = {}
 
-// postsCltr.list = async (req, res) => {
-//     try{
-//         const posts = await Post.find({})
-//         res.json(posts)
-//         console.log(posts)
-//     } catch(err) {
-//         console.log(err)
-//         res.json(err)
-//     }
-    
-// }
+
 postsCltr.list = async (req, res) => {
     try {
-        const { context, postType, startDate, endDate, page = 1, limit = 10 } = req.query;
+        const { search, context, postType, startDate, endDate, page = 1, limit = 10 } = req.query;
 
         let query = {};
-        
-        // Filter by context
+
+        if (search) {
+            query.postTitle = { $regex: search, $options: 'i' };
+        }
+
         if (context) {
             const contextArray = context.split(',').map(id => id.trim());
             query.context = { $in: contextArray };
         }
 
-        // Filter by postType
         if (postType) {
             query.postType = postType;
         }
 
-        // Filter by date range
         if (startDate && endDate) {
             const start = new Date(startDate);
             const end = new Date(endDate);
@@ -38,51 +29,31 @@ postsCltr.list = async (req, res) => {
             }
         }
 
-        // Pagination options
-        const options = {
-            skip: (page - 1) * limit,
-            limit: parseInt(limit)
-        };
-
-        // Fetch posts with applied filters
-        const posts = await Post.find(query).skip(options.skip).limit(options.limit);
         const totalPosts = await Post.countDocuments(query);
+        const totalPages = Math.ceil(totalPosts / limit);
+
+        let posts;
+        if (search) {
+            // ✅ Fetch all posts if searching
+            posts = await Post.find(query);
+        } else {
+            // ✅ Paginate posts normally
+            posts = await Post.find(query).skip((page - 1) * limit).limit(parseInt(limit));
+        }
 
         res.json({
             success: true,
             total: totalPosts,
-            page: parseInt(page),
-            limit: parseInt(limit),
-            posts
+            posts: posts || [], // ✅ Ensure `posts` is always an array
+            totalPages,
+            currentPage: parseInt(page)
         });
+
     } catch (err) {
-        console.error("Error fetching posts:", err);
+        console.error("❌ Error fetching posts:", err);
         res.status(500).json({ error: "Server Error" });
     }
 };
-
-
-// postsCltr.list = async (req, res) => {
-//     try {
-//         // Extract context query parameter from the request
-//         const { context } = req.query;
-
-//         // If a context ID is provided, filter posts by context
-//         let query = {};
-//         if (context) {
-//             const contextArray = context.split(',').map(id => id.trim());
-//             query.context = { $in: contextArray };
-//         }
-
-//         // Fetch posts based on the query
-//         const posts = await Post.find(query);
-//         res.json(posts);
-//         console.log('Filtered posts:', posts);
-//     } catch (err) {
-//         console.error('Error fetching posts:', err);
-//         res.status(500).json({ error: err.message });
-//     }
-// };
 
 
 postsCltr.date = async (req, res) => {
@@ -119,17 +90,7 @@ postsCltr.date = async (req, res) => {
     }
 };
 
-// postsCltr.create = async (req, res) => {
 
-//     try{
-//         const post = new Post(req.body)
-//         await post.save()
-//         res.status(201).json(post)
-//     }catch(err){
-//         console.log(err)
-//         res.status(500).json({error: 'something went wrong'})
-//     }
-// }
 postsCltr.create = async (req, res) => {
     try {
         console.log("Received Post Data:", req.body); // Debugging
@@ -148,24 +109,6 @@ postsCltr.create = async (req, res) => {
     }
 };
 
-// postsCltr.update = async (req, res) => {
-
-//     try{
-//         let post
-//         const id = req.params.id
-//         const body = req.body
-//         post = await Post.findByIdAndUpdate(id, body, {new: true})
-        
-//         if(!post){
-//             return res.status(404).json({ message: 'Post not found' })
-//         }
-//         return res.json(post)
-
-//     }catch(err){
-//         console.log(err)
-//         res.status(500).json({error: 'something went wrong'})
-//     }
-// }
 
 postsCltr.update = async (req, res) => {
     try {

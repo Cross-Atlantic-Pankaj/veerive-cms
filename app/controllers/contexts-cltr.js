@@ -44,17 +44,6 @@ contextsCltr.postContext = async (req, res) => {
     }
 };
 
-// contextsCltr.create = async (req, res) => {
-
-//     try{
-//         const context = new Context(req.body)
-//         await context.save()
-//         res.status(201).json(context)
-//     }catch(err){
-//         console.log(err)
-//         res.status(500).json({error: 'something went wrong'})
-//     }
-// }
 contextsCltr.create = async (req, res) => {
     try {
         console.log("Received Request Body:", req.body); // Debugging
@@ -94,32 +83,33 @@ contextsCltr.update = async (req, res) => {
 
 // for updating postId in context when a post is saved
     
-    contextsCltr.updatePostId = async (req, res) => {
-    const { postId, includeInContainer } = req.body; // postId and includeInContainer being sent in the request body
-    const { contextId } = req.params; // contextId from the URL params
+contextsCltr.updatePostId = async (req, res) => {
+    const { postId, includeInContainer } = req.body;
+    const { contextId } = req.params;
+
+    if (!contextId || !postId) {
+        console.error("❌ Missing Data in Request:", { contextId, postId });
+        return res.status(400).json({ message: 'Context ID and Post ID are required.' });
+    }
 
     try {
-        // Ensure contextId, postId, and includeInContainer are provided
-        if (!contextId || !postId) {
-            return res.status(400).json({ message: 'Context ID, Post ID, and includeInContainer are required.' });
-        }
+        console.log("🔄 Updating Context with Post:", { contextId, postId, includeInContainer });
 
-        // Use the $push operator to add the new post object to the posts array
         const updatedContext = await Context.findByIdAndUpdate(
-            contextId, // Find the context by its ID
-            { $push: { posts: { postId, includeInContainer } } }, // Push the new post object into the posts array
-            { new: true, useFindAndModify: false } // Return the updated document
+            contextId,
+            { $push: { posts: { postId, includeInContainer } } }, 
+            { new: true, useFindAndModify: false }
         );
 
-        // Check if the context was found and updated
         if (!updatedContext) {
+            console.error("❌ Context Not Found:", contextId);
             return res.status(404).json({ message: 'Context not found.' });
         }
 
-        // Respond with the updated context
+        console.log("✅ Context updated successfully:", updatedContext);
         res.status(200).json({ message: 'Post ID added successfully', updatedContext });
     } catch (error) {
-        console.error('Error updating context with postId:', error);
+        console.error('❌ Error updating context with postId:', error);
         res.status(500).json({ message: 'An error occurred while updating the context.' });
     }
 };
