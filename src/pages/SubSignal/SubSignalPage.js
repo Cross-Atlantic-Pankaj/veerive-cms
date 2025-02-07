@@ -6,7 +6,7 @@ import SubSignalContext from '../../context/SubSignalContext';
 import '../../html/css/SubSignal.css';
 
 export default function SubSignalPage() {
-    const { subSignals, isFormVisible, handleAddClick, handleFormSubmit } = useContext(SubSignalContext);
+    const {  isFormVisible, handleAddClick, handleFormSubmit } = useContext(SubSignalContext);
 
     return (
         <div className="subsignals-container">

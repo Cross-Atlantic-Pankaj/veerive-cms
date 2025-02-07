@@ -73,13 +73,14 @@ export default function PostForm({ handleFormSubmit }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+    
         const formData = {
             postTitle,
-            date: new Date(date).toISOString(), // Convert date to ISO format for submission
+            date: new Date(date).toISOString(),
             postType,
             isTrending,
             homePageShow,
-            context: selectedContext ? selectedContext.value : '', // Use _id for form submission
+            context: selectedContext ? selectedContext.value : '', // Ensure valid contextId
             countries: selectedCountries,
             summary,
             completeContent,
@@ -90,44 +91,74 @@ export default function PostForm({ handleFormSubmit }) {
             sourceUrl,
             generalComment
         };
-
+    
         try {
             let response;
             if (posts.editId) {
-                response = await axios.put(`/api/admin/posts/${posts.editId}`, formData, {headers:{ Authorization: `Bearer ${localStorage.getItem('token')}` } });
-                postsDispatch({ type: 'UPDATE_POST', payload: response.data });
-                handleFormSubmit('Post updated successfully');
+                response = await axios.put(`/api/admin/posts/${posts.editId}`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    
+                if (response.status === 200) {
+                    console.log("✅ Post updated successfully:", response.data);
+                    postsDispatch({ type: 'UPDATE_POST', payload: response.data });
+                    handleFormSubmit("Post updated successfully");
+    
+                    //  Call context update **only if the post update succeeds**
+                    await updateContextWithPost(response.data.updatedPost._id, includeInContainer);
+                }
             } else {
                 response = await axios.post('/api/admin/posts', formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-                postsDispatch({ type: 'ADD_POST', payload: response.data });
-                handleFormSubmit('Post added successfully');
+    
+                if (response.status === 201) {
+                    console.log("✅ Post added successfully:", response.data);
+                    postsDispatch({ type: 'ADD_POST', payload: response.data });
+                    handleFormSubmit("Post added successfully");
+    
+                    //  Call context update **only if the post creation succeeds**
+                    await updateContextWithPost(response.data._id, includeInContainer);
+                }
             }
-            
-            // Update the context with the new postId and includeInContainer
-            console.log('inside handleSubmit', response, includeInContainer)   
-            await updateContextWithPost(response.data._id, includeInContainer);
         } catch (err) {
-            console.error('Error submitting form:', err);
-            alert('An error occurred while submitting the form.');
+            console.error("❌ Error submitting form:", err.response?.data || err.message);
+            alert("An error occurred while submitting the form.");
         }
     };
-
+    
+    if (!isFormVisible) {
+        return null; // Prevents rendering the form if isFormVisible is false
+    }
+   
     const updateContextWithPost = async (postId, includeInContainer) => {
-        console.log('inside updateContextWithPost', selectedContext.value, postId, includeInContainer)
-        if (selectedContext) {
-            try {
-                await axios.put(
-                    `/api/admin/contexts/${selectedContext.value}/postId`,
-                    { postId, includeInContainer }, // Send postId and includeInContainer in request body
-                    { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-                );
-            } catch (err) {
-                console.error('Error updating context with postId:', err);
-                alert('An error occurred while updating the context.');
-            }
+        if (!selectedContext || !selectedContext.value) {
+            console.error("❌ Selected Context is missing or invalid:", selectedContext);
+            return; // Prevent making an invalid API request
+        }
+    
+        if (!postId) {
+            console.error("❌ Post ID is missing or invalid:", postId);
+            return;
+        }
+    
+        console.log('🔄 Inside updateContextWithPost:', {
+            contextId: selectedContext.value,
+            postId,
+            includeInContainer
+        });
+    
+        try {
+            const response = await axios.put(
+                `/api/admin/contexts/${selectedContext.value}/postId`,
+                { postId, includeInContainer },
+                { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+            );
+    
+            console.log("✅ Context updated successfully:", response.data);
+        } catch (err) {
+            console.error('❌ Error updating context with postId:', err.response?.data || err.message);
+            alert('An error occurred while updating the context.');
         }
     };
-
+    
+    
     const contextOptions = contexts.data.map(ctx => ({
         value: ctx._id,
         label: ctx.contextTitle

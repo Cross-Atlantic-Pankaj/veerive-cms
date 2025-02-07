@@ -7,7 +7,7 @@ import RegionContext from '../../context/RegionContext';
 import '../../html/css/Country.css';
 
 const CountryPage = () => {
-    const { countries, isFormVisible, handleAddClick, handleFormSubmit } = useContext(CountryContext);
+    const { isFormVisible, handleAddClick, handleFormSubmit } = useContext(CountryContext);
     const { regions } = useContext(RegionContext);
     console.log('count pg ', isFormVisible)
     return (

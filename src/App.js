@@ -41,8 +41,12 @@ import ForgotPassword from './pages/ForgotPassowrd';
 import ResetPassword from './pages/ReasetPassword';
 
 function App() {
-  const { state } = useContext(AuthContext);
+  const { state, loading  } = useContext(AuthContext);
 
+  // If loading is true, show a loading indicator
+  if (loading) {
+    return <div>Loading...</div>;
+  }
   return (
     <RegionProvider>
       <CountryProvider>
@@ -179,5 +183,4 @@ function App() {
     </RegionProvider>
   );
 }
-
 export default App;

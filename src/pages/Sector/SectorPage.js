@@ -5,7 +5,7 @@ import SectorContext from '../../context/SectorContext';
 import '../../html/css/Sector.css';
 
 export default function SectorPage() {
-    const { sectors, isFormVisible, handleAddClick, handleFormSubmit } = useContext(SectorContext);
+    const {  isFormVisible, handleAddClick, handleFormSubmit } = useContext(SectorContext);
 
     return (
         <div className="sectors-container">

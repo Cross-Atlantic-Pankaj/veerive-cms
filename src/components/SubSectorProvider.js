@@ -50,20 +50,42 @@ export const SubSectorProvider = ({ children }) => {
     const { sectors } = useContext(SectorContext);
 
     // useEffect hook to fetch sub-sector data from the API when the component mounts
+    // useEffect(() => {
+    //     (async () => {
+    //         try {
+    //             // Fetch sub-sector data from the API with authorization token
+    //             const response = await axios.get('/api/admin/sub-sectors', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             // Dispatch action to update sub-sectors state with fetched data
+    //             subSectorsDispatch({ type: 'SET_SUB_SECTORS', payload: response.data });
+    //         } catch (err) {
+    //             // Log any errors that occur during the fetch operation
+    //             console.log(err);
+    //         }
+    //     })();
+    // }, []); // Empty dependency array means this effect runs once on component mount
+
     useEffect(() => {
-        (async () => {
+        const fetchSubSectors = async () => {
+            const token = localStorage.getItem('token'); // ✅ Check for token
+            if (!token) {
+                console.log("⏳ No token found. Skipping sub-sector fetch.");
+                return;  // ✅ Skip API call if no token is available
+            }
+
             try {
-                // Fetch sub-sector data from the API with authorization token
-                const response = await axios.get('/api/admin/sub-sectors', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-                // Dispatch action to update sub-sectors state with fetched data
+                const response = await axios.get('/api/admin/sub-sectors', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                console.log("✅ Sub-Sectors Fetched:", response.data);
                 subSectorsDispatch({ type: 'SET_SUB_SECTORS', payload: response.data });
             } catch (err) {
-                // Log any errors that occur during the fetch operation
-                console.log(err);
+                console.error("❌ Error Fetching Sub-Sectors:", err);
             }
-        })();
-    }, []); // Empty dependency array means this effect runs once on component mount
+        };
 
+        fetchSubSectors();
+    }, []);
+    
     // Handler function to show the form and prepare for adding a new sub-sector
     const handleAddClick = () => {
         subSectorsDispatch({ type: 'SET_EDIT_ID', payload: null });

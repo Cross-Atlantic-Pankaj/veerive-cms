@@ -16,7 +16,10 @@ export default function RegionList() {
             }
         }
     };
-
+    if (!regions?.data) {
+        return <p>Loading regions...</p>; // ✅ Show loading until regions are available
+    }
+    
     return (
         <div className="region-list-container">
             <table className="region-table">

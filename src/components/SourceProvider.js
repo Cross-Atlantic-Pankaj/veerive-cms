@@ -42,20 +42,42 @@ export const SourceProvider = ({ children }) => {
     const [successMessage, setSuccessMessage] = useState('');
 
     // useEffect hook to fetch sources data from the API when the component mounts
+    // useEffect(() => {
+    //     (async () => {
+    //         try {
+    //             // Fetch sources data from the API with authorization token
+    //             const response = await axios.get('/api/admin/sources', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             // Dispatch action to update sources state with fetched data
+    //             sourcesDispatch({ type: 'SET_SOURCES', payload: response.data });
+    //         } catch (err) {
+    //             // Log any errors that occur during the fetch operation
+    //             console.log(err);
+    //         }
+    //     })();
+    // }, []); // Empty dependency array means this effect runs once on component mount
+
     useEffect(() => {
-        (async () => {
+        const fetchSources = async () => {
+            const token = localStorage.getItem('token');  // ✅ Get token from localStorage
+            if (!token) {
+                console.log("⏳ No token found. Skipping source fetch.");
+                return;  // ✅ Skip API call if no token is available
+            }
+    
             try {
-                // Fetch sources data from the API with authorization token
-                const response = await axios.get('/api/admin/sources', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-                // Dispatch action to update sources state with fetched data
+                const response = await axios.get('/api/admin/sources', { 
+                    headers: { Authorization: `Bearer ${token}` } 
+                });
+                console.log("✅ Sources Fetched:", response.data);
                 sourcesDispatch({ type: 'SET_SOURCES', payload: response.data });
             } catch (err) {
-                // Log any errors that occur during the fetch operation
-                console.log(err);
+                console.error("❌ Error Fetching Sources:", err);
             }
-        })();
-    }, []); // Empty dependency array means this effect runs once on component mount
-
+        };
+    
+        fetchSources(); // ✅ Only fetch when token exists
+    }, []);
+    
     // Handler function to show the form and prepare for adding a new source
     const handleAddClick = () => {
         sourcesDispatch({ type: 'SET_EDIT_ID', payload: null });

@@ -1,8 +1,9 @@
-import React, { useContext, useState, useMemo } from 'react';
+
+import React, { useContext, useState, useMemo, useEffect, useCallback } from 'react';
 import CountryContext from '../../context/CountryContext';
-import RegionContext from '../../context/RegionContext'; // Ensure this is the correct import
+import RegionContext from '../../context/RegionContext';
 import axios from '../../config/axios';
-import '../../html/css/Country.css'; // Ensure this CSS file is created
+import '../../html/css/Country.css';
 
 export default function CountryList() {
     const { countries, countriesDispatch, handleEditClick } = useContext(CountryContext);
@@ -10,6 +11,18 @@ export default function CountryList() {
 
     const [sortConfig, setSortConfig] = useState({ key: 'countryName', direction: 'ascending' });
     const [searchQuery, setSearchQuery] = useState('');
+
+    useEffect(() => {
+        axios.get('/api/admin/countries', {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        })
+        .then(response => {
+            console.log("Fetched Countries Data:", response.data);
+            countriesDispatch({ type: 'SET_COUNTRIES', payload: response.data });
+        })
+        .catch(error => console.log("API Fetch Error:", error));
+    }, [countriesDispatch]); // ✅ Included 'countriesDispatch' here
+    
 
     const handleRemove = async (id) => {
         const userInput = window.confirm('Are you sure you want to remove this country?');
@@ -25,18 +38,25 @@ export default function CountryList() {
         }
     };
 
-    const handleEdit = (id) => {
-        countriesDispatch({ type: 'SET_EDIT_ID', payload: id });
-    };
+    
+    // const findRegionName = useCallback((regionId) => {
+    //     if (regions.data) {
+    //         const region = regions.data.find(r => r._id === regionId);
+    //         return region ? region.regionName : 'Unknown Region';
+    //     }
+    //     return 'Unknown Region';
+    // }, [regions]);
 
-    const findRegionName = (regionId) => {
-        if (regions.data) {
-            const region = regions.data.find(r => r._id === regionId);
-            return region ? region.regionName : 'Unknown Region';
+    const findRegionName = useCallback((regionId) => {
+        if (!regions?.data || regions.data.length === 0) {
+            return 'Loading...'; // ✅ Show 'Loading...' instead of 'Unknown Region'
         }
-        return 'Unknown Region';
-    };
-
+        
+        const region = regions.data.find(r => r._id === regionId);
+        return region ? region.regionName : 'Unknown Region';
+    }, [regions]);
+    
+    
     const requestSort = (key) => {
         let direction = 'ascending';
         if (sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -45,46 +65,36 @@ export default function CountryList() {
         setSortConfig({ key, direction });
     };
 
-    // Sorting logic
     const sortedCountries = useMemo(() => {
+        console.log("Sorting countries:", countries.data);
+    
+        if (!Array.isArray(countries.data) || countries.data.length === 0) {
+            return [];
+        }
+    
         let sortableCountries = [...countries.data];
-
+    
         if (sortConfig !== null) {
             sortableCountries.sort((a, b) => {
-                let aValue, bValue;
-
-                switch (sortConfig.key) {
-                    case 'countryName':
-                        aValue = a.countryName.toLowerCase();
-                        bValue = b.countryName.toLowerCase();
-                        break;
-                    case 'region':
-                        aValue = findRegionName(a.regionId).toLowerCase();
-                        bValue = findRegionName(b.regionId).toLowerCase();
-                        break;
-                    default:
-                        aValue = a[sortConfig.key];
-                        bValue = b[sortConfig.key];
-                        break;
-                }
-
-                if (aValue < bValue) {
-                    return sortConfig.direction === 'ascending' ? -1 : 1;
-                }
-                if (aValue > bValue) {
-                    return sortConfig.direction === 'ascending' ? 1 : -1;
-                }
+                let aValue = a.countryName?.toLowerCase() || "";
+                let bValue = b.countryName?.toLowerCase() || "";
+    
+                if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
+                if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
                 return 0;
             });
         }
-
-        // Filter based on search query
+    
         return sortableCountries.filter(country => 
             country.countryName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             findRegionName(country.regionId).toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [countries.data, sortConfig, regions.data, searchQuery]);
-
+    }, [countries, sortConfig, searchQuery, findRegionName]); // ✅ Added findRegionName here
+    
+    if (!countries?.data || !regions?.data) {
+        return <p>Loading data...</p>; // ✅ Prevent rendering empty data
+    }
+    
     return (
         <div className="country-list-container">
             <input
@@ -108,17 +118,23 @@ export default function CountryList() {
                     </tr>
                 </thead>
                 <tbody>
-                    {sortedCountries.map((country) => (
-                        <tr key={country._id}>
-                            <td>{country.countryName}</td>
-                            <td>{findRegionName(country.regionId)}</td>
-                            <td>{country.generalComment}</td>
-                            <td>
-                                <button className="edit-btn" onClick={() => handleEditClick(country._id)}>Edit</button>
-                                <button className="remove-btn" onClick={() => handleRemove(country._id)}>Remove</button>
-                            </td>
+                    {sortedCountries.length > 0 ? (
+                        sortedCountries.map((country) => (
+                            <tr key={country._id}>
+                                <td>{country.countryName || "N/A"}</td>
+                                <td>{findRegionName(country.regionId) || "N/A"}</td>
+                                <td>{country.generalComment || "N/A"}</td>
+                                <td>
+                                    <button className="edit-btn" onClick={() => handleEditClick(country._id)}>Edit</button>
+                                    <button className="remove-btn" onClick={() => handleRemove(country._id)}>Remove</button>
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="4" style={{ textAlign: "center", color: "red" }}>No Data Available</td>
                         </tr>
-                    ))}
+                    )}
                 </tbody>
             </table>
         </div>

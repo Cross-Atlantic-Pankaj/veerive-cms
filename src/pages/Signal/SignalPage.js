@@ -6,7 +6,7 @@ import SignalContext from '../../context/SignalContext';
 import '../../html/css/Signal.css';
 
 export default function SignalPage() {
-    const { signals, isFormVisible, handleAddClick, handleFormSubmit } = useContext(SignalContext);
+    const {  isFormVisible, handleAddClick, handleFormSubmit } = useContext(SignalContext);
 
     return (
         <div className="signals-container">

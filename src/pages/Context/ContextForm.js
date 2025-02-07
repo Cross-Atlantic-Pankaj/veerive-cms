@@ -7,7 +7,7 @@ import 'react-quill/dist/quill.snow.css'; // Import Quill styles
 import '../../html/css/Context.css';
 
 export default function ContextForm({ handleFormSubmit }) {
-    const { posts: postsData, contexts, contextsDispatch, sectors: sectorsData, subSectors: subSectorsData, signals: signalsData, subSignals: subSignalsData, themes: themesData, setIsFormVisible, isFormVisible } = useContext(ContextContext);
+    const { posts, contexts, contextsDispatch, sectors: sectorsData, subSectors: subSectorsData, signals: signalsData, subSignals: subSignalsData, themes: themesData, setIsFormVisible, isFormVisible } = useContext(ContextContext);
     
     // State for form inputs
     const [contextTitle, setContextTitle] = useState('');
@@ -66,7 +66,7 @@ export default function ContextForm({ handleFormSubmit }) {
                 // Set selected posts with the correct format for react-select
                 setSelectedPosts(context.posts.map(post => ({
                     value: post.postId, // Make sure to pass the correct postId
-                    label: postsData.find(p => p._id === post.postId)?.postTitle || '',
+                    label: posts.find(p => p._id === post.postId)?.postTitle || '',
                     includeInContainer: post.includeInContainer // Preserve the includeInContainer field
                 })));
                 
@@ -127,7 +127,7 @@ export default function ContextForm({ handleFormSubmit }) {
             
         }
         
-    }, [contexts.editId, contexts.data]);
+    }, [contexts.editId, contexts.data,posts]);
 
    
 
@@ -259,12 +259,12 @@ export default function ContextForm({ handleFormSubmit }) {
         label: theme.themeTitle
     }));
 
-    // Convert posts into a format suitable for react-select
-    const postOptions = postsData.map(post => ({
-        value: post._id,
-        label: post.postTitle
-   }));
-
+    
+const postOptions = Array.isArray(posts) ? posts.map(post => ({
+    value: post._id,
+    label: post.postTitle
+  })) : [];
+  
     return (
         <div className="context-form-container">
             <button type="button" className="submit-btn" onClick={() => setIsFormVisible(false)}>Context Home</button>

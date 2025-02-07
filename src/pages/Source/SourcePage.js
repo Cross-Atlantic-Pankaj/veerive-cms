@@ -6,7 +6,7 @@ import SourceContext from '../../context/SourceContext';
 import '../../html/css/Source.css';
 
 const SourcePage = () => {
-    const { sources, isFormVisible, handleAddClick, handleFormSubmit } = useContext(SourceContext);
+    const {  isFormVisible, handleAddClick, handleFormSubmit } = useContext(SourceContext);
 
     return (
         <div className="source-page">

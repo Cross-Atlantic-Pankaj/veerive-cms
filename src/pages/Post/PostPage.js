@@ -5,7 +5,7 @@ import PostForm from './PostForm';
 import '../../html/css/Post.css';
 
 const PostPage = () => {
-    const { posts, isFormVisible, handleAddClick, handleFormSubmit } = useContext(PostContext);
+    const {  isFormVisible,  handleFormSubmit } = useContext(PostContext);
 
     return (
         <div className="posts-container">

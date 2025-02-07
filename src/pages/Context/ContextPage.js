@@ -6,7 +6,7 @@ import '../../html/css/Context.css'; // Import the CSS file for styling the Cont
 
 const ContextPage = () => { // Define the functional component ContextPage
     // Use the useContext hook to access context values and functions
-    const { contexts, isFormVisible, handleAddClick, handleFormSubmit } = useContext(ContextContext);
+    const {  isFormVisible,  handleFormSubmit } = useContext(ContextContext);
 
     return (
         <div className="contexts-container"> {/* Container div for the contexts page */}

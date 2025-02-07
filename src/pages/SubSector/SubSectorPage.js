@@ -6,7 +6,7 @@ import SectorContext from '../../context/SectorContext';
 import '../../html/css/SubSector.css';
 
 export default function SubSectorPage() {
-    const { subSectors, isFormVisible, handleAddClick, handleFormSubmit } = useContext(SubSectorContext);
+    const {  isFormVisible, handleAddClick, handleFormSubmit } = useContext(SubSectorContext);
     const { sectors } = useContext(SectorContext);
 
     return (

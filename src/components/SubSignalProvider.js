@@ -45,20 +45,42 @@ export const SubSignalProvider = ({ children }) => {
     const [successMessage, setSuccessMessage] = useState('');
 
     // useEffect hook to fetch sub-signal data from the API when the component mounts
-    useEffect(() => {
-        (async () => {
-            try {
-                // Make an API request to get sub-signal data
-                const response = await axios.get('/api/admin/sub-signals', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
-                // Dispatch action to set the fetched sub-signal data in the state
-                subSignalsDispatch({ type: 'SET_SUBSIGNALS', payload: response.data });
-            } catch (err) {
-                // Log any errors encountered during the fetch operation
-                console.log(err);
-            }
-        })();
-    }, []); // Empty dependency array ensures this effect runs only once on mount
+    // useEffect(() => {
+    //     (async () => {
+    //         try {
+    //             // Make an API request to get sub-signal data
+    //             const response = await axios.get('/api/admin/sub-signals', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
+    //             // Dispatch action to set the fetched sub-signal data in the state
+    //             subSignalsDispatch({ type: 'SET_SUBSIGNALS', payload: response.data });
+    //         } catch (err) {
+    //             // Log any errors encountered during the fetch operation
+    //             console.log(err);
+    //         }
+    //     })();
+    // }, []); // Empty dependency array ensures this effect runs only once on mount
 
+    useEffect(() => {
+        const fetchSubSignals = async () => {
+            const token = localStorage.getItem('token'); // ✅ Check for token
+            if (!token) {
+                console.log("⏳ No token found. Skipping sub-signal fetch.");
+                return; // ✅ Don't call the API if there's no token
+            }
+
+            try {
+                const response = await axios.get('/api/admin/sub-signals', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                subSignalsDispatch({ type: 'SET_SUBSIGNALS', payload: response.data });
+                console.log("✅ Sub-Signals Fetched:", response.data);
+            } catch (err) {
+                console.error("❌ Error Fetching Sub-Signals:", err);
+            }
+        };
+
+        fetchSubSignals();
+    }, []); // Runs once on mount
+    
     // Handler function to show the form and prepare for adding a new sub-signal
     const handleAddClick = () => {
         subSignalsDispatch({ type: 'SET_EDIT_ID', payload: null });

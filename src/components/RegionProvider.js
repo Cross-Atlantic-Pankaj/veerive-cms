@@ -42,20 +42,44 @@ export const RegionProvider = ({ children }) => {
     const [successMessage, setSuccessMessage] = useState('');
 
     // useEffect hook to fetch regions data from the API when the component mounts
+    // useEffect(() => {
+    //     (async () => {
+    //         try {
+    //             // Fetch regions data from the API with authorization token
+    //             const response = await axios.get('/api/admin/regions', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             // Dispatch action to update regions state with fetched data
+    //             console.log("✅ Fetched Regions:", response.data); // 🔍 Debugging log
+    //             regionsDispatch({ type: 'SET_REGIONS', payload: response.data });
+    //         } catch (err) {
+    //             // Log any errors that occur during the fetch operation
+    //             console.log(err);
+    //         }
+    //     })();
+    // }, []); // Empty dependency array means this effect runs once on component mount
+
     useEffect(() => {
-        (async () => {
+        const fetchRegions = async () => {
+            const token = localStorage.getItem('token'); // ✅ Get token from localStorage
+            if (!token) {
+                console.log("⏳ No token found. Skipping region fetch.");
+                return; // ✅ Exit early if token is missing
+            }
+    
             try {
-                // Fetch regions data from the API with authorization token
-                const response = await axios.get('/api/admin/regions', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-                // Dispatch action to update regions state with fetched data
+                const response = await axios.get('/api/admin/regions', { 
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                console.log("✅ Regions Fetched:", response.data);
                 regionsDispatch({ type: 'SET_REGIONS', payload: response.data });
             } catch (err) {
-                // Log any errors that occur during the fetch operation
-                console.log(err);
+                console.error("❌ Error Fetching Regions:", err);
             }
-        })();
-    }, []); // Empty dependency array means this effect runs once on component mount
-
+        };
+    
+        fetchRegions(); // ✅ Call only if token exists
+    }, []); // Runs once when the component mounts
+    
+    
     // Handler function to show the form and prepare for adding a new region
     const handleAddClick = () => {
         regionsDispatch({ type: 'SET_EDIT_ID', payload: null });
@@ -79,6 +103,11 @@ export const RegionProvider = ({ children }) => {
     // Provide context value to child components
     return (
         <RegionContext.Provider value={{ regions, regionsDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit }}>
+            {successMessage && ( // ✅ Display message only when it's set
+            <div className="success-message" style={{ background: "green", color: "white", padding: "8px", textAlign: "center", marginBottom: "10px" }}>
+                {successMessage}
+            </div>
+        )}
             {children}
         </RegionContext.Provider>
     );

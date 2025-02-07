@@ -37,19 +37,45 @@ export const CountryProvider = ({ children }) => {
     const { regions } = useContext(RegionContext); // Access region data from RegionContext
 
     // useEffect hook to fetch country data when the component mounts
+    // useEffect(() => {
+    //     (async () => {
+    //         try {
+    //             // Make API call to fetch countries
+    //             const response = await axios.get('/api/admin/countries', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             // Dispatch action to update state with the fetched countries
+    //             countriesDispatch({ type: 'SET_COUNTRIES', payload: response.data });
+    //         } catch (err) {
+    //             // Log any errors that occur during the API call
+    //             console.log(err);
+    //         }
+    //     })();
+    // }, []); // Empty dependency array means this effect runs once when the component mounts
+
     useEffect(() => {
-        (async () => {
+        const fetchCountries = async () => {
             try {
-                // Make API call to fetch countries
-                const response = await axios.get('/api/admin/countries', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-                // Dispatch action to update state with the fetched countries
-                countriesDispatch({ type: 'SET_COUNTRIES', payload: response.data });
+                if (regions?.data?.length > 0) { // ✅ Wait until regions are loaded
+                    const response = await axios.get('/api/admin/countries', { 
+                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    console.log("✅ Countries Fetched:", response.data);
+                    countriesDispatch({ type: 'SET_COUNTRIES', payload: response.data });
+                } else {
+                    console.log("⏳ Waiting for regions before fetching countries...");
+                }
             } catch (err) {
-                // Log any errors that occur during the API call
-                console.log(err);
+                console.log("❌ Error Fetching Countries:", err);
             }
-        })();
-    }, []); // Empty dependency array means this effect runs once when the component mounts
+        };
+    
+        if (regions?.data?.length > 0) {
+            fetchCountries(); // ✅ Fetch only when regions are available
+        }
+    }, [regions]); // ✅ Runs only when regions are updated
+    
+    // useEffect(() => {
+    //     console.log("✅ Available Regions in CountryProvider:", regions?.data);
+    // }, [regions]);
 
     // Handler function for clicking the "Add" button
     const handleAddClick = () => {
@@ -80,6 +106,11 @@ export const CountryProvider = ({ children }) => {
     // Provide country-related state and functions to child components through CountryContext
     return (
         <CountryContext.Provider value={{ countries, countriesDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit }}>
+            {successMessage && ( // ✅ Display message only when it's set
+            <div className="success-message" style={{ background: "green", color: "white", padding: "8px", textAlign: "center", marginBottom: "10px" }}>
+                {successMessage}
+            </div>
+        )}
             {children} 
         </CountryContext.Provider>
     );

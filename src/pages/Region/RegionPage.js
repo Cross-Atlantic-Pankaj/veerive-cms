@@ -5,7 +5,7 @@ import RegionContext from '../../context/RegionContext';
 import '../../html/css/Region.css';
 
 const RegionPage = () => {
-    const { regions, isFormVisible, handleAddClick, handleFormSubmit } = useContext(RegionContext);
+    const { isFormVisible, handleAddClick, handleFormSubmit } = useContext(RegionContext);
 
     return (
         <div className="regions-container">

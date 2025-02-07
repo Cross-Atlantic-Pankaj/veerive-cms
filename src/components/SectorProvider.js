@@ -42,21 +42,43 @@ export const SectorProvider = ({ children }) => {
     const [successMessage, setSuccessMessage] = useState('');
 
     // useEffect hook to fetch sectors data from the API when the component mounts
-    useEffect(() => {
-        (async () => {
-            try {
-                // Fetch sectors data from the API with authorization token
-                const response = await axios.get('/api/admin/sectors', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-                // Dispatch action to update sectors state with fetched data
-                sectorsDispatch({ type: 'SET_SECTORS', payload: response.data });
-                console.log('sector resp', response); // Log the response for debugging
-            } catch (err) {
-                // Log any errors that occur during the fetch operation
-                console.log(err);
-            }
-        })();
-    }, []); // Empty dependency array means this effect runs once on component mount
+    // useEffect(() => {
+    //     (async () => {
+    //         try {
+    //             // Fetch sectors data from the API with authorization token
+    //             const response = await axios.get('/api/admin/sectors', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             // Dispatch action to update sectors state with fetched data
+    //             sectorsDispatch({ type: 'SET_SECTORS', payload: response.data });
+    //             console.log('sector resp', response); // Log the response for debugging
+    //         } catch (err) {
+    //             // Log any errors that occur during the fetch operation
+    //             console.log(err);
+    //         }
+    //     })();
+    // }, []); // Empty dependency array means this effect runs once on component mount
 
+    useEffect(() => {
+        const fetchSectors = async () => {
+            const token = localStorage.getItem('token');  // ✅ Get token from localStorage
+            if (!token) {
+                console.log("⏳ No token found. Skipping sector fetch.");
+                return;  // ✅ Skip API call if no token is available
+            }
+    
+            try {
+                const response = await axios.get('/api/admin/sectors', { 
+                    headers: { Authorization: `Bearer ${token}` } 
+                });
+                console.log("✅ Sectors Fetched:", response.data);
+                sectorsDispatch({ type: 'SET_SECTORS', payload: response.data });
+            } catch (err) {
+                console.error("❌ Error Fetching Sectors:", err);
+            }
+        };
+    
+        fetchSectors(); // ✅ Only fetch when token exists
+    }, []);
+    
     // Handler function to show the form and prepare for adding a new sector
     const handleAddClick = () => {
         sectorsDispatch({ type: 'SET_EDIT_ID', payload: null });

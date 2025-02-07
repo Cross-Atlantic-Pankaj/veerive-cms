@@ -5,7 +5,7 @@ import ThemeForm from './ThemeForm';
 import '../../html/css/Theme.css'; // Make sure to adjust this path as needed
 
 const ThemePage = () => {
-    const { themes, isFormVisible, handleAddClick, handleFormSubmit } = useContext(ThemeContext);
+    const {  isFormVisible,  handleFormSubmit } = useContext(ThemeContext);
 
     return (
         <div className="themes-container">

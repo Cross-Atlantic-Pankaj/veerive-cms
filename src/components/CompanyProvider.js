@@ -42,19 +42,41 @@ export const CompanyProvider = ({ children }) => {
     const { subSectors } = useContext(SubSectorContext);
 
     // useEffect to fetch company data when the component mounts
+    // useEffect(() => {
+    //     (async () => {
+    //         try {
+    //             // Make API call to fetch companies
+    //             const response = await axios.get('/api/admin/companies', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             // Dispatch action to update the state with the fetched companies
+    //             companiesDispatch({ type: 'SET_COMPANIES', payload: response.data });
+    //         } catch (err) {
+    //             // Log error if the API call fails
+    //             console.log(err);
+    //         }
+    //     })();
+    // }, []); // Empty dependency array means this effect runs once on component mount
+
     useEffect(() => {
-        (async () => {
-            try {
-                // Make API call to fetch companies
-                const response = await axios.get('/api/admin/companies', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-                // Dispatch action to update the state with the fetched companies
-                companiesDispatch({ type: 'SET_COMPANIES', payload: response.data });
-            } catch (err) {
-                // Log error if the API call fails
-                console.log(err);
+        const fetchCompanies = async () => {
+            const token = localStorage.getItem('token'); // ✅ Check if token is stored
+            if (!token) {
+                console.log("⏳ No token found. Skipping companies fetch.");
+                return; // ✅ Skip fetch if no token is available
             }
-        })();
-    }, []); // Empty dependency array means this effect runs once on component mount
+
+            try {
+                const response = await axios.get('/api/admin/companies', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                companiesDispatch({ type: 'SET_COMPANIES', payload: response.data });
+                console.log("✅ Companies Fetched:", response.data);
+            } catch (err) {
+                console.error("❌ Error Fetching Companies:", err);
+            }
+        };
+
+        fetchCompanies();
+    }, []);
 
     // Function to handle the click event for adding a company
     const handleAddClick = () => {

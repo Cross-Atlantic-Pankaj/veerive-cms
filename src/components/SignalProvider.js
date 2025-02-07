@@ -42,20 +42,42 @@ export const SignalProvider = ({ children }) => {
     const [successMessage, setSuccessMessage] = useState('');
 
     // useEffect hook to fetch signals data from the API when the component mounts
+    // useEffect(() => {
+    //     (async () => {
+    //         try {
+    //             // Fetch signals data from the API with authorization token
+    //             const response = await axios.get('/api/admin/signals', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             // Dispatch action to update signals state with fetched data
+    //             signalsDispatch({ type: 'SET_SIGNALS', payload: response.data });
+    //         } catch (err) {
+    //             // Log any errors that occur during the fetch operation
+    //             console.log(err);
+    //         }
+    //     })();
+    // }, []); // Empty dependency array means this effect runs once on component mount
+
     useEffect(() => {
-        (async () => {
+        const fetchSignals = async () => {
+            const token = localStorage.getItem('token');  // ✅ Get token from localStorage
+            if (!token) {
+                console.log("⏳ No token found. Skipping signal fetch.");
+                return;  // ✅ Skip API call if no token is available
+            }
+    
             try {
-                // Fetch signals data from the API with authorization token
-                const response = await axios.get('/api/admin/signals', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-                // Dispatch action to update signals state with fetched data
+                const response = await axios.get('/api/admin/signals', { 
+                    headers: { Authorization: `Bearer ${token}` } 
+                });
+                console.log("✅ Signals Fetched:", response.data);
                 signalsDispatch({ type: 'SET_SIGNALS', payload: response.data });
             } catch (err) {
-                // Log any errors that occur during the fetch operation
-                console.log(err);
+                console.error("❌ Error Fetching Signals:", err);
             }
-        })();
-    }, []); // Empty dependency array means this effect runs once on component mount
-
+        };
+    
+        fetchSignals(); // ✅ Only fetch when token exists
+    }, []);
+    
     // Handler function to show the form and prepare for adding a new signal
     const handleAddClick = () => {
         signalsDispatch({ type: 'SET_EDIT_ID', payload: null });

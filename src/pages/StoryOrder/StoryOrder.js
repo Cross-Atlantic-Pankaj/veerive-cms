@@ -103,63 +103,6 @@ export default function StoryOrder() {
     };
 
     // Save or update story orders
-    // const handleSave = async () => {
-    //     if (!publishDate) {
-    //         alert("Please select a publish date.");
-    //         return;
-    //     }
-    
-    //     try {
-    //         const existingOrdersResponse = await axios.get('/api/admin/story-orders', {
-    //             params: { publishDate },
-    //             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    //         });
-    
-    //         const existingOrders = existingOrdersResponse.data;
-    
-    //         const storyOrders = Object.entries(rank).map(([contextTitle, contextRank]) => {
-    //             const contextId = contexts.find(context => context.contextTitle === contextTitle)._id;
-    
-    //             const existingOrder = existingOrders.find(order =>
-    //                 order.contextId.toString() === contextId.toString() &&
-    //                 new Date(order.publishDate).toISOString() === new Date(publishDate).toISOString()
-    //             );
-    
-    //             return {
-    //                 publishDate,
-    //                 contextId,
-    //                 rank: contextRank,
-    //                 _id: existingOrder ? existingOrder._id : null
-    //             };
-    //         });
-    
-    //         await Promise.all(storyOrders.map(async order => {
-    //             if (order._id) {
-    //                 await axios.put(`/api/admin/story-orders/${order._id}`, {
-    //                     rank: order.rank
-    //                 }, {
-    //                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    //                 });
-    //             } else {
-    //                 await axios.post('/api/admin/story-orders', {
-    //                     publishDate: order.publishDate,
-    //                     contextId: order.contextId,
-    //                     rank: order.rank
-    //                 }, {
-    //                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    //                 });
-    //             }
-    //         }));
-    
-    //         console.log('Story orders saved successfully');
-    
-    //         // **Fetch latest data after saving**
-    //         fetchStoryOrders();
-    
-    //     } catch (err) {
-    //         console.error('Error saving story orders:', err);
-    //     }
-    // };
     const handleSave = async () => {
         if (!publishDate || !startDate || !endDate) {
             alert("Please select a publish date, start date, and end date.");

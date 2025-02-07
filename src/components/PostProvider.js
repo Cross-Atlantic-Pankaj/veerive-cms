@@ -46,40 +46,64 @@ export const PostProvider = ({ children }) => {
     const { sources } = useContext(SourceContext); // Retrieve source data from SourceContext
 
     // useEffect hook to fetch post data when the component mounts
+    
     // useEffect(() => {
-    //     (async () => {
+    //     const fetchPosts = async () => {
     //         try {
-    //             // Make API call to fetch posts
-    //             const response = await axios.get('/api/admin/posts', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-    //             // Dispatch action to update state with the fetched posts
-    //             postsDispatch({ type: 'SET_POSTS', payload: response.data });
-    //             console.log('post resp', response); // Log the response for debugging
+    //             const response = await axios.get('/api/admin/posts', {
+    //                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    //             });
+    
+    //             console.log('✅ API Response:', response.data);
+    
+    //             // ✅ Ensure posts are extracted correctly and store them
+    //             if (response.data.success && Array.isArray(response.data.posts)) {
+    //                 postsDispatch({
+    //                     type: 'SET_POSTS',
+    //                     payload: response.data.posts
+    //                 });
+    //             } else {
+    //                 postsDispatch({ type: 'SET_POSTS', payload: [] });
+    //             }
     //         } catch (err) {
-    //             // Log any errors that occur during the API call
-    //             console.log(err);
+    //             console.error('❌ Error fetching posts:', err);
+    //             postsDispatch({ type: 'SET_POSTS', payload: [] }); // Prevent state issues
     //         }
-    //     })();
-    // }, []); // Empty dependency array means this effect runs once when the component mounts
-
+    //     };
+    
+    //     fetchPosts();
+    // }, []);
+    
     useEffect(() => {
-        (async () => {
+        const fetchPosts = async () => {
             try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    postsDispatch({ type: 'SET_POSTS', payload: [] }); // ✅ Reset posts if no token
+                    return;
+                }
+    
                 const response = await axios.get('/api/admin/posts', {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
     
-                console.log('API Response:', response.data); // ✅ Debugging
+                console.log('✅ API Response:', response.data);
     
-                // Ensure `response.data` is an array before updating state
-                postsDispatch({
-                    type: 'SET_POSTS',
-                    payload: Array.isArray(response.data) ? response.data : [] // ✅ Prevents null/undefined issues
-                });
+                if (response.data.success && Array.isArray(response.data.posts)) {
+                    postsDispatch({
+                        type: 'SET_POSTS',
+                        payload: response.data.posts
+                    });
+                } else {
+                    postsDispatch({ type: 'SET_POSTS', payload: [] });
+                }
             } catch (err) {
-                console.error('Error fetching posts:', err);
-                postsDispatch({ type: 'SET_POSTS', payload: [] }); // ✅ Ensures state is always an array
+                console.error('❌ Error fetching posts:', err);
+                postsDispatch({ type: 'SET_POSTS', payload: [] }); // ✅ Ensures state is cleared on error
             }
-        })();
+        };
+    
+        fetchPosts();
     }, []);
     
     // Handler function for clicking the "Add" button
@@ -111,6 +135,7 @@ export const PostProvider = ({ children }) => {
     // Provide post-related state and functions to child components through PostContext
     return (
         <PostContext.Provider value={{ posts, postsDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit, contexts, countries, companies, sources }}>
+            {successMessage && <div className="success-message">{successMessage}</div>}
             {children} 
         </PostContext.Provider>
     );

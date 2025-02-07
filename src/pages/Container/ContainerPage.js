@@ -5,7 +5,7 @@ import ContainerForm from './ContainerForm';
 import '../../html/css/Container.css';
 
 const ContainerPage = () => {
-    const { containers, isFormVisible, handleAddClick, handleFormSubmit } = useContext(ContainerContext);
+    const {  isFormVisible,  handleFormSubmit } = useContext(ContainerContext);
 
     return (
         <div className="containers-container">

@@ -53,19 +53,42 @@ export const ThemeProvider = ({ children }) => {
     const { subSectors } = useContext(SubSectorContext);
 
     // useEffect hook to fetch theme data from the API when the component mounts
+    // useEffect(() => {
+    //     (async () => {
+    //         try {
+    //             // Make an API request to get theme data
+    //             const response = await axios.get('/api/admin/themes', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             // Dispatch action to set the fetched theme data in the state
+    //             themesDispatch({ type: 'SET_THEMES', payload: response.data });
+    //         } catch (err) {
+    //             // Log any errors encountered during the fetch operation
+    //             console.log(err);
+    //         }
+    //     })();
+    // }, []); // Empty dependency array ensures this effect runs only once on mount
+
     useEffect(() => {
-        (async () => {
+        const fetchThemes = async () => {
+            const token = localStorage.getItem('token');  // ✅ Get token from localStorage
+            if (!token) {
+                console.log("⏳ No token found. Skipping theme fetch.");
+                return;  // ✅ Skip API call if no token is available
+            }
+    
             try {
-                // Make an API request to get theme data
-                const response = await axios.get('/api/admin/themes', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-                // Dispatch action to set the fetched theme data in the state
+                const response = await axios.get('/api/admin/themes', { 
+                    headers: { Authorization: `Bearer ${token}` } 
+                });
+                console.log("✅ Themes Fetched:", response.data);
                 themesDispatch({ type: 'SET_THEMES', payload: response.data });
             } catch (err) {
-                // Log any errors encountered during the fetch operation
-                console.log(err);
+                console.error("❌ Error Fetching Themes:", err);
             }
-        })();
-    }, []); // Empty dependency array ensures this effect runs only once on mount
+        };
+    
+        fetchThemes(); // ✅ Only fetch when token exists
+    }, []);
+    
 
     // Handler function to show the form and prepare for adding a new theme
     const handleAddClick = () => {
