@@ -1,0 +1,84 @@
+/* General container styling */
+.signals-container {
+    padding: 20px; /* Add 20px padding inside the container to create space around the content */
+    max-width: 800px; /* Set the maximum width of the container to 800px */
+    margin: 0 auto; /* Center the container horizontally within its parent */
+}
+
+/* Table styling */
+.signal-table {
+    width: 100%; /* Make the table take up the full width of its container */
+    border-collapse: collapse; /* Collapse table borders to avoid double borders */
+    margin-bottom: 20px; /* Add 20px margin below the table */
+}
+
+.signal-table th, .signal-table td {
+    padding: 10px; /* Add 10px padding inside table headers and cells */
+    text-align: left; /* Align text to the left inside table headers and cells */
+    border-bottom: 1px solid #ddd; /* Add a 1px solid border at the bottom of table headers and cells with a light grey color */
+}
+
+.signal-table th {
+    background-color: #f2f2f2; /* Set the background color of table headers to a light grey */
+}
+
+/* Button styling */
+.add-signal-btn, .edit-btn, .remove-btn {
+    background-color: #4CAF50; /* Set the background color of the buttons to green */
+    color: white; /* Set the text color of the buttons to white */
+    padding: 10px 20px; /* Add 10px padding vertically and 20px padding horizontally */
+    border: none; /* Remove the default border */
+    border-radius: 5px; /* Add rounded corners with a 5px radius */
+    cursor: pointer; /* Change cursor to a pointer to indicate the button is clickable */
+    margin-right: 10px; /* Add 10px margin to the right of the buttons */
+    transition: background-color 0.3s ease; /* Smooth transition effect for background color change */
+}
+
+.add-signal-btn {
+    margin-bottom: 10px; /* Add 10px margin below the add signal button */
+}
+
+.add-signal-btn:hover, .edit-btn:hover, .remove-btn:hover {
+    background-color: #45a049; /* Change the background color to a slightly darker green when hovered */
+}
+
+.remove-btn {
+    background-color: #f44336; /* Set the background color of the remove button to red */
+}
+
+.remove-btn:hover {
+    background-color: #e53935; /* Change the background color to a slightly darker red when hovered */
+}
+
+/* Form container styling */
+.signal-form-container {
+    margin-top: 20px; /* Add 20px margin above the form container */
+}
+
+/* Form styling */
+.signal-form {
+    display: flex; /* Use Flexbox for layout */
+    flex-direction: column; /* Arrange form elements in a column */
+    gap: 10px; /* Add 10px space between form elements */
+}
+
+.signal-input, .signal-textarea {
+    padding: 10px; /* Add 10px padding inside the input and textarea fields */
+    border: 1px solid #ccc; /* Add a 1px solid border with a light grey color */
+    border-radius: 5px; /* Add rounded corners with a 5px radius */
+    font-size: 1rem; /* Set the font size of the text to 1rem (16px) */
+}
+
+.signal-submit-btn {
+    background-color: #4CAF50; /* Set the background color of the submit button to green */
+    color: white; /* Set the text color of the submit button to white */
+    padding: 10px; /* Add 10px padding inside the submit button */
+    border: none; /* Remove the default border */
+    border-radius: 5px; /* Add rounded corners with a 5px radius */
+    cursor: pointer; /* Change cursor to a pointer to indicate the button is clickable */
+    transition: background-color 0.3s ease; /* Smooth transition effect for background color change */
+}
+
+.signal-submit-btn:hover {
+    background-color: #45a049; /* Change the background color to a slightly darker green when hovered */
+}

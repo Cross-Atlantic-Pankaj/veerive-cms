@@ -1,0 +1,74 @@
+/* Ensure the form and fields are properly aligned */
+.context-form-container {
+    padding: 20px; /* Add 20px padding inside the form container */
+}
+
+.context-form {
+    display: flex; /* Use flexbox layout for the form */
+    flex-direction: column; /* Arrange child elements in a vertical column */
+}
+
+.field-group {
+    display: flex; /* Use flexbox layout for the field group */
+    gap: 20px; /* Add 20px space between field elements */
+    margin-bottom: 20px; /* Add 20px margin below the field group */
+}
+
+.context-input, .context-select, .context-textarea {
+    margin-bottom: 10px; /* Add 10px margin below form fields */
+    width: 100%; /* Ensure input, select, and textarea take up the full width of their container */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.context-select {
+    height: 150px; /* Increased height of the multi-select fields */
+    overflow: auto; /* Allows scrolling for large content */
+}
+
+.context-textarea {
+    height: 150px; /* Increased height of textareas */
+}
+
+.context-submit-btn {
+    margin-top: 10px; /* Add 10px margin above the submit button */
+    padding: 10px; /* Add 10px padding inside the submit button */
+    font-size: 16px; /* Set font size to 16px */
+    background-color: #007bff; /* Set background color to blue */
+    color: white; /* Set text color to white */
+    border: none; /* Remove default border */
+    border-radius: 5px; /* Add rounded corners with a 5px radius */
+    cursor: pointer; /* Change cursor to a pointer on hover */
+    width: 50%; /* Set button width to 50% of its container */
+}
+
+.slider-container {
+    margin-top: 20px;
+}
+
+.slide {
+    margin-bottom: 30px; /* Increase space between slides */
+}
+
+.ql-container {
+    min-height: 200px; /* Increase height of Quill editors */
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.ql-editor {
+    padding: 10px;
+    min-height: 150px;
+}
+
+/* Align label and checkbox horizontally */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.checkbox-label {
+    margin-right: 10px;
+}

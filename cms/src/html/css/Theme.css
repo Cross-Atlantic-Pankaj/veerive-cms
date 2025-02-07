@@ -1,0 +1,148 @@
+/* General container styling */
+.theme-list-container {
+    padding: 20px;
+}
+
+/* Button styling for various buttons */
+.add-theme-btn, .edit-btn, .remove-btn, .search-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    margin: 5px;
+}
+
+/* Table styling */
+.theme-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.theme-table th, .theme-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+/* Search container styling */
+.search-container {
+    margin-bottom: 20px;
+}
+
+/* Search input styling */
+.search-input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    margin-right: 10px;
+}
+
+/* Submit button styling */
+.submit-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.submit-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Theme form container styling */
+.theme-form-container {
+    padding: 20px;
+    background: #f4f4f4;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    box-sizing: border-box; /* Ensure padding and borders are included in the width */
+}
+
+
+/* Theme form label styling */
+.theme-form label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Theme form input, select, and textarea styling */
+.theme-form input, .theme-form select, .theme-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* New styles for ReactQuill editor */
+.theme-form .quill-editor {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    min-height: 150px;
+}
+
+/* Styles for checkbox groups */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.checkbox-group label {
+    margin-right: 2px;
+}
+
+/* Styles for scores group */
+.scores-group {
+    display: flex;
+    gap: 20px;
+}
+
+.score-field {
+    flex: 1;
+}
+
+/* Flexbox adjustments for form layout */
+.theme-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 5px;
+    min-height: 100px
+}
+
+.theme-input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.theme-select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.theme-textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: vertical;
+    margin-bottom: 15px; /* Add margin to separate from checkbox */
+}
+
+

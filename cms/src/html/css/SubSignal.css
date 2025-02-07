@@ -1,0 +1,84 @@
+/* General container styling */
+.subsignals-container {
+    padding: 20px; /* Adds 20px of padding inside the container to create space around its content */
+    max-width: 800px; /* Limits the maximum width of the container to 800px */
+    margin: 0 auto; /* Centers the container horizontally within its parent */
+}
+
+/* Table styling */
+.subsignal-table {
+    width: 100%; /* Sets the table to take up the full width of its container */
+    border-collapse: collapse; /* Collapses table borders to avoid double borders between cells */
+    margin-bottom: 20px; /* Adds 20px of margin below the table */
+}
+
+.subsignal-table th, .subsignal-table td {
+    padding: 10px; /* Adds 10px of padding inside table headers and cells */
+    text-align: left; /* Aligns text to the left inside table headers and cells */
+    border-bottom: 1px solid #ddd; /* Adds a 1px solid light grey border at the bottom of table headers and cells */
+}
+
+.subsignal-table th {
+    background-color: #f2f2f2; /* Sets a light grey background color for table headers */
+}
+
+/* Button styling */
+.add-subsignal-btn, .edit-btn, .remove-btn {
+    background-color: #4CAF50; /* Sets the background color of the buttons to green */
+    color: white; /* Sets the text color of the buttons to white */
+    padding: 10px 20px; /* Adds 10px of vertical padding and 20px of horizontal padding inside the buttons */
+    border: none; /* Removes the default border from the buttons */
+    border-radius: 5px; /* Adds rounded corners with a 5px radius to the buttons */
+    cursor: pointer; /* Changes the cursor to a pointer to indicate the buttons are clickable */
+    margin-right: 10px; /* Adds 10px of margin to the right of each button */
+    transition: background-color 0.3s ease; /* Smoothly transitions the background color over 0.3 seconds when changing */
+}
+
+.add-subsignal-btn {
+    margin-bottom: 10px; /* Adds 10px of margin below the add sub-signal button */
+}
+
+.add-subsignal-btn:hover, .edit-btn:hover, .remove-btn:hover {
+    background-color: #45a049; /* Changes the background color to a slightly darker green when hovered */
+}
+
+.remove-btn {
+    background-color: #f44336; /* Sets the background color of the remove button to red */
+}
+
+.remove-btn:hover {
+    background-color: #e53935; /* Changes the background color to a slightly darker red when hovered */
+}
+
+/* Form container styling */
+.subsignal-form-container {
+    margin-top: 20px; /* Adds 20px of margin above the form container */
+}
+
+/* Form styling */
+.subsignal-form {
+    display: flex; /* Uses Flexbox for layout */
+    flex-direction: column; /* Arranges form elements in a vertical column */
+    gap: 10px; /* Adds 10px of space between each form element */
+}
+
+.subsignal-input, .subsignal-select, .subsignal-textarea {
+    padding: 10px; /* Adds 10px of padding inside input, select, and textarea elements */
+    border: 1px solid #ccc; /* Adds a 1px solid border with a light grey color */
+    border-radius: 5px; /* Adds rounded corners with a 5px radius to the form elements */
+    font-size: 1rem; /* Sets the font size to 1rem for consistency */
+}
+
+.subsignal-submit-btn {
+    background-color: #4CAF50; /* Sets the background color of the submit button to green */
+    color: white; /* Sets the text color of the submit button to white */
+    padding: 10px 20px; /* Adds 10px of vertical padding and 20px of horizontal padding inside the submit button */
+    border: none; /* Removes the default border from the submit button */
+    border-radius: 5px; /* Adds rounded corners with a 5px radius to the submit button */
+    cursor: pointer; /* Changes the cursor to a pointer to indicate the button is clickable */
+    transition: background-color 0.3s ease; /* Smoothly transitions the background color over 0.3 seconds when changing */
+}
+
+.subsignal-submit-btn:hover {
+    background-color: #45a049; /* Changes the background color to a slightly darker green when hovered */
+}
