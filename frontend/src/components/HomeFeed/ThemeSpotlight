@@ -1,0 +1,42 @@
+import React from 'react';
+import '../../html/css/ThemeSpotlight.css';
+
+export default function ThemeSpotlight () {
+    return (
+        <div className="container">
+            <div className="header">Bloomberg Opinion</div>
+            <div className="main-article">
+                <img src="/placeholder.svg?height=400&width=600" alt="Masayoshi Son gesturing towards AI symbol" className="main-image" />
+                <div className="main-content">
+                    <h1 className="main-title">Masayoshi Son Inflates the AI Bubble Even More</h1>
+                    <p className="main-subtitle">Wall Street: The AI race can't get any hotter. Masa: Hold my beer.</p>
+                    <p className="author">By Parmy Olson, Columnist</p>
+                </div>
+            </div>
+            <div className="opinion-grid">
+                <div className="opinion-item">
+                    <img src="/placeholder.svg?height=60&width=60" alt="Gearoid Reidy" className="author-image" />
+                    <div className="opinion-content">
+                        <h2 className="opinion-title">'The Simpsons' Has Become a Parody of Itself. That's a Good Thing.</h2>
+                        <p className="author">By Gearoid Reidy, Columnist</p>
+                    </div>
+                </div>
+                <div className="opinion-item">
+                    <img src="/placeholder.svg?height=60&width=60" alt="Catherine Thorbecke" className="author-image" />
+                    <div className="opinion-content">
+                        <h2 className="opinion-title">Tim Cook's China Selfies Can Only Do So Much</h2>
+                        <p className="author">By Catherine Thorbecke, Columnist</p>
+                    </div>
+                </div>
+                <div className="opinion-item">
+                    <img src="/placeholder.svg?height=60&width=60" alt="Daniel Moss" className="author-image" />
+                    <div className="opinion-content">
+                        <h2 className="opinion-title">The Inflation Struggle Is Over. Just Don't Tell Anyone</h2>
+                        <p className="author">By Daniel Moss, Columnist</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
