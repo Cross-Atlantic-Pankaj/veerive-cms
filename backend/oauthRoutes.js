@@ -96,33 +96,33 @@ router.get(
 );
 
 // LinkedIn OAuth Routes
-router.get('/linkedin', passport.authenticate('linkedin', { scope: ['r_emailaddress', 'r_liteprofile'] }));
-router.get(
-    '/linkedin/callback',
-    passport.authenticate('linkedin', { session: false }),
-    (req, res) => {
-        const token = generateToken(req.user);
-        res.status(200).json({
-            message: 'LinkedIn authentication successful',
-            token,
-            user: req.user, // User details
-        });
-    }
-);
+// router.get('/linkedin', passport.authenticate('linkedin', { scope: ['r_emailaddress', 'r_liteprofile'] }));
+// router.get(
+//     '/linkedin/callback',
+//     passport.authenticate('linkedin', { session: false }),
+//     (req, res) => {
+//         const token = generateToken(req.user);
+//         res.status(200).json({
+//             message: 'LinkedIn authentication successful',
+//             token,
+//             user: req.user, // User details
+//         });
+//     }
+// );
 
-// Twitter OAuth Routes
-router.get('/twitter', passport.authenticate('twitter'));
-router.get(
-    '/twitter/callback',
-    passport.authenticate('twitter', { session: false }),
-    (req, res) => {
-        const token = generateToken(req.user);
-        res.status(200).json({
-            message: 'Twitter authentication successful',
-            token,
-            user: req.user, // User details
-        });
-    }
-);
+// // Twitter OAuth Routes
+// router.get('/twitter', passport.authenticate('twitter'));
+// router.get(
+//     '/twitter/callback',
+//     passport.authenticate('twitter', { session: false }),
+//     (req, res) => {
+//         const token = generateToken(req.user);
+//         res.status(200).json({
+//             message: 'Twitter authentication successful',
+//             token,
+//             user: req.user, // User details
+//         });
+//     }
+// );
 
-export default router;
+ export default router;
