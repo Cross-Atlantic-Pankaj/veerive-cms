@@ -138,8 +138,8 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
-import { Strategy as LinkedInStrategy } from 'passport-linkedin-oauth2';
-import { Strategy as TwitterStrategy } from 'passport-twitter';
+// import { Strategy as LinkedInStrategy } from 'passport-linkedin-oauth2';
+// import { Strategy as TwitterStrategy } from 'passport-twitter';
 import User from '../app/models/user-model.js';
 
 const setupOAuthStrategies = () => {
@@ -202,66 +202,66 @@ const setupOAuthStrategies = () => {
         )
     );
 
-    // LinkedIn OAuth Strategy
-    passport.use(
-        new LinkedInStrategy(
-            {
-                clientID: process.env.LINKEDIN_CLIENT_ID,
-                clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-                callbackURL: process.env.LINKEDIN_CALLBACK_URL,
-                scope: ['r_emailaddress', 'r_liteprofile'],
-            },
-            async (accessToken, refreshToken, profile, done) => {
-                try {
-                    let user = await User.findOne({ email: profile.emails[0].value });
-                    if (!user) {
-                        user = new User({
-                            name: profile.displayName,
-                            email: profile.emails[0].value,
-                            provider: 'linkedin', // Set provider to 'linkedin'
-                            role: 'User',
-                        });
-                        await user.save();
-                    }
-                    done(null, user);
-                } catch (err) {
-                    console.error('Error during LinkedIn OAuth:', err);
-                    done(err, null);
-                }
-            }
-        )
-    );
+    // // LinkedIn OAuth Strategy
+    // passport.use(
+    //     new LinkedInStrategy(
+    //         {
+    //             clientID: process.env.LINKEDIN_CLIENT_ID,
+    //             clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+    //             callbackURL: process.env.LINKEDIN_CALLBACK_URL,
+    //             scope: ['r_emailaddress', 'r_liteprofile'],
+    //         },
+    //         async (accessToken, refreshToken, profile, done) => {
+    //             try {
+    //                 let user = await User.findOne({ email: profile.emails[0].value });
+    //                 if (!user) {
+    //                     user = new User({
+    //                         name: profile.displayName,
+    //                         email: profile.emails[0].value,
+    //                         provider: 'linkedin', // Set provider to 'linkedin'
+    //                         role: 'User',
+    //                     });
+    //                     await user.save();
+    //                 }
+    //                 done(null, user);
+    //             } catch (err) {
+    //                 console.error('Error during LinkedIn OAuth:', err);
+    //                 done(err, null);
+    //             }
+    //         }
+    //     )
+    // );
 
-    // Twitter OAuth Strategy
-    passport.use(
-        new TwitterStrategy(
-            {
-                consumerKey: process.env.TWITTER_CONSUMER_KEY,
-                consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
-                callbackURL: process.env.TWITTER_CALLBACK_URL,
-                includeEmail: true, // Ensure email is requested
-            },
-            async (token, tokenSecret, profile, done) => {
-                try {
-                    let email = profile.emails?.[0]?.value || `${profile.username}@twitter.com`;
-                    let user = await User.findOne({ email });
-                    if (!user) {
-                        user = new User({
-                            name: profile.displayName,
-                            email,
-                            provider: 'twitter', // Set provider to 'twitter'
-                            role: 'User',
-                        });
-                        await user.save();
-                    }
-                    done(null, user);
-                } catch (err) {
-                    console.error('Error during Twitter OAuth:', err);
-                    done(err, null);
-                }
-            }
-        )
-    );
+    // // Twitter OAuth Strategy
+    // passport.use(
+    //     new TwitterStrategy(
+    //         {
+    //             consumerKey: process.env.TWITTER_CONSUMER_KEY,
+    //             consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
+    //             callbackURL: process.env.TWITTER_CALLBACK_URL,
+    //             includeEmail: true, // Ensure email is requested
+    //         },
+    //         async (token, tokenSecret, profile, done) => {
+    //             try {
+    //                 let email = profile.emails?.[0]?.value || `${profile.username}@twitter.com`;
+    //                 let user = await User.findOne({ email });
+    //                 if (!user) {
+    //                     user = new User({
+    //                         name: profile.displayName,
+    //                         email,
+    //                         provider: 'twitter', // Set provider to 'twitter'
+    //                         role: 'User',
+    //                     });
+    //                     await user.save();
+    //                 }
+    //                 done(null, user);
+    //             } catch (err) {
+    //                 console.error('Error during Twitter OAuth:', err);
+    //                 done(err, null);
+    //             }
+    //         }
+    //     )
+    // );
 
     // Serialization and Deserialization
     passport.serializeUser((user, done) => done(null, user.id));
