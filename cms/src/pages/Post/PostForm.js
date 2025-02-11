@@ -85,6 +85,10 @@ export default function PostForm({ handleFormSubmit }) {
         return;
     }
 
+    if (!summary) {
+        alert("⚠️ Summary must be Written.");
+        return;
+    }
     if (!postType) {
         alert("⚠️ Post Type is required.");
         return;
