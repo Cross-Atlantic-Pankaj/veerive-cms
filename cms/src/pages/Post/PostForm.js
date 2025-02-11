@@ -73,6 +73,31 @@ export default function PostForm({ handleFormSubmit }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+         
+        // ✅ Check Required Fields Before Submitting
+    if (!postTitle.trim()) {
+        alert("⚠️ Post Title is required.");
+        return;
+    }
+
+    if (!date) {
+        alert("⚠️ Date is required.");
+        return;
+    }
+
+    if (!postType) {
+        alert("⚠️ Post Type is required.");
+        return;
+    }
+    if (!selectedContext) {
+        alert("⚠️ Context must be selected.");
+        return;
+    }
+
+    if (!sourceUrl.trim()) {
+        alert("⚠️ Source URL is required.");
+        return;
+    }
     
         const formData = {
             postTitle,
