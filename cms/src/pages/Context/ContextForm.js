@@ -141,6 +141,32 @@ export default function ContextForm({ handleFormSubmit }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+         
+        // ✅ Check Required Fields Before Submitting
+    if (!contextTitle.trim()) {
+        alert("⚠️ Context Title is required.");
+        return;
+    }
+
+    if (!date) {
+        alert("⚠️ Date is required.");
+        return;
+    }
+
+    if (!containerType) {
+        alert("⚠️ Container Type is required.");
+        return;
+    }
+
+    if (selectedThemes.length === 0) {
+        alert("⚠️ At least one theme must be selected.");
+        return;
+    }
+
+    if (selectedPosts.length === 0) {
+        alert("⚠️ At least one post must be assigned to the context.");
+        return;
+    }
     
         try {
             const updatedPosts = selectedPosts.map(post => ({

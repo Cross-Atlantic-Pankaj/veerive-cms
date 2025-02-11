@@ -2,6 +2,9 @@ import React, { useContext, useState, useMemo, useEffect } from 'react'; // Impo
 import ContextContext from '../../context/ContextContext'; // Importing the context for managing global state
 import axios from '../../config/axios'; // Importing axios instance for making HTTP requests
 import '../../html/css/Context.css'; // Importing the CSS file for styling the component
+import { format, parseISO } from 'date-fns';
+
+
 
 // Defining the ContextList functional component
 export default function ContextList() {
@@ -29,6 +32,10 @@ export default function ContextList() {
 
         fetchContexts();
     }, [contextsDispatch]); // Only run on mount
+
+    
+    
+    
 
     // Helper function to get sector names from IDs
     const getSectorNames = (ids, data) => {
@@ -158,18 +165,32 @@ export default function ContextList() {
         <div className="context-list-container">
             {/* Button to add a new context */}
             <button className="add-context-btn" onClick={handleAddClick}>Add Context</button>
-            <div className="search-container">
+            {/* <div className="search-container"> */}
                 {/* Input field for search query */}
-                <input
+                {/* <input
                     type="text"
                     placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)} // Update search query state
                     className="search-input"
-                />
+                /> */}
                 {/* Button to trigger search */}
-                <button className="search-btn" onClick={handleSearch}>Search</button>
-            </div>
+                {/* <button className="search-btn" onClick={handleSearch}>Search</button>
+            </div> */}
+
+                    <div className="search-container">
+                        {/* Input field for search query */}
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="search-input"
+                        />
+                        {/* Button to trigger search */}
+                        <button className="search-btn" onClick={handleSearch}>Search</button>
+                    </div>
+
             <table className="context-table">
                 <thead>
                     <tr>
