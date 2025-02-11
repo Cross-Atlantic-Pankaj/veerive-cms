@@ -175,6 +175,26 @@ useEffect(() => {
         return <h3>Loading Contexts...</h3>;
     }
 
+    const handleRemove = async (id) => {
+        const userConfirmed = window.confirm("Are you sure you want to delete this post?");
+        if (!userConfirmed) return;
+    
+        try {
+            const response = await axios.delete(`/api/admin/posts/${id}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            });
+    
+            if (response.status === 200) {
+                console.log("✅ Post Deleted:", response.data);
+                postsDispatch({ type: "REMOVE_POST", payload: id }); // ✅ Remove from UI
+            }
+        } catch (error) {
+            console.error("❌ Error deleting post:", error);
+            alert("Failed to delete post. Please try again.");
+        }
+    };
+    
+
     return (
         <div className="post-list-container">
             <button className="add-post-btn" onClick={handleAddClick}>Add Post</button>
@@ -210,7 +230,8 @@ useEffect(() => {
                                 <td>{post.postType}</td>
                                 <td>
                                     <button className="edit-btn" onClick={() => handleEditClick(post._id)}>Edit</button>
-                                    <button className="remove-btn">Remove</button>
+                                    <button className="remove-btn" onClick={() => handleRemove(post._id)}>Remove</button>
+
                                 </td>
                             </tr>
                         ))
