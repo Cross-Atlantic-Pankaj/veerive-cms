@@ -5,6 +5,8 @@ import Select from 'react-select';
 import Quill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; // Import Quill styles
 import '../../html/css/Context.css';
+import { toast } from 'react-toastify'; // ✅ Import toast
+import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 
 export default function ContextForm({ handleFormSubmit }) {
     const { posts, contexts, contextsDispatch, sectors: sectorsData, subSectors: subSectorsData, signals: signalsData, subSignals: subSignalsData, themes: themesData, setIsFormVisible, isFormVisible } = useContext(ContextContext);
@@ -42,6 +44,24 @@ export default function ContextForm({ handleFormSubmit }) {
         slide10: { title: '', description: '' }
     });
 
+    // ✅ Fetch latest posts when the form is visible
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const response = await axios.get('/api/admin/posts?page=1&limit=999', {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                });
+
+                contextsDispatch({ type: "SET_POSTS", payload: response.data.posts });
+            } catch (error) {
+                console.error("❌ Error fetching posts:", error);
+                toast.error("Error fetching posts."); // ✅ Show error message
+            }
+        };
+
+        fetchPosts();
+    }, []);
+    
     useEffect(() => {
         if (contexts.editId) {
             const context = contexts.data.find((ele) => ele._id === contexts.editId);
@@ -144,27 +164,27 @@ export default function ContextForm({ handleFormSubmit }) {
          
         // ✅ Check Required Fields Before Submitting
     if (!contextTitle.trim()) {
-        alert("⚠️ Context Title is required.");
+        toast.warn("⚠️ Context Title is required.");
         return;
     }
 
     if (!date) {
-        alert("⚠️ Date is required.");
+        toast.warn("⚠️ Date is required.");
         return;
     }
 
     if (!containerType) {
-        alert("⚠️ Container Type is required.");
+        toast.warn("⚠️ Container Type is required.");
         return;
     }
 
     if (selectedThemes.length === 0) {
-        alert("⚠️ At least one theme must be selected.");
+        toast.warn("⚠️ At least one theme must be selected.");
         return;
     }
 
     if (selectedPosts.length === 0) {
-        alert("⚠️ At least one post must be assigned to the context.");
+        toast.warn("⚠️ At least one post must be assigned to the context.");
         return;
     }
     
@@ -243,16 +263,18 @@ export default function ContextForm({ handleFormSubmit }) {
                 });
                 contextsDispatch({ type: 'UPDATE_CONTEXT', payload: response.data });
                 handleFormSubmit('Context updated successfully');
+                toast.success("✅ Context updated successfully!"); // ✅ Show success toast
             } else {
                 const response = await axios.post('/api/admin/contexts', formData, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                 });
                 contextsDispatch({ type: 'ADD_CONTEXT', payload: response.data });
                 handleFormSubmit('Context added successfully');
+                toast.success("✅ Context added successfully!"); // ✅ Show success toast
             }
         } catch (err) {
             console.error('Error submitting form:', err);
-            alert('An error occurred while submitting the form.');
+            toast.error('An error occurred while submitting the form.');
         }
     };
         
