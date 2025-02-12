@@ -157,33 +157,67 @@ export const PostProvider = ({ children }) => {
     const { sources } = useContext(SourceContext);
 
     // ✅ Fetch posts function (Now available globally)
+    // const fetchPosts = async () => {
+    //     const token = localStorage.getItem('token');
+    //     if (!token) return;
+
+    //     try {
+    //         const response = await axios.get('/api/admin/posts?page=1&limit=999', {
+    //             headers: { Authorization: `Bearer ${token}` }
+    //         });
+
+    //         console.log("🔍 API Response:", response.data); // ✅ Check structure
+
+    //         if (response.data.success && Array.isArray(response.data.posts)) {
+    //             postsDispatch({ type: 'SET_POSTS', payload: response.data.posts });
+    //         } else {
+    //             postsDispatch({ type: 'SET_POSTS', payload: [] });
+    //         }
+    //     } catch (err) {
+    //         console.error('❌ Error fetching posts:', err);
+    //         postsDispatch({ type: 'SET_POSTS', payload: [] });
+    //     }
+    // };
+
+    // // ✅ Fetch posts when component mounts
+    useEffect(() => {
+        fetchPosts();
+    }, []);
+
     const fetchPosts = async () => {
         const token = localStorage.getItem('token');
         if (!token) return;
-
+    
+        let allPosts = [];
+        let currentPage = 1;
+        const limit = 100; // Fetch in batches of 100 for better performance
+    
         try {
-            const response = await axios.get('/api/admin/posts?page=1&limit=999', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            console.log("🔍 API Response:", response.data); // ✅ Check structure
-            
-            if (response.data.success && Array.isArray(response.data.posts)) {
-                postsDispatch({ type: 'SET_POSTS', payload: response.data.posts });
-            } else {
-                postsDispatch({ type: 'SET_POSTS', payload: [] });
+            while (true) {
+                const response = await axios.get(`/api/admin/posts?page=${currentPage}&limit=${limit}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+    
+                if (response.data.success && Array.isArray(response.data.posts)) {
+                    allPosts = [...allPosts, ...response.data.posts];
+    
+                    if (response.data.posts.length < limit) break; // Exit loop if fewer results returned
+                } else {
+                    break; // Exit loop on unexpected response
+                }
+    
+                currentPage++;
             }
+    
+            console.log("🔍 Fetched All Posts:", allPosts.length);
+            postsDispatch({ type: 'SET_POSTS', payload: allPosts });
+    
         } catch (err) {
             console.error('❌ Error fetching posts:', err);
             postsDispatch({ type: 'SET_POSTS', payload: [] });
         }
     };
-
-    // ✅ Fetch posts when component mounts
-    useEffect(() => {
-        fetchPosts();
-    }, []);
-
+    
     // ✅ Handle Add Click
     const handleAddClick = () => {
         postsDispatch({ type: 'SET_EDIT_ID', payload: null });
