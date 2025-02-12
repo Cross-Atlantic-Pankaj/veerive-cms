@@ -43,21 +43,21 @@ import ResetPassword from './pages/ReasetPassword';
 
 function App() {
   const { state, loading  } = useContext(AuthContext);
-  // const postContext = useContext(PostContext); // ✅ Get PostContext safely
-  // const fetchPosts = postContext?.fetchPosts || (() => {}); // ✅ Prevent error if undefined
-
-  // useEffect(() => {
-  //   if (state.isLoggedIn && fetchPosts) {
-  //     fetchPosts(); // ✅ Fetch all posts only when logged in
-  //   }
-  // }, [state.isLoggedIn, fetchPosts]);
   const postContext = useContext(PostContext); // ✅ Get PostContext safely
+  const fetchPosts = postContext?.fetchPosts || (() => {}); // ✅ Prevent error if undefined
 
   useEffect(() => {
-    if (state.isLoggedIn && postContext?.fetchPosts) {
-      postContext.fetchPosts(); // ✅ Fetch all posts only when logged in
+    if (state.isLoggedIn && fetchPosts) {
+      fetchPosts(); // ✅ Fetch all posts only when logged in
     }
-  }, [state.isLoggedIn]); // ✅ Removed fetchPosts from dependency array
+  }, [state.isLoggedIn, fetchPosts]);
+  //const postContext = useContext(PostContext); // ✅ Get PostContext safely
+
+  // useEffect(() => {
+  //   if (state.isLoggedIn && postContext?.fetchPosts) {
+  //     postContext.fetchPosts(); // ✅ Fetch all posts only when logged in
+  //   }
+  // }, [state.isLoggedIn]); // ✅ Removed fetchPosts from dependency array
 
   // If loading is true, show a loading indicator
   if (loading) {
