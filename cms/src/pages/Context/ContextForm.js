@@ -7,10 +7,12 @@ import 'react-quill/dist/quill.snow.css'; // Import Quill styles
 import '../../html/css/Context.css';
 import { toast } from 'react-toastify'; // ✅ Import toast
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
+import PostContext from '../../context/PostContext';
 
 export default function ContextForm({ handleFormSubmit }) {
-    const { posts, contexts, contextsDispatch, sectors: sectorsData, subSectors: subSectorsData, signals: signalsData, subSignals: subSignalsData, themes: themesData, setIsFormVisible, isFormVisible } = useContext(ContextContext);
-    
+    const { contexts, contextsDispatch, sectors: sectorsData, subSectors: subSectorsData, signals: signalsData, subSignals: subSignalsData, themes: themesData, setIsFormVisible, isFormVisible } = useContext(ContextContext);
+    const{ posts, fetchPosts} = useContext(PostContext)
+
     // State for form inputs
     const [contextTitle, setContextTitle] = useState('');
     const [date, setDate] = useState(''); // New state for date field
@@ -159,6 +161,20 @@ export default function ContextForm({ handleFormSubmit }) {
         selectedSignalCategories.includes(subSignal.signalId)
     );
 
+    
+
+    // ✅ Update selectedPosts when posts change
+    useEffect(() => {
+        setSelectedPosts((prevSelectedPosts) =>
+            prevSelectedPosts.map((post) => ({
+                value: post.value,
+                label: posts.find((p) => p._id === post.value)?.postTitle || post.label,
+                includeInContainer: post.includeInContainer || false,
+            }))
+        );
+        console.log("🔍 Debug: Posts in ContextForm:", posts); // ✅
+    }, [posts]); // ✅ Runs when posts update
+
     const handleSubmit = async (e) => {
         e.preventDefault();
          
@@ -264,6 +280,7 @@ export default function ContextForm({ handleFormSubmit }) {
                 contextsDispatch({ type: 'UPDATE_CONTEXT', payload: response.data });
                 handleFormSubmit('Context updated successfully');
                 toast.success("✅ Context updated successfully!"); // ✅ Show success toast
+                await fetchPosts(); // ✅ Fetch latest posts after adding a new one
             } else {
                 const response = await axios.post('/api/admin/contexts', formData, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
@@ -271,6 +288,7 @@ export default function ContextForm({ handleFormSubmit }) {
                 contextsDispatch({ type: 'ADD_CONTEXT', payload: response.data });
                 handleFormSubmit('Context added successfully');
                 toast.success("✅ Context added successfully!"); // ✅ Show success toast
+                await fetchPosts(); // ✅ Fetch latest posts after adding a new one
             }
         } catch (err) {
             console.error('Error submitting form:', err);
@@ -308,11 +326,17 @@ export default function ContextForm({ handleFormSubmit }) {
     }));
 
     
-const postOptions = Array.isArray(posts) ? posts.map(post => ({
-    value: post._id,
-    label: post.postTitle
-  })) : [];
-  
+// const postOptions = Array.isArray(posts) ? posts.map(post => ({
+//     value: post._id,
+//     label: post.postTitle
+//   })) : [];
+const postOptions = Array.isArray(posts.data) && posts.data.length > 0
+? posts.data.map(post => ({
+    value: post._id || post.id, // Ensure correct ID
+    label: post.postTitle || post.title || "Untitled Post" // Ensure correct title
+}))
+: [];
+console.log("🔍 Processed Post Options:", postOptions);
     return (
         <div className="context-form-container">
             <button type="button" className="submit-btn" onClick={() => setIsFormVisible(false)}>Context Home</button>
@@ -455,14 +479,25 @@ const postOptions = Array.isArray(posts) ? posts.map(post => ({
                     <div className="row">
                     <div className="column">
                         <label htmlFor="posts"><b>Posts</b></label>
-                        <Select
+                        {/* <Select
                             id="posts"
                             isMulti
                             options={postOptions}
                             value={selectedPosts}
                             onChange={setSelectedPosts}
                             className="context-select"
+                        /> */}
+                        <Select
+                            id="posts"
+                            isMulti
+                            options={postOptions}
+                            value={selectedPosts}
+                            onChange={setSelectedPosts}
+                            getOptionLabel={(e) => e.label} // Ensure labels appear
+                            getOptionValue={(e) => e.value} // Ensure values map correctly
+                            className="context-select"
                         />
+
                     </div>
                 </div>
 
