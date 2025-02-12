@@ -1,9 +1,10 @@
-
 import React, { useContext, useState, useEffect, useMemo } from "react";
 import PostContext from "../../context/PostContext";
 import ContextContext from "../../context/ContextContext"; // ✅ Import Context Provider
 import axios from "../../config/axios";
 import "../../html/css/Post.css";
+import { toast } from 'react-toastify'; // ✅ Import toast
+import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 
 export default function PostList() {
     const { posts, postsDispatch, handleAddClick, handleEditClick } = useContext(PostContext);
@@ -27,6 +28,7 @@ export default function PostList() {
         }
     }, []);
 
+    
     // ✅ Fetch Posts with Pagination
     const fetchPosts = async () => {
         try {
@@ -40,9 +42,11 @@ export default function PostList() {
                 postsDispatch({ type: "SET_POSTS", payload: response.data.posts });
                 //setTotalPages(response.data.totalPages);
                 setTotalPages(response.data.totalPages || 1);
+                toast.success('Fetched posts successfully!')
             }
         } catch (error) {
             console.error("❌ API Fetch Error:", error);
+            toString.error("❌ API Fetch Error:", error);
         }
     };
 
@@ -78,6 +82,7 @@ export default function PostList() {
             setPage(1);
         } catch (error) {
             console.error("❌ Search API Error:", error);
+            toast.error("❌ Search API Error:", error);
         }
     };
     
@@ -187,10 +192,11 @@ useEffect(() => {
             if (response.status === 200) {
                 console.log("✅ Post Deleted:", response.data);
                 postsDispatch({ type: "REMOVE_POST", payload: id }); // ✅ Remove from UI
+                toast.success('posts removed successfully!')
             }
         } catch (error) {
             console.error("❌ Error deleting post:", error);
-            alert("Failed to delete post. Please try again.");
+            toast.error("Failed to delete post. Please try again.");
         }
     };
     
