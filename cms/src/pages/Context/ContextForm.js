@@ -67,11 +67,14 @@ export default function ContextForm({ handleFormSubmit }) {
 
     // ✅ Fix: Fetch posts only if they are not already fetched
     useEffect(() => {
-        if (posts.data.length === 0) {
+        if (!posts.data || posts.data.length === 0) {
             console.log("🔄 Fetching posts since none exist in state...");
-            fetchPosts(); // Fetch posts only if they haven't been fetched
+            fetchPosts();  // ✅ Fetch all posts
+        } else {
+            console.log("✅ Posts already available in ContextForm:", posts.data.length);
         }
-    }, [fetchPosts]); // ✅ Dependency updated
+    }, [posts.data]);  // ✅ Fix dependency
+
     
     useEffect(() => {
         if (contexts.editId) {
