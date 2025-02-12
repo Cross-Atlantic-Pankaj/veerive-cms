@@ -68,9 +68,10 @@ export default function ContextForm({ handleFormSubmit }) {
     // ✅ Fix: Fetch posts only if they are not already fetched
     useEffect(() => {
         if (posts.data.length === 0) {
-            fetchPosts();  // ✅ Ensure all posts are fetched
+            console.log("🔄 Fetching posts since none exist in state...");
+            fetchPosts(); // Fetch posts only if they haven't been fetched
         }
-    }, [posts]); // ✅ Runs when posts update
+    }, [fetchPosts]); // ✅ Dependency updated
     
     useEffect(() => {
         if (contexts.editId) {
@@ -172,16 +173,34 @@ export default function ContextForm({ handleFormSubmit }) {
     
 
     // ✅ Update selectedPosts when posts change
+    // useEffect(() => {
+    //     setSelectedPosts((prevSelectedPosts) =>
+    //         prevSelectedPosts.map((post) => ({
+    //             value: post.value,
+    //             label: posts.find((p) => p._id === post.value)?.postTitle || post.label,
+    //             includeInContainer: post.includeInContainer || false,
+    //         }))
+    //     );
+    //     console.log("🔍 Debug: Posts in ContextForm:", posts); // ✅
+    // }, [posts]); // ✅ Runs when posts update
+
     useEffect(() => {
+        if (!posts || posts.length === 0) return; // ✅ Avoid running if posts are empty
+    
         setSelectedPosts((prevSelectedPosts) =>
-            prevSelectedPosts.map((post) => ({
-                value: post.value,
-                label: posts.find((p) => p._id === post.value)?.postTitle || post.label,
-                includeInContainer: post.includeInContainer || false,
-            }))
+            prevSelectedPosts.map((post) => {
+                const matchedPost = posts.find((p) => p._id === post.value);
+                return {
+                    value: post.value,
+                    label: matchedPost ? matchedPost.postTitle || post.label : post.label,
+                    includeInContainer: post.includeInContainer || false,
+                };
+            })
         );
-        console.log("🔍 Debug: Posts in ContextForm:", posts); // ✅
+    
+        console.log("🔍 Debug: Updated Posts in ContextForm:", posts); // ✅ Debugging log
     }, [posts]); // ✅ Runs when posts update
+    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -338,13 +357,23 @@ export default function ContextForm({ handleFormSubmit }) {
 //     value: post._id,
 //     label: post.postTitle
 //   })) : [];
+// const postOptions = Array.isArray(posts.data) && posts.data.length > 0
+// ? posts.data.map(post => ({
+//     value: post._id || post.id, // Ensure correct ID
+//     label: post.postTitle || post.title || "Untitled Post" // Ensure correct title
+// }))
+// : [];
+// console.log("🔍 Processed Post Options:", postOptions);
+
 const postOptions = Array.isArray(posts.data) && posts.data.length > 0
-? posts.data.map(post => ({
-    value: post._id || post.id, // Ensure correct ID
-    label: post.postTitle || post.title || "Untitled Post" // Ensure correct title
-}))
-: [];
+    ? posts.data.map(post => ({
+        value: post._id || post.id, // Ensure correct ID
+        label: post.postTitle || post.title || "Untitled Post" // Ensure correct title
+    }))
+    : [];
+
 console.log("🔍 Processed Post Options:", postOptions);
+
     return (
         <div className="context-form-container">
             <button type="button" className="submit-btn" onClick={() => setIsFormVisible(false)}>Context Home</button>
