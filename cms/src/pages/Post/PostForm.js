@@ -10,7 +10,7 @@ import { toast } from 'react-toastify'; // ✅ Import toast
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 
 export default function PostForm({ handleFormSubmit }) {
-    const { posts, postsDispatch, contexts, countries, companies, sources, setIsFormVisible, isFormVisible } = useContext(PostContext);
+    const { posts, postsDispatch,fetchPosts, contexts, countries, companies, sources, setIsFormVisible, isFormVisible } = useContext(PostContext);
 
     const [postTitle, setPostTitle] = useState('');
     const [date, setDate] = useState('');
@@ -132,9 +132,11 @@ export default function PostForm({ handleFormSubmit }) {
                     postsDispatch({ type: 'UPDATE_POST', payload: response.data });
                     handleFormSubmit("Post updated successfully");
                     toast.success("✅ Context updated successfully!"); // ✅ Show success toast
-    
+                     
+                   
                     //  Call context update **only if the post update succeeds**
                     await updateContextWithPost(response.data.updatedPost._id, includeInContainer);
+                    await fetchPosts(); 
                 }
             } else {
                 response = await axios.post('/api/admin/posts', formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
@@ -144,9 +146,11 @@ export default function PostForm({ handleFormSubmit }) {
                     postsDispatch({ type: 'ADD_POST', payload: response.data });
                     handleFormSubmit("Post added successfully");
                     toast.success("✅ Context added successfully!"); // ✅ Show success toast
-    
+                    
+                    
                     //  Call context update **only if the post creation succeeds**
                     await updateContextWithPost(response.data._id, includeInContainer);
+                    await fetchPosts(); 
                 }
             }
         } catch (err) {
