@@ -3,7 +3,8 @@ import ContextContext from '../../context/ContextContext'; // Importing the cont
 import axios from '../../config/axios'; // Importing axios instance for making HTTP requests
 import '../../html/css/Context.css'; // Importing the CSS file for styling the component
 import { format, parseISO } from 'date-fns';
-
+import { toast } from 'react-toastify'; // ✅ Import toast
+import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 
 
 // Defining the ContextList functional component
@@ -26,6 +27,7 @@ export default function ContextList() {
                 contextsDispatch({ type: 'SET_CONTEXTS', payload: response.data }); // Update context state with fetched data
             } catch (error) {
                 console.error('Error fetching contexts:', error);
+                toast.error('Error fetching contexts:', error);
                 // Handle error as needed
             }
         };
@@ -140,8 +142,10 @@ export default function ContextList() {
                 const response = await axios.delete(`/api/admin/contexts/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
                 // Dispatch action to remove context from global state
                 contextsDispatch({ type: 'REMOVE_CONTEXT', payload: response.data._id });
+                toast.success('context removed successfully')
             } catch (err) {
                 alert(err.message); // Display error message if the request fails
+                toast.error(err.message)
             }
         }
     };
@@ -165,20 +169,7 @@ export default function ContextList() {
         <div className="context-list-container">
             {/* Button to add a new context */}
             <button className="add-context-btn" onClick={handleAddClick}>Add Context</button>
-            {/* <div className="search-container"> */}
-                {/* Input field for search query */}
-                {/* <input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)} // Update search query state
-                    className="search-input"
-                /> */}
-                {/* Button to trigger search */}
-                {/* <button className="search-btn" onClick={handleSearch}>Search</button>
-            </div> */}
-
-                    <div className="search-container">
+            <div className="search-container">
                         {/* Input field for search query */}
                         <input
                             type="text"
