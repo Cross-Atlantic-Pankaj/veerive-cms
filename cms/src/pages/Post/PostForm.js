@@ -6,6 +6,8 @@ import { format, parseISO } from 'date-fns';
 import ReactQuill from 'react-quill'; // Import ReactQuill
 import 'react-quill/dist/quill.snow.css'; // Import Quill styles
 import '../../html/css/Post.css'; // Ensure this CSS file is created
+import { toast } from 'react-toastify'; // ✅ Import toast
+import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 
 export default function PostForm({ handleFormSubmit }) {
     const { posts, postsDispatch, contexts, countries, companies, sources, setIsFormVisible, isFormVisible } = useContext(PostContext);
@@ -76,30 +78,29 @@ export default function PostForm({ handleFormSubmit }) {
          
         // ✅ Check Required Fields Before Submitting
     if (!postTitle.trim()) {
-        alert("⚠️ Post Title is required.");
+        toast.warn("⚠️ Post Title is required.");
         return;
     }
 
     if (!date) {
-        alert("⚠️ Date is required.");
+        toast.warn("⚠️ Date is required.");
         return;
     }
 
-    if (!summary) {
-        alert("⚠️ Summary must be Written.");
-        return;
-    }
     if (!postType) {
-        alert("⚠️ Post Type is required.");
+        toast.warn("⚠️ Post Type is required.");
         return;
     }
     if (!selectedContext) {
-        alert("⚠️ Context must be selected.");
+        toast.warn("⚠️ Context must be selected.");
         return;
     }
-
+    if (!summary) {
+        toast.warn("⚠️ Summary must be Written.");
+        return;
+    }
     if (!sourceUrl.trim()) {
-        alert("⚠️ Source URL is required.");
+        toast.warn("⚠️ Source URL is required.");
         return;
     }
     
@@ -130,6 +131,7 @@ export default function PostForm({ handleFormSubmit }) {
                     console.log("✅ Post updated successfully:", response.data);
                     postsDispatch({ type: 'UPDATE_POST', payload: response.data });
                     handleFormSubmit("Post updated successfully");
+                    toast.success("✅ Context updated successfully!"); // ✅ Show success toast
     
                     //  Call context update **only if the post update succeeds**
                     await updateContextWithPost(response.data.updatedPost._id, includeInContainer);
@@ -141,6 +143,7 @@ export default function PostForm({ handleFormSubmit }) {
                     console.log("✅ Post added successfully:", response.data);
                     postsDispatch({ type: 'ADD_POST', payload: response.data });
                     handleFormSubmit("Post added successfully");
+                    toast.success("✅ Context added successfully!"); // ✅ Show success toast
     
                     //  Call context update **only if the post creation succeeds**
                     await updateContextWithPost(response.data._id, includeInContainer);
@@ -148,7 +151,7 @@ export default function PostForm({ handleFormSubmit }) {
             }
         } catch (err) {
             console.error("❌ Error submitting form:", err.response?.data || err.message);
-            alert("An error occurred while submitting the form.");
+            toast.error("An error occurred while submitting the form.");
         }
     };
     
@@ -158,12 +161,12 @@ export default function PostForm({ handleFormSubmit }) {
    
     const updateContextWithPost = async (postId, includeInContainer) => {
         if (!selectedContext || !selectedContext.value) {
-            console.error("❌ Selected Context is missing or invalid:", selectedContext);
+            toast.error("❌ Selected Context is missing or invalid:", selectedContext);
             return; // Prevent making an invalid API request
         }
     
         if (!postId) {
-            console.error("❌ Post ID is missing or invalid:", postId);
+            toast.error("❌ Post ID is missing or invalid:", postId);
             return;
         }
     
@@ -181,9 +184,10 @@ export default function PostForm({ handleFormSubmit }) {
             );
     
             console.log("✅ Context updated successfully:", response.data);
+            toast.success("✅ Context updated with posts successfully!"); // ✅ Show success toast
         } catch (err) {
             console.error('❌ Error updating context with postId:', err.response?.data || err.message);
-            alert('An error occurred while updating the context.');
+            toast.error('An error occurred while updating the context.');
         }
     };
     
