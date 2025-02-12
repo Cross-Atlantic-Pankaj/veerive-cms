@@ -47,22 +47,30 @@ export default function ContextForm({ handleFormSubmit }) {
     });
 
     // ✅ Fetch latest posts when the form is visible
+    // useEffect(() => {
+    //     const fetchPosts = async () => {
+    //         try {
+    //             const response = await axios.get('/api/admin/posts?page=1&limit=999', {
+    //                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    //             });
+
+    //             contextsDispatch({ type: "SET_POSTS", payload: response.data.posts });
+    //         } catch (error) {
+    //             console.error("❌ Error fetching posts:", error);
+    //             toast.error("Error fetching posts."); // ✅ Show error message
+    //         }
+    //     };
+
+    //     fetchPosts();
+    // }, []);
+    
+
+    // ✅ Fix: Fetch posts only if they are not already fetched
     useEffect(() => {
-        const fetchPosts = async () => {
-            try {
-                const response = await axios.get('/api/admin/posts?page=1&limit=999', {
-                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-                });
-
-                contextsDispatch({ type: "SET_POSTS", payload: response.data.posts });
-            } catch (error) {
-                console.error("❌ Error fetching posts:", error);
-                toast.error("Error fetching posts."); // ✅ Show error message
-            }
-        };
-
-        fetchPosts();
-    }, []);
+        if (posts.data.length === 0) {
+            fetchPosts();  // ✅ Ensure all posts are fetched
+        }
+    }, [posts]); // ✅ Runs when posts update
     
     useEffect(() => {
         if (contexts.editId) {
