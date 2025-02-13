@@ -100,7 +100,8 @@ export default function ContextForm({ handleFormSubmit }) {
                 // Set selected posts with the correct format for react-select
                 setSelectedPosts(context.posts.map(post => ({
                     value: post.postId, // Make sure to pass the correct postId
-                    label: posts.find(p => p._id === post.postId)?.postTitle || '',
+                    // label: posts.find(p => p._id === post.postId)?.postTitle || '',
+                    label: Array.isArray(posts.data) ? posts.data.find(p => p._id === post.postId)?.postTitle || '' : '',
                     includeInContainer: post.includeInContainer // Preserve the includeInContainer field
                 })));
                 
@@ -188,11 +189,13 @@ export default function ContextForm({ handleFormSubmit }) {
     // }, [posts]); // ✅ Runs when posts update
 
     useEffect(() => {
-        if (!posts || posts.length === 0) return; // ✅ Avoid running if posts are empty
-    
+        //if (!posts || posts.length === 0) return; // ✅ Avoid running if posts are empty
+        if (!posts?.data || !Array.isArray(posts.data) || posts.data.length === 0) return; // ✅ Ensure posts.data is an array
         setSelectedPosts((prevSelectedPosts) =>
             prevSelectedPosts.map((post) => {
-                const matchedPost = posts.find((p) => p._id === post.value);
+                // const matchedPost = posts.find((p) => p._id === post.value);
+                const matchedPost = Array.isArray(posts.data) ? posts.data.find((p) => p._id === post.value) : undefined;
+
                 return {
                     value: post.value,
                     label: matchedPost ? matchedPost.postTitle || post.label : post.label,
@@ -228,17 +231,20 @@ export default function ContextForm({ handleFormSubmit }) {
         toast.warn("⚠️ At least one theme must be selected.");
         return;
     }
-
-    if (selectedPosts.length === 0) {
-        toast.warn("⚠️ At least one post must be assigned to the context.");
-        return;
-    }
     
         try {
-            const updatedPosts = selectedPosts.map(post => ({
-                postId: post.value,
-                includeInContainer: post.includeInContainer || false, // Preserve includeInContainer
-            }));
+            // const updatedPosts = selectedPosts.map(post => ({
+            //     postId: post.value,
+            //     includeInContainer: post.includeInContainer || false, // Preserve includeInContainer
+            // }));
+
+            const updatedPosts = selectedPosts.length > 0 
+                ? selectedPosts.map(post => ({
+                    postId: post.value,
+                    includeInContainer: post.includeInContainer || false, 
+                }))
+                : []; // Ensures an empty array if no posts are selected
+
     
             // Step 1: Fetch existing contexts tagged to each selected post
             const existingContextUpdates = await Promise.all(
@@ -535,6 +541,7 @@ console.log("🔍 Processed Post Options:", postOptions);
                             onChange={setSelectedPosts}
                             getOptionLabel={(e) => e.label} // Ensure labels appear
                             getOptionValue={(e) => e.value} // Ensure values map correctly
+                            isClearable // Allow clearing selection
                             className="context-select"
                         />
 
