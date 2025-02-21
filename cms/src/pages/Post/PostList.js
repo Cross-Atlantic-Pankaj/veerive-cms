@@ -16,10 +16,32 @@ export default function PostList() {
     const [totalPages, setTotalPages] = useState(1);
 
     // ✅ Store current page in localStorage
+    
+    // useEffect(() => {
+    //     const storedPage = parseInt(localStorage.getItem("currentPage")) || 1;
+    //     setPage(storedPage); // ✅ Restore the last visited page
+    // }, []);
+    
+    // useEffect(() => {
+    //     fetchPosts(page); // ✅ Fetch posts only for the current page
+    // }, [page]); // ✅ Only refetch when `page` changes
+    
     useEffect(() => {
-        localStorage.setItem("currentPage", page);
-    }, [page]);
-
+        const storedPage = parseInt(localStorage.getItem("currentPage"), 10);
+        
+        if (storedPage) {
+            setPage(storedPage);
+        }
+    }, []);
+    
+    useEffect(() => {
+        if (page) {
+            localStorage.setItem("currentPage", page); // ✅ Store last visited page
+            fetchPosts(page); // ✅ Fetch posts only after page is updated
+        }
+    }, [page]); // ✅ Fetch only when page changes
+    
+    
     // ✅ Reset pagination when user logs out
     useEffect(() => {
         if (!localStorage.getItem("token")) {
@@ -42,7 +64,7 @@ export default function PostList() {
                 postsDispatch({ type: "SET_POSTS", payload: response.data.posts });
                 //setTotalPages(response.data.totalPages);
                 setTotalPages(response.data.totalPages || 1);
-                toast.success('Fetched posts successfully!')
+                //toast.success('Fetched posts successfully!')
             }
         } catch (error) {
             console.error("❌ API Fetch Error:", error);
@@ -50,9 +72,6 @@ export default function PostList() {
         }
     };
 
-    useEffect(() => {
-        fetchPosts();
-    }, [page]);
 
     // ✅ Fetch full post list automatically when search query is cleared
     useEffect(() => {
@@ -62,6 +81,30 @@ export default function PostList() {
     }, [searchQuery]);
 
     // ✅ Search Function
+    // const handleSearch = async () => {
+    //     if (searchQuery.trim() === "") {
+    //         fetchPosts(); // ✅ Reset to full list when input is cleared
+    //         return;
+    //     }
+    
+    //     try {
+    //         const response = await axios.get(`/api/admin/posts?search=${searchQuery}`, {
+    //             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    //         });
+    
+    //         console.log("✅ Search Results:", response.data);
+    
+    //         postsDispatch({ type: "SET_POSTS", payload: response.data.posts });
+    
+    //         // ✅ Update total pages to 1 since search results are not paginated
+    //         setTotalPages(1);
+    //         setPage(1);
+    //     } catch (error) {
+    //         console.error("❌ Search API Error:", error);
+    //         toast.error("❌ Search API Error:", error);
+    //     }
+    // };
+    
     const handleSearch = async () => {
         if (searchQuery.trim() === "") {
             fetchPosts(); // ✅ Reset to full list when input is cleared
@@ -69,24 +112,27 @@ export default function PostList() {
         }
     
         try {
-            const response = await axios.get(`/api/admin/posts?search=${searchQuery}`, {
+            const response = await axios.get(`/api/admin/posts/all?search=${encodeURIComponent(searchQuery)}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
     
             console.log("✅ Search Results:", response.data);
     
-            postsDispatch({ type: "SET_POSTS", payload: response.data.posts });
-    
-            // ✅ Update total pages to 1 since search results are not paginated
-            setTotalPages(1);
-            setPage(1);
+            if (response.data.success) {
+                postsDispatch({ type: "SET_POSTS", payload: response.data.posts });
+                setTotalPages(1); // ✅ Search results are not paginated, set totalPages to 1
+                setPage(1); // ✅ Reset page to 1 after search
+            } else {
+                postsDispatch({ type: "SET_POSTS", payload: [] });
+                setTotalPages(1);
+                setPage(1);
+            }
         } catch (error) {
             console.error("❌ Search API Error:", error);
-            toast.error("❌ Search API Error:", error);
+            toast.error("❌ Search API Error: Please try again.");
         }
     };
     
-
     // ✅ Run search automatically when user types
 useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -101,15 +147,31 @@ useEffect(() => {
 }, [searchQuery]); // ✅ Runs whenever searchQuery changes
 
     // ✅ Context Lookup Function
-    const getContextName = (ids) => {
-        if (!Array.isArray(ids) || isLoading || !contexts?.data?.length) return "Loading...";
-        const contextNames = ids.map((id) => {
-            const item = contexts.data.find((ele) => ele._id === id);
-            return item ? item.contextTitle : "Unknown";
-        });
-        return contextNames.join(", ");
+    const getContextName = (contextsArray) => {
+        if (!contextsArray || !Array.isArray(contextsArray) || contextsArray.length === 0) {
+            return "No Contexts"; // ✅ Default message
+        }
+    
+        return contextsArray
+            .map(ctx => {
+                if (typeof ctx === "string") {
+                    return getContextTitleFromStore(ctx); // ✅ Handle context IDs
+                } else if (ctx?._id && ctx.contextTitle) {
+                    return ctx.contextTitle; // ✅ Handle populated objects
+                } else {
+                    return "Unknown Context";
+                }
+            })
+            .join(", ");
     };
-
+    
+    // ✅ Helper function to find context title from global context state
+    const getContextTitleFromStore = (contextId) => {
+        if (!contexts?.data || contexts.data.length === 0) return "Unknown Context";
+        const context = contexts.data.find(c => c._id === contextId);
+        return context ? context.contextTitle : "Unknown Context";
+    };
+    
     // ✅ Sorting Function
     const requestSort = (key) => {
         let direction = "ascending";
@@ -121,8 +183,8 @@ useEffect(() => {
 
     // ✅ Sorting and Filtering Posts
     const sortedPosts = useMemo(() => {
-        let sortablePosts = Array.isArray(posts?.data) ? [...posts.data] : [];
-
+        //let sortablePosts = Array.isArray(posts?.data) ? [...posts.data] : [];
+        let sortablePosts = Array.isArray(posts?.data) ? [...new Set(posts.data)] : []; // ✅ Remove duplicates
         if (sortConfig !== null) {
             sortablePosts.sort((a, b) => {
                 let aValue, bValue;
@@ -176,10 +238,11 @@ useEffect(() => {
     };
 
     // ✅ Show Loading State Until Contexts Load
-    if (isLoading) {
-        return <h3>Loading Contexts...</h3>;
+    if (isLoading && (!contexts?.data || contexts.data.length === 0)) {
+        console.log("🔍 Context Data in PostList:", contexts);
+        return <h3>Loading Contexts... (But showing posts)</h3>;
     }
-
+    
     const handleRemove = async (id) => {
         const userConfirmed = window.confirm("Are you sure you want to delete this post?");
         if (!userConfirmed) return;
@@ -193,6 +256,7 @@ useEffect(() => {
                 console.log("✅ Post Deleted:", response.data);
                 postsDispatch({ type: "REMOVE_POST", payload: id }); // ✅ Remove from UI
                 toast.success('posts removed successfully!')
+                await fetchPosts(); 
             }
         } catch (error) {
             console.error("❌ Error deleting post:", error);
@@ -232,7 +296,7 @@ useEffect(() => {
                             <tr key={post._id}>
                                 <td>{post.postTitle}</td>
                                 <td>{new Date(post.date).toLocaleDateString()}</td>
-                                <td>{getContextName(post.context)}</td>
+                                <td>{getContextName(post.contexts)}</td>
                                 <td>{post.postType}</td>
                                 <td>
                                     <button className="edit-btn" onClick={() => handleEditClick(post._id)}>Edit</button>

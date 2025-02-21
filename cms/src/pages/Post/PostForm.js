@@ -8,36 +8,75 @@ import 'react-quill/dist/quill.snow.css'; // Import Quill styles
 import '../../html/css/Post.css'; // Ensure this CSS file is created
 import { toast } from 'react-toastify'; // ✅ Import toast
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
+import CreatableSelect from 'react-select/creatable';
+import ContextContext from '../../context/ContextContext';
 
 export default function PostForm({ handleFormSubmit }) {
-    const { posts, postsDispatch,fetchPosts, contexts, countries, companies, sources, setIsFormVisible, isFormVisible } = useContext(PostContext);
-
+    const { posts, postsDispatch,fetchPosts,  countries, companies, sources, setIsFormVisible, isFormVisible } = useContext(PostContext);
+    const { contexts, contextsDispatch } = useContext(ContextContext);
     const [postTitle, setPostTitle] = useState('');
     const [date, setDate] = useState('');
     const [postType, setPostType] = useState('');
     const [isTrending, setIsTrending] = useState(false);
     const [homePageShow, setHomePageShow] = useState(false);
-    const [selectedContext, setSelectedContext] = useState(null); // Updated to handle object
+    const [selectedContexts, setSelectedContexts] = useState([]); // ✅ Multiple contexts
     const [selectedCountries, setSelectedCountries] = useState([]);
     const [summary, setSummary] = useState('');
     const [completeContent, setCompleteContent] = useState('');
     const [sentiment, setSentiment] = useState('');
     const [primaryCompanies, setPrimaryCompanies] = useState([]);
     const [secondaryCompanies, setSecondaryCompanies] = useState([]);
-    const [source, setSource] = useState('');
-    const [sourceUrl, setSourceUrl] = useState('');
+    const [source, setSource] = useState([]);
+    const [sourceUrls, setSourceUrls] = useState([]); // ✅ Store multiple URLs
     const [generalComment, setGeneralComment] = useState('');
     const [includeInContainer, setIncludeInContainer] = useState(false); // New state for includeInContainer field
 
+   const fetchAllContexts = async () => {
+        try {
+            const response = await axios.get("/api/admin/contexts/all", {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            });
+    
+            if (response.data.success && Array.isArray(response.data.contexts)) {
+                console.log("✅ Fetched All Contexts:", response.data.contexts.length);
+                contextsDispatch({ type: "SET_CONTEXTS", payload: { contexts: response.data.contexts } });
+            } else {
+                console.error("❌ Invalid API response:", response.data);
+                contextsDispatch({ type: "SET_CONTEXTS", payload: { contexts: [] } }); // ✅ Fallback to empty array
+            }
+        } catch (err) {
+            console.error("❌ Error fetching all contexts:", err);
+            contextsDispatch({ type: "SET_CONTEXTS", payload: { contexts: [] } }); // ✅ Fallback to empty array
+        }
+    };
+    
+    // ✅ Fetch all contexts when the form loads
     useEffect(() => {
-        if (posts.editId) {
+        fetchAllContexts();
+    }, []);
+    
+    useEffect(() => {
+        if (posts.editId && posts.data.length > 0) {
             const post = posts.data.find((ele) => ele._id === posts.editId);
+    
             if (post) {
-                const selectedContext = contexts.data.find(ctx => post.context.includes(ctx._id)) || null;
-                setSelectedContext(selectedContext ? { value: selectedContext._id, label: selectedContext.contextTitle } : null);
+                console.log("Editing Post Data:", post);
+                console.log("Editing Post Contexts:", post.contexts);
+
+                // ✅ Store form values in localStorage for persistence
                 
+            
+            setSelectedContexts(
+                post.contexts && Array.isArray(post.contexts)
+                    ? post.contexts.map(ctx => ({
+                        value: ctx._id, 
+                        label: ctx.contextTitle
+                    }))
+                    : []
+            );
+
                 setPostTitle(post.postTitle);
-                setDate(format(parseISO(post.date), 'yyyy-MM-dd')); // Format date for display
+                setDate(format(parseISO(post.date), 'yyyy-MM-dd'));
                 setPostType(post.postType);
                 setIsTrending(post.isTrending);
                 setHomePageShow(post.homePageShow);
@@ -47,62 +86,92 @@ export default function PostForm({ handleFormSubmit }) {
                 setSentiment(post.sentiment || '');
                 setPrimaryCompanies(post.primaryCompanies || []);
                 setSecondaryCompanies(post.secondaryCompanies || []);
-                setSource(post.source || '');
-                setSourceUrl(post.sourceUrl || '');
+                setSource(post.source || []);
+                setSourceUrls(post.sourceUrls || []);
                 setGeneralComment(post.generalComment || '');
-                setIncludeInContainer(post.includeInContainer || false); // Load includeInContainer if available
+                setIncludeInContainer(post.includeInContainer || false);
             }
         } else {
-            // Clear fields if no editId
-            setPostTitle('');
-            setDate('');
-            setPostType('');
-            setIsTrending(false);
-            setHomePageShow(false);
-            setSelectedContext(null);
-            setSelectedCountries([]);
-            setSummary('');
-            setCompleteContent('');
-            setSentiment('');
-            setPrimaryCompanies([]);
-            setSecondaryCompanies([]);
-            setSource('');
-            setSourceUrl('');
-            setGeneralComment('');
-            setIncludeInContainer(false); // Reset includeInContainer
+            // ✅ Restore from localStorage if available
+            const savedData = JSON.parse(localStorage.getItem("postFormData"));
+            if (savedData) {
+                console.log("Saved Form Data from LocalStorage:", savedData);
+                console.log("Saved Contexts:", savedData.contexts);
+                setSelectedContexts(
+                    savedData.contexts && Array.isArray(savedData.contexts)
+                        ? savedData.contexts.map(ctx => ({
+                              value: ctx._id,
+                              label: ctx.contextTitle
+                          }))
+                        : []
+                );
+                setPostTitle(savedData.postTitle);
+                setDate(format(parseISO(savedData.date), 'yyyy-MM-dd'));
+                setPostType(savedData.postType);
+                setIsTrending(savedData.isTrending);
+                setHomePageShow(savedData.homePageShow);
+                setSelectedCountries(savedData.countries || []);
+                setSummary(savedData.summary || '');
+                setCompleteContent(savedData.completeContent || '');
+                setSentiment(savedData.sentiment || '');
+                setPrimaryCompanies(savedData.primaryCompanies || []);
+                setSecondaryCompanies(savedData.secondaryCompanies || []);
+                setSource(savedData.source || []);
+                setSourceUrls(savedData.sourceUrls || []);
+                setGeneralComment(savedData.generalComment || '');
+                setIncludeInContainer(savedData.includeInContainer || false);
+            }
+            localStorage.removeItem("postFormData"); // ✅ Ensure old data is not restored
         }
-    }, [posts.editId, posts.data, contexts.data]);
+    }, [posts.editId, posts.data, contexts]); // ✅ Only update when posts.editId or posts.data changes
+    
 
+    // ✅ Ensure form does not disappear after reload
+    useEffect(() => {
+        if (localStorage.getItem("isFormVisible") === "true") {
+            setIsFormVisible(true);
+        }
+    }, []);
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
-         
+    
+        // ✅ Allow adding URLs without blocking due to missing fields
+        if (postTitle.trim() === "" && sourceUrls.length > 0) {
+            console.log("✅ Testing Source URLs:", sourceUrls);
+            return;
+        }
+    
         // ✅ Check Required Fields Before Submitting
-    if (!postTitle.trim()) {
-        toast.warn("⚠️ Post Title is required.");
-        return;
-    }
-
-    if (!date) {
-        toast.warn("⚠️ Date is required.");
-        return;
-    }
-
-    if (!postType) {
-        toast.warn("⚠️ Post Type is required.");
-        return;
-    }
-    if (!selectedContext) {
-        toast.warn("⚠️ Context must be selected.");
-        return;
-    }
-    if (!summary) {
-        toast.warn("⚠️ Summary must be Written.");
-        return;
-    }
-    if (!sourceUrl.trim()) {
-        toast.warn("⚠️ Source URL is required.");
-        return;
-    }
+        if (!postTitle.trim()) {
+            toast.warn("⚠️ Post Title is required.");
+            return;
+        }
+    
+        if (!date) {
+            toast.warn("⚠️ Date is required.");
+            return;
+        }
+    
+        if (!postType) {
+            toast.warn("⚠️ Post Type is required.");
+            return;
+        }
+    
+        if (!summary) {
+            toast.warn("⚠️ Summary must be Written.");
+            return;
+        }
+    
+        if (!Array.isArray(sourceUrls) || sourceUrls.length === 0) {
+            toast.warn("⚠️ At least one Source URL is required.");
+            return;
+        }
+    
+        if (!sentiment) {
+            toast.warn("⚠️ Please select a sentiment.");
+            return;
+        }
     
         const formData = {
             postTitle,
@@ -110,7 +179,9 @@ export default function PostForm({ handleFormSubmit }) {
             postType,
             isTrending,
             homePageShow,
-            context: selectedContext ? selectedContext.value : '', // Ensure valid contextId
+            contexts: selectedContexts.length > 0
+                ? selectedContexts.map(ctx => ({ _id: ctx.value, contextTitle: ctx.label }))
+                : [],
             countries: selectedCountries,
             summary,
             completeContent,
@@ -118,39 +189,63 @@ export default function PostForm({ handleFormSubmit }) {
             primaryCompanies,
             secondaryCompanies,
             source,
-            sourceUrl,
+            sourceUrls, // ✅ Send an array of URLs instead of a single URL
             generalComment
         };
     
         try {
             let response;
             if (posts.editId) {
-                response = await axios.put(`/api/admin/posts/${posts.editId}`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                response = await axios.put(`/api/admin/posts/${posts.editId}`, formData, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
     
                 if (response.status === 200) {
                     console.log("✅ Post updated successfully:", response.data);
                     postsDispatch({ type: 'UPDATE_POST', payload: response.data });
                     handleFormSubmit("Post updated successfully");
-                    toast.success("✅ Context updated successfully!"); // ✅ Show success toast
-                     
-                   
-                    //  Call context update **only if the post update succeeds**
-                    await updateContextWithPost(response.data.updatedPost._id, includeInContainer);
-                    await fetchPosts(); 
+                    toast.success("✅ Context updated successfully!");
+    
+                    // ✅ Ensure `postId` is correctly extracted
+                    const postId = response.data.updatedPost?._id || response.data._id;
+                    if (!postId) {
+                        console.error("❌ Post ID is missing in the response:", response.data);
+                        toast.error("❌ Post ID is missing or invalid.");
+                        return;
+                    }
+    
+                    await updateContextWithPost(postId, includeInContainer);
+                    await fetchPosts();
+                    setTimeout(() => {
+                        console.log("✅ Fetching updated posts...");
+                        console.log("Updated Posts:", posts.data);
+                    }, 1000);
                 }
             } else {
-                response = await axios.post('/api/admin/posts', formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                response = await axios.post('/api/admin/posts', formData, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
     
                 if (response.status === 201) {
                     console.log("✅ Post added successfully:", response.data);
                     postsDispatch({ type: 'ADD_POST', payload: response.data });
                     handleFormSubmit("Post added successfully");
-                    toast.success("✅ Context added successfully!"); // ✅ Show success toast
-                    
-                    
-                    //  Call context update **only if the post creation succeeds**
-                    await updateContextWithPost(response.data._id, includeInContainer);
-                    await fetchPosts(); 
+                    toast.success("✅ Context added successfully!");
+    
+                    // ✅ Ensure `postId` is correctly extracted
+                    const postId = response.data.post?._id || response.data._id;
+                    if (!postId) {
+                        console.error("❌ Post ID is missing in the response:", response.data);
+                        toast.error("❌ Post ID is missing or invalid.");
+                        return;
+                    }
+    
+                    await updateContextWithPost(postId, includeInContainer);
+                    await fetchPosts();
+                    setTimeout(() => {
+                        console.log("✅ Fetching updated posts...");
+                        console.log("Updated Posts:", posts.data);
+                    }, 1000);
                 }
             }
         } catch (err) {
@@ -159,56 +254,127 @@ export default function PostForm({ handleFormSubmit }) {
         }
     };
     
+    
     if (!isFormVisible) {
         return null; // Prevents rendering the form if isFormVisible is false
     }
    
     const updateContextWithPost = async (postId, includeInContainer) => {
-        if (!selectedContext || !selectedContext.value) {
-            toast.error("❌ Selected Context is missing or invalid:", selectedContext);
-            return; // Prevent making an invalid API request
-        }
+        console.log("📌 Received postId:", postId); // Log postId
+        console.log("📌 Selected contexts:", selectedContexts);
     
-        if (!postId) {
-            toast.error("❌ Post ID is missing or invalid:", postId);
+        if (!selectedContexts || selectedContexts.length === 0) {
+            toast.error("❌ No contexts selected. Please select at least one context.");
             return;
         }
     
-        console.log('🔄 Inside updateContextWithPost:', {
-            contextId: selectedContext.value,
+        if (!postId || typeof postId !== "string") { 
+            toast.error("❌ Post ID is missing or invalid.");
+            console.error("❌ Invalid postId received:", postId);
+            return;
+        }
+    
+        console.log('🔄 Updating multiple contexts with postId:', {
+            contexts: selectedContexts.map(ctx => ctx.value), // Get context IDs
             postId,
             includeInContainer
         });
     
         try {
-            const response = await axios.put(
-                `/api/admin/contexts/${selectedContext.value}/postId`,
-                { postId, includeInContainer },
-                { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-            );
-    
-            console.log("✅ Context updated successfully:", response.data);
-            toast.success("✅ Context updated with posts successfully!"); // ✅ Show success toast
+            // ✅ Send requests for each selected context
+                    await Promise.all(
+                    selectedContexts.map(async (context) => {
+            try {
+                const response = await axios.put(
+                    `/api/admin/contexts/${context.value}/postId`,
+                    { postId, includeInContainer },
+                    { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                );
+                console.log(`✅ Context ${context.label} updated successfully:`, response.data);
+            } catch (error) {
+                console.error(`❌ Error updating context ${context.label}:`, error.response?.data || error.message);
+            }
+        })
+    );
+    toast.success("✅ All selected contexts updated with posts successfully!");
         } catch (err) {
-            console.error('❌ Error updating context with postId:', err.response?.data || err.message);
-            toast.error('An error occurred while updating the context.');
+            console.error('❌ Error updating contexts with postId:', err.response?.data || err.message);
+            toast.error('An error occurred while updating the contexts.');
         }
     };
     
-    
-    const contextOptions = contexts.data.map(ctx => ({
+    const contextOptions = (contexts?.data || []).map(ctx => ({
         value: ctx._id,
         label: ctx.contextTitle
     }));
-
-    const handleSelectChange = (option) => {
-        setSelectedContext(option);
+    
+    
+    const handleSelectChange = (selectedOptions) => {
+        setSelectedContexts(selectedOptions || []); // ✅ Allow multiple selections
     };
+    
 
+    const handleSummaryChange = (value) => {
+        const cleanedSummary = value.replace(/<[^>]*>/g, '').trim(); // Remove HTML tags and spaces
+        setSummary(cleanedSummary === "" ? "" : value);
+    };
+    
     const handleHomeNav = () => {
         setIsFormVisible(false);
+        localStorage.removeItem("isFormVisible"); // ✅ Reset form state when navigating back
     };
+    
+    const handleCountriesChange = (selectedOptions) => {
+        setSelectedCountries(selectedOptions ? selectedOptions.map(option => option.value) : []);
+    };
+    
+    // Create options for react-select from countries data
+    const countryOptions = countries.data?.map(country => ({
+        value: country._id,
+        label: country.countryName
+    })) || [];
+    const handlePrimaryCompaniesChange = (selectedOptions) => {
+        setPrimaryCompanies(selectedOptions ? selectedOptions.map(option => option.value) : []);
+    };
+    
+    const primaryCompanyOptions = companies.data?.map(company => ({
+        value: company._id,
+        label: company.companyName
+    })) || [];
 
+    const handleSecondaryCompaniesChange = (selectedOptions) => {
+        setSecondaryCompanies(selectedOptions ? selectedOptions.map(option => option.value) : []);
+    };
+    
+    const secondaryCompanyOptions = companies.data?.map(company => ({
+        value: company._id,
+        label: company.companyName
+    })) || [];
+
+    const handleSourceChange = (selectedOptions) => {
+        setSource(selectedOptions ? selectedOptions.map(option => option.value) : []);
+    };
+    
+    const sourceOptions = sources.data?.map(src => ({
+        value: src._id,
+        label: src.sourceName
+    })) || [];
+    
+    const handleCreateUrl = (inputValue) => {
+        const newUrl = inputValue.trim();
+    
+        // ✅ Validate URL format (must start with "http://" or "https://")
+        if (!newUrl.startsWith("http://") && !newUrl.startsWith("https://")) {
+            toast.warn("⚠️ Please enter a valid URL (starting with http:// or https://)");
+            return;
+        }
+    
+        // ✅ Prevent duplicates
+        if (!sourceUrls.includes(newUrl)) {
+            setSourceUrls([...sourceUrls, newUrl]); // ✅ Add URL inside input field
+        }
+    };
+    
     return (
         <div className="post-form-container">
             <button type="button" className="submit-btn" onClick={handleHomeNav}>Post Home</button>
@@ -261,15 +427,17 @@ export default function PostForm({ handleFormSubmit }) {
                     onChange={(e) => setHomePageShow(e.target.checked)}
                     className="post-checkbox"
                 />
-                <label htmlFor="context"><b>Context</b></label>
-                <Select
-                    id="context"
-                    value={selectedContext}
-                    onChange={handleSelectChange}
-                    options={contextOptions}
-                    placeholder="Select Context"
-                    className="post-select"
-                />
+              <label htmlFor="Contexts"><b>Contexts</b></label>
+                    <Select
+                        id="contexts"
+                        value={selectedContexts}
+                        onChange={handleSelectChange} // ✅ Calls handleSelectChange
+                        options={contextOptions} // ✅ Uses contextOptions here
+                        isMulti
+                        placeholder="Select Context(s)"
+                        className="post-select"
+                    />
+
                 <label htmlFor="includeInContainer"><b>Include in Container?</b></label>
                 <input
                     id="includeInContainer"
@@ -279,24 +447,24 @@ export default function PostForm({ handleFormSubmit }) {
                     className="post-checkbox"
                 />
                 <label htmlFor="countries"><b>Countries</b></label>
-                <select
-                    id="countries"
-                    value={selectedCountries}
-                    onChange={(e) => setSelectedCountries(Array.from(e.target.selectedOptions, option => option.value))}
-                    className="post-select"
-                    multiple
-                >
-                    {countries.data && countries.data.map(country => (
-                        <option key={country._id} value={country._id}>{country.countryName}</option>
-                    ))}
-                </select>
+                <Select
+                        id="countries"
+                        value={countryOptions.filter(option => selectedCountries.includes(option.value))} // Set selected values
+                        onChange={handleCountriesChange} // Handle selection
+                        options={countryOptions} // Options from API
+                        isMulti // Enable multiple selection
+                        isSearchable // Enable search functionality
+                        placeholder="Search and select countries"
+                        className="post-select"
+                    />
                 <label htmlFor="summary"><b>Summary</b></label>
                 <ReactQuill
-                    id="summary"
-                    value={summary}
-                    onChange={setSummary}
-                    className="post-quill"
-                />
+                        id="summary"
+                        value={summary}
+                        onChange={handleSummaryChange}
+                        className="post-quill"
+                    />
+
                 <label htmlFor="completeContent"><b>Complete Content</b></label>
                 <textarea
                     id="completeContent"
@@ -318,50 +486,51 @@ export default function PostForm({ handleFormSubmit }) {
                     <option value="Neutral">Neutral</option>
                 </select>
                 <label htmlFor="primaryCompanies"><b>Primary Companies</b></label>
-                <select
-                    id="primaryCompanies"
-                    value={primaryCompanies}
-                    onChange={(e) => setPrimaryCompanies(Array.from(e.target.selectedOptions, option => option.value))}
-                    className="post-select"
-                    multiple
-                >
-                    {companies.data && companies.data.map(company => (
-                        <option key={company._id} value={company._id}>{company.companyName}</option>
-                    ))}
-                </select>
+                <Select
+                        id="primaryCompanies"
+                        value={primaryCompanyOptions.filter(option => primaryCompanies.includes(option.value))}
+                        onChange={handlePrimaryCompaniesChange}
+                        options={primaryCompanyOptions}
+                        isMulti
+                        isSearchable
+                        placeholder="Search and select primary companies"
+                        className="post-select"
+                    />
                 <label htmlFor="secondaryCompanies"><b>Secondary Companies</b></label>
-                <select
-                    id="secondaryCompanies"
-                    value={secondaryCompanies}
-                    onChange={(e) => setSecondaryCompanies(Array.from(e.target.selectedOptions, option => option.value))}
-                    className="post-select"
-                    multiple
-                >
-                    {companies.data && companies.data.map(company => (
-                        <option key={company._id} value={company._id}>{company.companyName}</option>
-                    ))}
-                </select>
+                <Select
+                        id="secondaryCompanies"
+                        value={secondaryCompanyOptions.filter(option => secondaryCompanies.includes(option.value))}
+                        onChange={handleSecondaryCompaniesChange}
+                        options={secondaryCompanyOptions}
+                        isMulti
+                        isSearchable
+                        placeholder="Search and select secondary companies"
+                        className="post-select"
+                    />
+
                 <label htmlFor="source"><b>Source</b></label>
-                <select
-                    id="source"
-                    value={source}
-                    onChange={(e) => setSource(e.target.value)}
-                    className="post-select"
-                >
-                    <option value="">Select Source</option>
-                    {sources.data && sources.data.map(src => (
-                        <option key={src._id} value={src._id}>{src.sourceName}</option>
-                    ))}
-                </select>
-                <label htmlFor="sourceUrl"><b>Source URL</b></label>
-                <input
-                    id="sourceUrl"
-                    type="url"
-                    placeholder="Source URL"
-                    value={sourceUrl}
-                    onChange={(e) => setSourceUrl(e.target.value)}
-                    className="post-input"
-                />
+                <Select
+                        id="source"
+                        value={sourceOptions.filter(option => source.includes(option.value))}
+                        onChange={handleSourceChange}
+                        options={sourceOptions}
+                        isMulti // ✅ Allows multiple selection
+                        isSearchable // ✅ Enables search functionality
+                        placeholder="Search and select sources"
+                        className="post-select"
+                    />
+                    <label htmlFor="sourceUrls"><b>Source URLs</b></label>
+                    <CreatableSelect
+                        id="sourceUrls"
+                        value={sourceUrls.map(url => ({ value: url, label: url }))} // ✅ Show URLs inside input field
+                        onChange={(selectedOptions) => setSourceUrls(selectedOptions.map(opt => opt.value))} // ✅ Update state
+                        isMulti
+                        isSearchable
+                        placeholder="Enter URL and press Enter"
+                        className="post-select"
+                        onCreateOption={handleCreateUrl} // ✅ Handle Enter key for adding URLs
+                    />
+
                 <label htmlFor="generalComment"><b>General Comment</b></label>
                 <textarea
                     id="generalComment"
