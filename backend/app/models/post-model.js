@@ -8,15 +8,18 @@ const postSchema = new Schema ({
     isTrending: {type: Boolean, default: false},
     includeInContainer: {type: Boolean, default: false},
     homePageShow: {type: Boolean, default: false},
-    context: [{ type: Schema.Types.ObjectId, ref: 'Context', required: true}],
+    contexts: [{ type: Schema.Types.ObjectId, ref: 'Context', required: true}],
     countries: [{ type: Schema.Types.ObjectId, ref: 'Country', required: true}],
     summary: { type: String, required: true },
     completeContent: { type: String, required: false },   
     sentiment: { type: String, enum: ['Positive', 'Negative', 'Neutral'], default: 'Neutral', required: false},
     primaryCompanies: [{ type: Schema.Types.ObjectId, ref: 'Company', required: false}],
     secondaryCompanies: [{ type: Schema.Types.ObjectId, ref: 'Company', required: false}],
-    source: { type: String, ref: 'Source', required: true},
-    sourceUrl: {type: String, required: true},
+    // source: { type: String, ref: 'Source', required: true},
+    // sourceUrl: {type: String, required: true},
+    source: [{ type: Schema.Types.ObjectId, ref: 'Source', required: true }], // ✅ Now an array
+    sourceUrls: [{ type: String, required: true }], // ✅ Now an array
+
     generalComment: { type: String, required: false },
 
     seoData: {
