@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Button, TextField, Typography } from "@mui/material";
 import axios from "../config/axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import AuthContext from "../context/AuthContext"
 
 const SettingsPage = () => {
     const [adminDetails, setAdminDetails] = useState({});
@@ -10,6 +11,7 @@ const SettingsPage = () => {
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const navigate = useNavigate(); // Use navigate hook for redirection
+    const { handleLogout } = useContext(AuthContext); 
 
     // Fetch admin details
     const fetchAdminDetails = async () => {
@@ -37,6 +39,8 @@ const SettingsPage = () => {
             );
             toast.success("Email updated successfully.");
             fetchAdminDetails(); // Refresh admin details
+            
+            handleLogout();
         } catch (err) {
             console.error("Error updating email:", err);
             toast.error("Failed to update email.");
@@ -45,22 +49,43 @@ const SettingsPage = () => {
 
     // Update password
     const handleUpdatePassword = async () => {
+        if (!currentPassword || !newPassword) {
+            toast.error("Both current and new password are required.");
+            return;
+        }
+    
         try {
-            await axios.put(
+            console.log("Sending request to update password:", {
+                currentPassword,
+                newPassword,
+            });
+    
+            const response = await axios.put(
                 "/api/users/update-password",
                 { currentPassword, newPassword },
                 {
                     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
                 }
             );
-            toast.success("Password updated successfully.");
+    
+            toast.success(response.data.message || "Password updated successfully.");
             setCurrentPassword("");
             setNewPassword("");
+            localStorage.removeItem('token'); 
+            // Log out user after password update
+            handleLogout();
         } catch (err) {
             console.error("Error updating password:", err);
-            toast.error("Failed to update password.");
+    
+            // Show error response from backend if available
+            if (err.response && err.response.data && err.response.data.message) {
+                toast.error(err.response.data.message);
+            } else {
+                toast.error("Failed to update password.");
+            }
         }
     };
+    
 
     // Navigate back to Admin Home
     const handleBackToAdminHome = () => {
@@ -104,6 +129,7 @@ const SettingsPage = () => {
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     fullWidth
                     margin="normal"
+                    autoComplete="new-password" // Prevent browser autofill
                 />
                 <TextField
                     label="New Password"
@@ -112,6 +138,7 @@ const SettingsPage = () => {
                     onChange={(e) => setNewPassword(e.target.value)}
                     fullWidth
                     margin="normal"
+                    autoComplete="new-password" // Prevent browser autofill
                 />
                 <Button variant="contained" color="secondary" onClick={handleUpdatePassword}>
                     Update Password
