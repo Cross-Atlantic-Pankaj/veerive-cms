@@ -1,144 +1,4 @@
 
-// import React, { useReducer, useEffect, useContext, useState } from 'react';
-// import axios from '../config/axios';
-// import ContextContext from '../context/ContextContext';
-// import SectorContext from '../context/SectorContext';
-// import SubSectorContext from '../context/SubSectorContext';
-// import ThemeContext from '../context/ThemeContext';
-// import SignalContext from '../context/SignalContext';
-// import SubSignalContext from '../context/SubSignalContext';
-// import AuthContext from '../context/AuthContext';
-// import PostContext from '../context/PostContext';
-
-// // ✅ Reducer to manage context state
-// const contextReducer = (state, action) => {
-//     switch (action.type) {
-//         case 'SET_CONTEXTS':
-//             return { ...state, data: action.payload, loading: false };
-//         case 'ADD_CONTEXT':
-//             return { ...state, data: [...state.data, action.payload] };
-//         case 'REMOVE_CONTEXT':
-//             return { ...state, data: state.data.filter(ele => ele._id !== action.payload) };
-//         case 'SET_EDIT_ID':
-//             return { ...state, editId: action.payload };
-//         case 'UPDATE_CONTEXT':
-//             return {
-//                 ...state,
-//                 editId: null,
-//                 data: state.data.map((ele) =>
-//                     ele._id === action.payload._id ? { ...action.payload } : ele
-//                 ),
-//             };
-//         default:
-//             return state;
-//     }
-// };
-
-// // ✅ ContextProvider Component
-// export const ContextProvider = ({ children }) => {
-//     const [contexts, contextsDispatch] = useReducer(contextReducer, { data: [], editId: null, loading: true });
-//     //const [isFormVisible, setIsFormVisible] = useState(false);
-//     const [successMessage, setSuccessMessage] = useState('');
-//     const [isLoading, setIsLoading] = useState(true);
-//     // Retrieve sector, sub-sector, theme, signal, and sub-signal data from their respective contexts
-//     const { sectors } = useContext(SectorContext);
-//     const { subSectors } = useContext(SubSectorContext);
-//     const { themes } = useContext(ThemeContext);
-//     const { signals } = useContext(SignalContext);
-//     const { subSignals } = useContext(SubSignalContext);
-//     const { state } = useContext(AuthContext); // ✅ Get login state from AuthContext
-    
-    
-//     // ✅ NEW: local state for posts
-//     const [posts, setPosts] = useState([]);
-
-//     // 1) On mount, read from localStorage
-//     const [isFormVisible, setIsFormVisible] = useState(() => {
-//     const saved = localStorage.getItem('ctxFormOpen');
-//     return saved === 'true'; // default to false if not found
-//   });
-  
-//   // 2) Whenever it changes, write to localStorage
-//   useEffect(() => {
-//     localStorage.setItem('ctxFormOpen', isFormVisible);
-//   }, [isFormVisible]);
-  
-//     useEffect(() => {
-//         const fetchContexts = async () => {
-//             try {
-//                 const token = localStorage.getItem("token");
-//                 if (!token) return; // ✅ Ensure token exists before making a request
-
-//                 const response = await axios.get("/api/admin/contexts", {
-//                     headers: { Authorization: `Bearer ${token}` },
-//                 });
-
-//                 contextsDispatch({ type: "SET_CONTEXTS", payload: response.data });
-//                 setIsLoading(false);
-//                 console.log("✅ Contexts fetched:", response.data);
-//             } catch (error) {
-//                 console.error("❌ Error fetching contexts:", error);
-//                 setIsLoading(false);
-//             }
-//         };
-
-//         if (state.isLoggedIn) {
-//             fetchContexts(); // ✅ Fetch only when user is logged in
-//         }
-//     }, [state.isLoggedIn]); // ✅ Refetch when user logs in
-
-//     // ✅ NEW: Fetch posts
-    
-// useEffect(() => {
-//     const fetchPosts = async () => {
-//     const token = localStorage.getItem('token');
-//     if (!token) return;
-  
-//     try {
-//       // Add `?limit=999` (or some large number)
-//       const res = await axios.get('/api/admin/posts?page=1&limit=999', {
-//         headers: { Authorization: `Bearer ${token}` }
-//       });
-//       setPosts(res.data.posts); // This now includes up to 999 posts
-//     } catch (err) {
-//       console.error('Error fetching posts:', err);
-//     }
-//   };
-  
-//     if (state?.isLoggedIn) {
-//         fetchPosts();
-//     }
-// }, [state?.isLoggedIn]);
-
-
-//     // ✅ Handle Add Click
-//     const handleAddClick = () => {
-//         contextsDispatch({ type: 'SET_EDIT_ID', payload: null });
-//         setIsFormVisible(true);
-//     };
-
-//     // ✅ Handle Edit Click
-//     const handleEditClick = (id) => {
-//         contextsDispatch({ type: 'SET_EDIT_ID', payload: id });
-//         setIsFormVisible(true);
-//     };
-
-//     // ✅ Handle Form Submission
-//     const handleFormSubmit = (message) => {
-//         setIsFormVisible(false);
-//         setSuccessMessage(message);
-//         setTimeout(() => setSuccessMessage(''), 3000);
-//     };
-
-    
-
-//     return (
-//         <ContextContext.Provider value={{ contexts,isLoading , posts, contextsDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit, sectors, subSectors, themes, signals, subSignals }}>
-//             {children}
-//         </ContextContext.Provider>
-//     );
-// };
-
 import React, { useReducer, useEffect, useContext, useState } from 'react';
 import axios from '../config/axios';
 import ContextContext from '../context/ContextContext';
@@ -153,7 +13,23 @@ import PostContext from '../context/PostContext'; // ✅ Import PostContext
 const contextReducer = (state, action) => {
     switch (action.type) {
         case 'SET_CONTEXTS':
-            return { ...state, data: action.payload, loading: false };
+            console.log("🔹 Updating Context State with New Data:", action.payload);
+            
+            return { 
+                ...state, 
+                data: Array.isArray(action.payload.contexts) ? action.payload.contexts : [], // ✅ Ensure `data` is always an array
+                totalPages: action.payload.totalPages || 1, 
+                currentPage: action.payload.page || 1, 
+                loading: false 
+            };
+            case 'CLEAR_CONTEXTS': // ✅ New case to clear contexts before updating
+            return { 
+                ...state, 
+                data: [], 
+                totalPages: 1, 
+                currentPage: 1, 
+                loading: true 
+            };
         case 'ADD_CONTEXT':
             return { ...state, data: [...state.data, action.payload] };
         case 'REMOVE_CONTEXT':
@@ -175,18 +51,22 @@ const contextReducer = (state, action) => {
 
 // ✅ ContextProvider Component
 export const ContextProvider = ({ children }) => {
-    const [contexts, contextsDispatch] = useReducer(contextReducer, { data: [], editId: null, loading: true });
+    //const [contexts, contextsDispatch] = useReducer(contextReducer, { data: [], editId: null, loading: true });
+    const [contexts, contextsDispatch] = useReducer(contextReducer, { data: [], totalPages: 1, currentPage: 1, editId: null, loading: true });
+    const [searchQuery, setSearchQuery] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isFormVisible, setIsFormVisible] = useState(false);
-
+    const [page, setPage] = useState(1);
     const { sectors } = useContext(SectorContext);
     const { subSectors } = useContext(SubSectorContext);
     const { themes } = useContext(ThemeContext);
     const { signals } = useContext(SignalContext);
     const { subSignals } = useContext(SubSignalContext);
     const { state } = useContext(AuthContext); // ✅ Get login state from AuthContext
-
+    
+    const [totalPages, setTotalPages] = useState(1);  // ✅ Ensure totalPages is updated
+    
     // ✅ Check if PostContext exists before using it
     const postContext = useContext(PostContext); 
     const posts = postContext?.posts || [];  // ✅ If PostContext is undefined, use empty array
@@ -201,51 +81,91 @@ export const ContextProvider = ({ children }) => {
         localStorage.setItem('ctxFormOpen', isFormVisible);
     }, [isFormVisible]);
 
-    useEffect(() => {
-        const fetchContexts = async () => {
-            try {
-                const token = localStorage.getItem("token");
-                if (!token) return;
-
-                const response = await axios.get("/api/admin/contexts", {
-                    headers: { Authorization: `Bearer ${token}` },
+    // ✅ Define fetchContexts BEFORE using it in useEffect
+    const fetchContexts = async () => {
+        setIsLoading(true); // ✅ Show loading while fetching
+    
+        try {
+            console.log(`🔍 Fetching contexts for page: ${page}, search: "${searchQuery}"`);
+            
+            const response = await axios.get(`/api/admin/contexts?page=${page}&limit=10&search=${encodeURIComponent(searchQuery)}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+            });
+    
+            if (response.data.success) {
+                console.log("✅ Fetched Contexts:", response.data.contexts.length);
+                contextsDispatch({ 
+                    type: 'SET_CONTEXTS', 
+                    payload: { 
+                        contexts: response.data.contexts, 
+                        totalPages: response.data.totalPages || 1, // ✅ Ensure totalPages updates
+                        page: response.data.page || 1 
+                    } 
                 });
-
-                contextsDispatch({ type: "SET_CONTEXTS", payload: response.data });
-                setIsLoading(false);
-            } catch (error) {
-                console.error("❌ Error fetching contexts:", error);
-                setIsLoading(false);
+    
+                setTotalPages(response.data.totalPages || 1); // ✅ Ensure pagination updates
             }
-        };
-
-        if (state.isLoggedIn) {
-            fetchContexts();
-            fetchPosts(); // ✅ Ensure posts update when user logs in
+    
+            setIsLoading(false); // ✅ Stop loading
+            fetchPosts();
+        } catch (err) {
+            console.error('❌ Error fetching contexts:', err);
+            setIsLoading(false); // ✅ Stop loading on error
         }
-    }, [state.isLoggedIn]);
+    };
+    
 
+// ✅ Now `fetchContexts` is defined before it's used in useEffect
+useEffect(() => {
+    if (state.isLoggedIn) {
+        fetchContexts();
+        fetchPosts();
+    }
+}, [state.isLoggedIn, page, searchQuery]); // ✅ Fetch only when `page` or `searchQuery` changes
+
+    
     const handleAddClick = () => {
         contextsDispatch({ type: 'SET_EDIT_ID', payload: null });
         setIsFormVisible(true);
     };
 
     const handleEditClick = (id) => {
+        localStorage.setItem('editContextId', id);  // ✅ Store editId in local storage
         contextsDispatch({ type: 'SET_EDIT_ID', payload: id });
         setIsFormVisible(true);
     };
-
+    
     const handleFormSubmit = (message) => {
         setIsFormVisible(false);
         setSuccessMessage(message);
         fetchPosts(); // ✅ Fetch latest posts after adding a new post
         setTimeout(() => setSuccessMessage(''), 3000);
     };
+    useEffect(() => {
+        const savedPage = localStorage.getItem('currentPage');
+        if (savedPage) {
+            setPage(parseInt(savedPage)); // ✅ Restore last viewed page on reload
+        }
+    }, []);
+    useEffect(() => {
+        localStorage.setItem('currentPage', page); // ✅ Save last viewed page
+    }, [page]);
 
+    useEffect(() => {
+        const savedEditId = localStorage.getItem('editContextId');
+        if (savedEditId) {
+            contextsDispatch({ type: 'SET_EDIT_ID', payload: savedEditId });
+        }
+    }, []);
+    
     return (
         <ContextContext.Provider value={{
             contexts,
             isLoading,
+            setIsLoading,
+            fetchContexts,
+            page,
+            totalPages,
             posts, // ✅ Now using latest posts from PostContext
             contextsDispatch,
             isFormVisible,
@@ -258,6 +178,10 @@ export const ContextProvider = ({ children }) => {
             themes,
             signals,
             subSignals,
+            searchQuery,
+            setSearchQuery,
+            page,
+            setPage,
         }}>
             {children}
         </ContextContext.Provider>

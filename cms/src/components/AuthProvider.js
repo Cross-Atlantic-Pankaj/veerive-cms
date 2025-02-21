@@ -32,43 +32,47 @@ function AuthProvider(props) {
     const navigate = useNavigate(); // Initialize navigate for redirecting users
     const [state, dispatch] = useReducer(reducer, initialState); // Initialize state and dispatch for handling state changes
     const [loading, setLoading] = useState(true);
-    // useEffect(() => {
-    //     (async () => {
-    //         // Check if token exists in localStorage
-    //         if (localStorage.getItem('token')) {
-    //             try {
-    //                 // Fetch user data using the token with 'Bearer' prefix
-    //                 const userResponse = await axios.get('/api/users/account', {
-    //                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    //                 });
-    //                 // Dispatch action to update state with user data
-    //                 dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
-    //             } catch (err) {
-    //                 console.error('Error fetching user data:', err);
-    //                 // Handle error if fetching user data fails (e.g., invalid or expired token)
-    //                 localStorage.removeItem('token'); // Remove invalid token
-    //             }
-    //         }
-    //     })();
-    // }, []); // Empty dependency array means this effect runs once on component mount
-    
-    useEffect(() => {
-        // On mount, attempt to retrieve user
-        (async () => {
-          if (localStorage.getItem('token')) {
+//    useEffect(() => {
+//         // On mount, attempt to retrieve user
+//         (async () => {
+//           if (localStorage.getItem('token')) {
+//             try {
+//               const userResponse = await axios.get('/api/users/account', {
+//                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+//               });
+//               dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
+//             } catch (err) {
+//               console.error('Error fetching user data:', err);
+//               localStorage.removeItem('token'); 
+//             }
+//           }
+//           setLoading(false);  // <= Done checking token
+//         })();
+//       }, []);
+
+useEffect(() => {
+    // On mount, attempt to retrieve user
+    (async () => {
+        const storedToken = localStorage.getItem('token');
+        if (storedToken) {
             try {
-              const userResponse = await axios.get('/api/users/account', {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-              });
-              dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
+                const userResponse = await axios.get('/api/users/account', {
+                    headers: { Authorization: `Bearer ${storedToken}` },
+                });
+                dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
             } catch (err) {
-              console.error('Error fetching user data:', err);
-              localStorage.removeItem('token'); 
+                console.error('Error fetching user data:', err);
+                
+                if (err.response && err.response.status === 401) { // ✅ Only remove token if unauthorized
+                    console.warn("Token expired or invalid. Removing from storage.");
+                    localStorage.removeItem('token'); 
+                }
             }
-          }
-          setLoading(false);  // <= Done checking token
-        })();
-      }, []);
+        }
+        setLoading(false);
+    })();
+}, []);
+
 
     // Function to handle user registration
         const handleRegister = async (formData) => {
@@ -82,53 +86,83 @@ function AuthProvider(props) {
     };
     
     // Function to handle user login
-    // const handleLogin = async (formData) => {
-    // try {
-    //     const response = await axios.post('/api/users/login', formData, { withCredentials: true });
-    //     localStorage.setItem('token', response.data.token); // ✅ Save token immediately
+   
+  //   const handleLogin = async (formData) => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.post('/api/users/login', formData, { withCredentials: true });
+  //     localStorage.setItem('token', response.data.token);
 
-    //     toast('Successfully logged in', { autoClose: 2000 });
+  //     // fetch the user
+  //     const userResponse = await axios.get('/api/users/account', {
+  //       headers: { Authorization: `Bearer ${response.data.token}` },
+  //     });
+  //     dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
+      
+  //     // done loading user
+  //     setLoading(false);
 
-    //     const userResponse = await axios.get('/api/users/account', {
-    //         headers: { Authorization: `Bearer ${response.data.token}` },
-    //     });
+  //     navigate('/admin-home');
+  //   } catch (err) {
+  //     setLoading(false);
+  //     // Handle error
+  //   }
+  // };
 
-    //     dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
-
-    //     console.log("✅ Login successful, user data updated:", userResponse.data);
-
+//   const handleLogin = async (formData) => {
+//     setLoading(true);
+//     try {
+//         const response = await axios.post('/api/users/login', formData, { withCredentials: true });
         
-    //     navigate('/admin-home');
-    //     // ✅ Trigger a global re-fetch of data after login
-    //     window.location.reload();
+//         if (response.data.token) {
+//             localStorage.setItem('token', response.data.token); // ✅ Ensure token is stored
+//         } else {
+//             console.error("❌ No token received from login API");
+//         }
 
-    // } catch (err) {
-    //     console.error("❌ Login failed:", err.response?.data || err.message);
-    //     const errorMessage = err.response?.data?.error || "Login failed. Please check your credentials.";
-    //     toast(errorMessage, { autoClose: 5000 });
-    // }
-//};
+//         const userResponse = await axios.get('/api/users/account', {
+//             headers: { Authorization: `Bearer ${response.data.token}` },
+//         });
+
+//         dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
+//         setLoading(false);
+//         navigate('/admin-home');
+//     } catch (err) {
+//         setLoading(false);
+//         console.error("❌ Error during login:", err);
+//         toast.error("Login failed. Please check credentials.");
+//     }
+// };
 const handleLogin = async (formData) => {
     setLoading(true);
     try {
-      const response = await axios.post('/api/users/login', formData, { withCredentials: true });
-      localStorage.setItem('token', response.data.token);
+        const response = await axios.post('/api/users/login', formData, { withCredentials: true });
 
-      // fetch the user
-      const userResponse = await axios.get('/api/users/account', {
-        headers: { Authorization: `Bearer ${response.data.token}` },
-      });
-      dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
-      
-      // done loading user
-      setLoading(false);
+        console.log("Login API Response:", response.data); // ✅ Log response to check if token is received
 
-      navigate('/admin-home');
+        if (response.data.token) {
+            localStorage.setItem('token', response.data.token); // ✅ Store token
+            console.log("Token stored:", localStorage.getItem('token')); // ✅ Check if stored properly
+        } else {
+            console.error("❌ No token received from login API");
+        }
+
+        const userResponse = await axios.get('/api/users/account', {
+            headers: { Authorization: `Bearer ${response.data.token}` },
+        });
+
+        console.log("User Details API Response:", userResponse.data); // ✅ Log user details response
+
+        dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
+        setLoading(false);
+        navigate('/admin-home');
     } catch (err) {
-      setLoading(false);
-      // Handle error
+        setLoading(false);
+        console.error("❌ Error during login:", err);
+        toast.error("Login failed. Please check credentials.");
     }
-  };
+};
+
     // Function to handle user logout
     const handleLogout = () => {
         localStorage.removeItem('token');
