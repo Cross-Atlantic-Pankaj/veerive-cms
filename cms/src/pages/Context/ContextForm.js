@@ -11,9 +11,11 @@ import PostContext from '../../context/PostContext';
 
 export default function ContextForm({ handleFormSubmit }) {
     const { contexts, contextsDispatch, sectors: sectorsData, subSectors: subSectorsData, signals: signalsData, subSignals: subSignalsData, themes: themesData, setIsFormVisible, isFormVisible } = useContext(ContextContext);
-    const{ posts, fetchPosts} = useContext(PostContext)
+    const{  fetchPosts} = useContext(PostContext)
 
     // State for form inputs
+    const [posts, setPosts] = useState([]); // ✅ Store posts locally inside the component
+    const [selectedPosts, setSelectedPosts] = useState([]); // ✅ Local selected posts state
     const [contextTitle, setContextTitle] = useState('');
     const [date, setDate] = useState(''); // New state for date field
     const [containerType, setContainerType] = useState('Type-One'); // New state for container type
@@ -24,7 +26,7 @@ export default function ContextForm({ handleFormSubmit }) {
     const [selectedSignalCategories, setSelectedSignalCategories] = useState([]);
     const [selectedSignalSubCategories, setSelectedSignalSubCategories] = useState([]);
     const [selectedThemes, setSelectedThemes] = useState([]);
-    const [selectedPosts, setSelectedPosts] = useState([]); // New state for selected posts
+    //const [selectedPosts, setSelectedPosts] = useState([]); // New state for selected posts
     const [bannerShow, setBannerShow] = useState(false);
     const [homePageShow, setHomePageShow] = useState(false);
     const [bannerImage, setBannerImage] = useState('');
@@ -32,6 +34,7 @@ export default function ContextForm({ handleFormSubmit }) {
     const [generalComment, setGeneralComment] = useState('');
     const [dataForTypeNum, setDataForTypeNum] = useState('');
     const [summary, setSummary] = useState('');
+    const [postOptions, setPostOptions] = useState([]); // ✅ Store processed post options
     const [hasSlider, setHasSlider] = useState(false);
     const [slides, setSlides] = useState({
         slide1: { title: '', description: '' },
@@ -46,44 +49,141 @@ export default function ContextForm({ handleFormSubmit }) {
         slide10: { title: '', description: '' }
     });
 
-    // ✅ Fetch latest posts when the form is visible
-    // useEffect(() => {
-    //     const fetchPosts = async () => {
-    //         try {
-    //             const response = await axios.get('/api/admin/posts?page=1&limit=999', {
-    //                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    //             });
+   // ✅ Fix: Fetch posts only if they are not already fetched
 
-    //             contextsDispatch({ type: "SET_POSTS", payload: response.data.posts });
-    //         } catch (error) {
-    //             console.error("❌ Error fetching posts:", error);
-    //             toast.error("Error fetching posts."); // ✅ Show error message
-    //         }
-    //     };
+    const fetchAllPosts = async () => {
+        const token = localStorage.getItem("token");
 
-    //     fetchPosts();
-    // }, []);
-    
-
-    // ✅ Fix: Fetch posts only if they are not already fetched
-    useEffect(() => {
-        if (!posts.data || posts.data.length === 0) {
-            console.log("🔄 Fetching posts since none exist in state...");
-            fetchPosts();  // ✅ Fetch all posts
-        } else {
-            console.log("✅ Posts already available in ContextForm:", posts.data.length);
+        if (!token) {
+            console.error("❌ No token found, user might be logged out.");
+            return;
         }
-    }, [posts.data]);  // ✅ Fix dependency
+
+        try {
+            console.log("🔄 Fetching ALL posts inside ContextForm...");
+            const response = await axios.get(`/api/admin/posts/all`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (response.data.success) {
+                console.log("✅ Successfully fetched All Posts:", response.data.posts.length);
+                setPosts(response.data.posts); // ✅ Store posts locally inside ContextForm
+            }
+        } catch (err) {
+            console.error("❌ Error fetching all posts:", err);
+        }
+    };
+
+    useEffect(() => {
+        if (!posts || posts.length === 0) {
+            console.log("🔄 Fetching all posts for Context Form...");
+            fetchAllPosts();
+        } else {
+            console.log("✅ All posts already loaded in ContextForm:", posts.length);
+        }
+    }, [posts]);
 
     
-    useEffect(() => {
-        if (contexts.editId) {
-            const context = contexts.data.find((ele) => ele._id === contexts.editId);
+    // useEffect(() => {
+        
+    //     if (contexts.editId && posts?.data?.length > 0) {
+    //         const context = contexts.data.find((ele) => ele._id === contexts.editId);
+    //         if (context) {
+    //             setContextTitle(context.contextTitle);
+    //             setDate(new Date(context.date).toISOString().substring(0, 10)); // Set the date field
+    //             setContainerType(context.containerType || 'Type-One'); // Set container type
+    //             setIsTrending(context.isTrending);
+    //             setDisplayOrder(context.displayOrder);
+    //             setSelectedSectors(context.sectors || []);
+    //             setSelectedSubSectors(context.subSectors || []);
+    //             setSelectedSignalCategories(context.signalCategories || []);
+    //             setSelectedSignalSubCategories(context.signalSubCategories || []);
+                
+    //             // Set selected themes with the correct format for react-select
+    //             setSelectedThemes(context.themes.map(themeId => ({
+    //                 value: themeId,
+    //                 label: themesData.data.find(theme => theme._id === themeId)?.themeTitle || ''
+    //             })));
+                
+    //             setSelectedPosts(
+    //             context.posts.map(post => {
+    //                 const matchedPost = posts.data.find(p => p._id === post.postId);
+    //                 return {
+    //                     value: post.postId,
+    //                     label: matchedPost?.postTitle && matchedPost.postTitle.trim() !== "" 
+    //                         ? matchedPost.postTitle 
+    //                         : "No Title Available",
+    //                     includeInContainer: post.includeInContainer
+    //                 };
+    //             })
+    //         );
+        
+    //             setBannerShow(context.bannerShow);
+    //             setHomePageShow(context.homePageShow);
+    //             setBannerImage(context.bannerImage || '');
+    //             setOtherImage(context.otherImage || '');
+    //             setGeneralComment(context.generalComment || '');
+    //             setDataForTypeNum(context.dataForTypeNum || '');
+    //             setSummary(context.summary || '');
+    //             setHasSlider(context.hasSlider || false);
+    //             setSlides({
+    //                 slide1: context.slide1 || { title: '', description: '' },
+    //                 slide2: context.slide2 || { title: '', description: '' },
+    //                 slide3: context.slide3 || { title: '', description: '' },
+    //                 slide4: context.slide4 || { title: '', description: '' },
+    //                 slide5: context.slide5 || { title: '', description: '' },
+    //                 slide6: context.slide6 || { title: '', description: '' },
+    //                 slide7: context.slide7 || { title: '', description: '' },
+    //                 slide8: context.slide8 || { title: '', description: '' },
+    //                 slide9: context.slide9 || { title: '', description: '' },
+    //                 slide10: context.slide10 || { title: '', description: '' }
+    //             });
+    //         }
+    //     } else {
+    //         setContextTitle('');
+    //         setDate('');
+    //         setContainerType('');
+    //         setIsTrending(false);
+    //         setSelectedSectors([]);
+    //         setSelectedSubSectors([]);
+    //         setSelectedSignalCategories([]);
+    //         setSelectedSignalSubCategories([]);
+    //         setSelectedThemes([]);
+    //         setSelectedPosts([]); // Reset posts when adding a new context
+    //         setBannerShow(false);
+    //         setHomePageShow(false);
+    //         setBannerImage('');
+    //         setOtherImage('');
+    //         setGeneralComment('');
+    //         setDataForTypeNum('');
+    //         setSummary('');
+    //         setHasSlider(false);
+    //         setSlides({
+    //             slide1: { title: '', description: '' },
+    //             slide2: { title: '', description: '' },
+    //             slide3: { title: '', description: '' },
+    //             slide4: { title: '', description: '' },
+    //             slide5: { title: '', description: '' },
+    //             slide6: { title: '', description: '' },
+    //             slide7: { title: '', description: '' },
+    //             slide8: { title: '', description: '' },
+    //             slide9: { title: '', description: '' },
+    //             slide10: { title: '', description: '' }
+    //         });
+            
+    //     }
+        
+    // }, [contexts.editId, contexts.data,posts.data]);
 
+    useEffect(() => {
+        if (contexts.editId && Array.isArray(posts) && posts.length > 0) {
+            console.log("✏️ Editing Context Data, Pre-filling form...");
+    
+            const context = contexts.data.find((ele) => ele._id === contexts.editId);
             if (context) {
                 setContextTitle(context.contextTitle);
-                setDate(new Date(context.date).toISOString().substring(0, 10)); // Set the date field
-                setContainerType(context.containerType || 'Type-One'); // Set container type
+                setDate(new Date(context.date).toISOString().substring(0, 10)); // ✅ Set the date field
+                setContainerType(context.containerType || 'Type-One'); // ✅ Set container type
                 setIsTrending(context.isTrending);
                 setDisplayOrder(context.displayOrder);
                 setSelectedSectors(context.sectors || []);
@@ -91,22 +191,31 @@ export default function ContextForm({ handleFormSubmit }) {
                 setSelectedSignalCategories(context.signalCategories || []);
                 setSelectedSignalSubCategories(context.signalSubCategories || []);
                 
-                // Set selected themes with the correct format for react-select
+                // ✅ Set selected themes with the correct format for react-select
                 setSelectedThemes(context.themes.map(themeId => ({
                     value: themeId,
                     label: themesData.data.find(theme => theme._id === themeId)?.themeTitle || ''
                 })));
+    
+                // ✅ Fix: Set Selected Posts Correctly
+                setSelectedPosts(
+                    Array.from(new Map(
+                        context.posts
+                            .filter(post => posts.some(existingPost => existingPost._id === post.postId)) // ✅ Remove deleted posts
+                            .map(post => {
+                                const matchedPost = posts.find(p => p._id === post.postId);
+                                return [
+                                    post.postId, 
+                                    {
+                                        value: post.postId,
+                                        label: matchedPost?.postTitle?.trim() || "Untitled Post",
+                                        includeInContainer: post.includeInContainer || false
+                                    }
+                                ];
+                            })
+                    ).values()) 
+                );
                 
-                // Set selected posts with the correct format for react-select
-                setSelectedPosts(context.posts.map(post => ({
-                    value: post.postId, // Make sure to pass the correct postId
-                    // label: posts.find(p => p._id === post.postId)?.postTitle || '',
-                    label: Array.isArray(posts.data) ? posts.data.find(p => p._id === post.postId)?.postTitle || '' : '',
-                    includeInContainer: post.includeInContainer // Preserve the includeInContainer field
-                })));
-                
-                
-
                 setBannerShow(context.bannerShow);
                 setHomePageShow(context.homePageShow);
                 setBannerImage(context.bannerImage || '');
@@ -129,6 +238,7 @@ export default function ContextForm({ handleFormSubmit }) {
                 });
             }
         } else {
+            console.log("➖ No Edit Mode, Resetting Form...");
             setContextTitle('');
             setDate('');
             setContainerType('');
@@ -138,7 +248,7 @@ export default function ContextForm({ handleFormSubmit }) {
             setSelectedSignalCategories([]);
             setSelectedSignalSubCategories([]);
             setSelectedThemes([]);
-            setSelectedPosts([]); // Reset posts when adding a new context
+            setSelectedPosts([]); // ✅ Reset posts when adding a new context
             setBannerShow(false);
             setHomePageShow(false);
             setBannerImage('');
@@ -159,11 +269,9 @@ export default function ContextForm({ handleFormSubmit }) {
                 slide9: { title: '', description: '' },
                 slide10: { title: '', description: '' }
             });
-            
         }
-        
-    }, [contexts.editId, contexts.data,posts]);
-
+    }, [contexts.editId, contexts.data, posts]); // ✅ Fix: Use `posts` directly
+    
    
 
     const filteredSubSectors = subSectorsData.data.filter(subSector =>
@@ -177,19 +285,8 @@ export default function ContextForm({ handleFormSubmit }) {
     
 
     // ✅ Update selectedPosts when posts change
-    // useEffect(() => {
-    //     setSelectedPosts((prevSelectedPosts) =>
-    //         prevSelectedPosts.map((post) => ({
-    //             value: post.value,
-    //             label: posts.find((p) => p._id === post.value)?.postTitle || post.label,
-    //             includeInContainer: post.includeInContainer || false,
-    //         }))
-    //     );
-    //     console.log("🔍 Debug: Posts in ContextForm:", posts); // ✅
-    // }, [posts]); // ✅ Runs when posts update
-
     useEffect(() => {
-        //if (!posts || posts.length === 0) return; // ✅ Avoid running if posts are empty
+        
         if (!posts?.data || !Array.isArray(posts.data) || posts.data.length === 0) return; // ✅ Ensure posts.data is an array
         setSelectedPosts((prevSelectedPosts) =>
             prevSelectedPosts.map((post) => {
@@ -227,17 +324,10 @@ export default function ContextForm({ handleFormSubmit }) {
         return;
     }
 
-    if (selectedThemes.length === 0) {
-        toast.warn("⚠️ At least one theme must be selected.");
-        return;
-    }
+
     
         try {
-            // const updatedPosts = selectedPosts.map(post => ({
-            //     postId: post.value,
-            //     includeInContainer: post.includeInContainer || false, // Preserve includeInContainer
-            // }));
-
+            
             const updatedPosts = selectedPosts.length > 0 
                 ? selectedPosts.map(post => ({
                     postId: post.value,
@@ -287,7 +377,8 @@ export default function ContextForm({ handleFormSubmit }) {
                 subSectors: selectedSubSectors,
                 signalCategories: selectedSignalCategories,
                 signalSubCategories: selectedSignalSubCategories,
-                themes: selectedThemes.map(theme => theme.value),
+                // themes: selectedThemes.map(theme => theme.value),
+                themes: selectedThemes.length > 0 ? selectedThemes.map(theme => theme.value) : [], // ✅ Allow empty array
                 posts: updatedPosts,
                 bannerShow,
                 homePageShow,
@@ -317,6 +408,7 @@ export default function ContextForm({ handleFormSubmit }) {
                 handleFormSubmit('Context updated successfully');
                 toast.success("✅ Context updated successfully!"); // ✅ Show success toast
                 await fetchPosts(); // ✅ Fetch latest posts after adding a new one
+                //await fetchAllPosts();
             } else {
                 const response = await axios.post('/api/admin/contexts', formData, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
@@ -324,14 +416,15 @@ export default function ContextForm({ handleFormSubmit }) {
                 contextsDispatch({ type: 'ADD_CONTEXT', payload: response.data });
                 handleFormSubmit('Context added successfully');
                 toast.success("✅ Context added successfully!"); // ✅ Show success toast
-                await fetchPosts(); // ✅ Fetch latest posts after adding a new one
+                 await fetchPosts(); // ✅ Fetch latest posts after adding a new one
+                //await fetchAllPosts();
             }
         } catch (err) {
             console.error('Error submitting form:', err);
             toast.error('An error occurred while submitting the form.');
         }
     };
-        
+
     const containerTypeOptions = [
         { value: 'Type-One', label: 'Type-One' },
         { value: 'Type-Two', label: 'Type-Two' },
@@ -361,27 +454,23 @@ export default function ContextForm({ handleFormSubmit }) {
         label: theme.themeTitle
     }));
 
-    
-// const postOptions = Array.isArray(posts) ? posts.map(post => ({
-//     value: post._id,
-//     label: post.postTitle
-//   })) : [];
-// const postOptions = Array.isArray(posts.data) && posts.data.length > 0
-// ? posts.data.map(post => ({
-//     value: post._id || post.id, // Ensure correct ID
-//     label: post.postTitle || post.title || "Untitled Post" // Ensure correct title
-// }))
-// : [];
-// console.log("🔍 Processed Post Options:", postOptions);
 
-const postOptions = Array.isArray(posts.data) && posts.data.length > 0
-    ? posts.data.map(post => ({
-        value: post._id || post.id, // Ensure correct ID
-        label: post.postTitle || post.title || "Untitled Post" // Ensure correct title
-    }))
-    : [];
 
-console.log("🔍 Processed Post Options:", postOptions);
+// ✅ Process `postOptions` AFTER `posts` state updates
+useEffect(() => {
+    console.log("🔄 Updating Post Options after fetching posts...");
+    if (Array.isArray(posts) && posts.length > 0) {
+        setPostOptions(posts.map(post => ({
+            value: post._id, 
+            label: post.postTitle || "Untitled Post",
+            key: post._id // ✅ Ensure each item has a unique key
+        })));
+        
+    } else {
+        setPostOptions([]); // ✅ Ensure an empty array if no posts
+    }
+    console.log("🔍 Processed Post Options:", postOptions);
+}, [posts]); // ✅ Runs only when `posts` state updates
 
     return (
         <div className="context-form-container">
@@ -409,16 +498,19 @@ console.log("🔍 Processed Post Options:", postOptions);
                     required
                 />
 
-                {/* Container Type Dropdown */}
-                <label htmlFor="containerType"><b>Container Type</b></label>
-                <Select
-                    id="containerType"
-                    options={containerTypeOptions}
-                    value={containerTypeOptions.find(option => option.value === containerType)}
-                    onChange={(selectedOption) => setContainerType(selectedOption.value)}
-                    className="context-select"
-                    required
-                />
+                <div className="form-group">
+                        <label htmlFor="containerType"><b>Container Type</b></label>
+                        <Select
+                            id="containerType"
+                            options={containerTypeOptions}
+                            value={containerTypeOptions.find(option => option.value === containerType)}
+                            onChange={(selectedOption) => setContainerType(selectedOption.value)}
+                            className="context-select"
+                            menuPlacement="auto"
+                            menuPosition="fixed"
+                            menuShouldScrollIntoView={false}
+                        />
+                    </div>
 
                 <div className="checkbox-container">
                     <label htmlFor="isTrending" className="checkbox-label"><b>Is Trending?</b></label>
@@ -441,42 +533,57 @@ console.log("🔍 Processed Post Options:", postOptions);
                             onChange={(e) => setDisplayOrder(Number(e.target.value))}
                         />
                     </div>
-                {/* Sectors and Sub-Sectors in one row */}
-                <div className="row">
-                    <div className="column">
-                        <label htmlFor="sectors"><b>Sectors</b></label>
-                        <select
-                            id="sectors"
-                            name="sectors"
-                            value={selectedSectors}
-                            onChange={(e) => setSelectedSectors(Array.from(e.target.selectedOptions, option => option.value))}
-                            className="context-select"
-                            multiple
-                        >
-                            {sectorsData.data.map(sector => (
-                                <option key={sector._id} value={sector._id}>{sector.sectorName}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="column">
-                        <label htmlFor="subSectors"><b>Sub-Sectors</b></label>
-                        <select
-                            id="subSectors"
-                            name="subSectors"
-                            value={selectedSubSectors}
-                            onChange={(e) => setSelectedSubSectors(Array.from(e.target.selectedOptions, option => option.value))}
-                            className="context-select"
-                            multiple
-                        >
-                            {subSectorsData.data.filter(subSector => selectedSectors.includes(subSector.sectorId)).map(subSector => (
-                                <option key={subSector._id} value={subSector._id}>{subSector.subSectorName}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
+                
+                    {/* Sectors and Sub-Sectors in one row */}
+                    <div className="row">
+                        {/* Sectors Multi-Select Dropdown */}
+                        <div className="column">
+                            <label htmlFor="sectors"><b>Sectors</b></label>
+                            <Select
+                                id="sectors"
+                                isMulti
+                                options={sectorsData.data.map(sector => ({
+                                    value: sector._id,
+                                    label: sector.sectorName
+                                }))}
+                                value={selectedSectors.map(sectorId => ({
+                                    value: sectorId,
+                                    label: sectorsData.data.find(sector => sector._id === sectorId)?.sectorName || ''
+                                }))}
+                                onChange={(selectedOptions) => setSelectedSectors(selectedOptions.map(option => option.value))}
+                                className="context-select"
+                                menuPlacement="auto"
+                                menuPosition="fixed"
+                                menuShouldScrollIntoView={false}
+                            />
+                        </div>
 
+                        {/* Sub-Sectors Multi-Select Dropdown (Filtered by Selected Sectors) */}
+                        <div className="column">
+                            <label htmlFor="subSectors"><b>Sub-Sectors</b></label>
+                            <Select
+                                id="subSectors"
+                                isMulti
+                                options={subSectorsData.data
+                                    .filter(subSector => selectedSectors.includes(subSector.sectorId))
+                                    .map(subSector => ({
+                                        value: subSector._id,
+                                        label: subSector.subSectorName
+                                    }))}
+                                value={selectedSubSectors.map(subSectorId => ({
+                                    value: subSectorId,
+                                    label: subSectorsData.data.find(subSector => subSector._id === subSectorId)?.subSectorName || ''
+                                }))}
+                                onChange={(selectedOptions) => setSelectedSubSectors(selectedOptions.map(option => option.value))}
+                                className="context-select"
+                                menuPlacement="auto"
+                                menuPosition="fixed"
+                                menuShouldScrollIntoView={false}
+                            />
+                        </div>
+                    </div>
                 {/* Signal Categories and Sub-Categories in another row */}
-                <div className="row">
+                {/* <div className="row">
                     <div className="column">
                         <label htmlFor="signalCategories"><b>Signal Categories</b></label>
                         <select
@@ -507,9 +614,58 @@ console.log("🔍 Processed Post Options:", postOptions);
                             ))}
                         </select>
                     </div>
-                </div>
+                </div> */}
                 
-                <div className="row">
+                    {/* Signal Categories and Sub-Categories in one row */}
+                    <div className="row">
+                        {/* Signal Categories Multi-Select Dropdown */}
+                        <div className="column">
+                            <label htmlFor="signalCategories"><b>Signal Categories</b></label>
+                            <Select
+                                id="signalCategories"
+                                isMulti
+                                options={signalsData.data.map(signal => ({
+                                    value: signal._id,
+                                    label: signal.signalName
+                                }))}
+                                value={selectedSignalCategories.map(signalId => ({
+                                    value: signalId,
+                                    label: signalsData.data.find(signal => signal._id === signalId)?.signalName || ''
+                                }))}
+                                onChange={(selectedOptions) => setSelectedSignalCategories(selectedOptions.map(option => option.value))}
+                                className="context-select"
+                                menuPlacement="auto"
+                                menuPosition="fixed"
+                                menuShouldScrollIntoView={false}
+                            />
+                        </div>
+
+                        {/* Signal Sub-Categories Multi-Select Dropdown (Filtered by Selected Signal Categories) */}
+                        <div className="column">
+                            <label htmlFor="signalSubCategories"><b>Signal Sub-Categories</b></label>
+                            <Select
+                                id="signalSubCategories"
+                                isMulti
+                                options={subSignalsData.data
+                                    .filter(subSignal => selectedSignalCategories.includes(subSignal.signalId))
+                                    .map(subSignal => ({
+                                        value: subSignal._id,
+                                        label: subSignal.subSignalName
+                                    }))}
+                                value={selectedSignalSubCategories.map(subSignalId => ({
+                                    value: subSignalId,
+                                    label: subSignalsData.data.find(subSignal => subSignal._id === subSignalId)?.subSignalName || ''
+                                }))}
+                                onChange={(selectedOptions) => setSelectedSignalSubCategories(selectedOptions.map(option => option.value))}
+                                className="context-select"
+                                menuPlacement="auto"
+                                menuPosition="fixed"
+                                menuShouldScrollIntoView={false}
+                            />
+                        </div>
+                    </div>
+                    {/* Themes Multi-Select Dropdown */}
+                        <div className="row">
                         <div className="column">
                             <label htmlFor="themes"><b>Themes</b></label>
                             <Select
@@ -518,36 +674,39 @@ console.log("🔍 Processed Post Options:", postOptions);
                                 options={themeOptions}
                                 value={selectedThemes}
                                 onChange={setSelectedThemes}
-                                className="context-select"
+                                className="theme-select"
+                                menuPlacement="auto"
+                                menuPosition="fixed"
+                                menuShouldScrollIntoView={false} // ✅ Prevent auto-scroll issue
                             />
                         </div>
                     </div>
+
+                    {/* Posts Multi-Select Dropdown */}
                     <div className="row">
                     <div className="column">
                         <label htmlFor="posts"><b>Posts</b></label>
-                        {/* <Select
-                            id="posts"
-                            isMulti
-                            options={postOptions}
-                            value={selectedPosts}
-                            onChange={setSelectedPosts}
-                            className="context-select"
-                        /> */}
                         <Select
                             id="posts"
                             isMulti
                             options={postOptions}
                             value={selectedPosts}
                             onChange={setSelectedPosts}
-                            getOptionLabel={(e) => e.label} // Ensure labels appear
-                            getOptionValue={(e) => e.value} // Ensure values map correctly
-                            isClearable // Allow clearing selection
+                            getOptionLabel={option => option.label}
+                            getOptionValue={option => option.value}
+                            isClearable
                             className="context-select"
+                            menuPlacement="bottom"  // ✅ Ensures dropdown appears close to field
+                            menuPosition="fixed"
+                            styles={{
+                                menu: (provided) => ({
+                                    ...provided,
+                                    zIndex: 9999, /* ✅ Prevents dropdown from being hidden */
+                                }),
+                            }}
                         />
-
-                    </div>
                 </div>
-
+                </div>
                 <div className="checkbox-container">
                     <label htmlFor="bannerShow" className="checkbox-label"><b>Show Banner?</b></label>
                     <input

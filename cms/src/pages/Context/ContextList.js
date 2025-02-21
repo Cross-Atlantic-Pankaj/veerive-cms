@@ -2,7 +2,7 @@ import React, { useContext, useState, useMemo, useEffect } from 'react'; // Impo
 import ContextContext from '../../context/ContextContext'; // Importing the context for managing global state
 import axios from '../../config/axios'; // Importing axios instance for making HTTP requests
 import '../../html/css/Context.css'; // Importing the CSS file for styling the component
-import { format, parseISO } from 'date-fns';
+import { format} from 'date-fns';
 import { toast } from 'react-toastify'; // ✅ Import toast
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 
@@ -10,35 +10,75 @@ import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 // Defining the ContextList functional component
 export default function ContextList() {
     // Destructuring necessary state and functions from ContextContext
-    const { contexts, contextsDispatch, handleAddClick, handleEditClick, sectors, subSectors, themes, signals, subSignals } = useContext(ContextContext);
+    const { contexts, contextsDispatch, handleAddClick, handleEditClick,searchQuery, setSearchQuery, sectors, subSectors, themes, signals, subSignals ,setIsLoading, fetchContexts} = useContext(ContextContext);
+    const { page, setPage, totalPages } = useContext(ContextContext);  // ✅ Use global state
 
     // Local state to manage the search query and sorting configuration
-    const [searchQuery, setSearchQuery] = useState('');
+    // const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState({ key: 'contextTitle', direction: 'ascending' });
+    // const [page, setPage] = useState(1);
+    // const [totalPages, setTotalPages] = useState(1);  // ✅ Store totalPages in state
+    const [contextsData, setContextsData] = useState([]); // ✅ New local state for rendering
 
+useEffect(() => {
+    // ✅ Update local state whenever contexts are updated
+    setContextsData(contexts.data || []);
+}, [contexts.data]);  // ✅ Ensures UI updates correctly
 
-    // Fetch contexts from the API on component mount or when the context changes
+useEffect(() => {
+    const savedPage = localStorage.getItem("contextPage");
+    if (savedPage) {
+        setPage(parseInt(savedPage)); // ✅ Restore last viewed page on reload
+    }
+}, []);
+
+useEffect(() => {
+    if (page) {
+        localStorage.setItem("contextPage", page); // ✅ Store last visited page
+    }
+}, [page]);
+
+    // // Fetch contexts from the API on component mount or when the context changes
+
     useEffect(() => {
         const fetchContexts = async () => {
+            setIsLoading(true);
+    
             try {
-                const response = await axios.get('/api/admin/contexts', {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                const apiUrl = searchQuery.trim()
+                    ? `/api/admin/contexts/all?search=${encodeURIComponent(searchQuery)}`
+                    : `/api/admin/contexts?page=${page}&limit=10`;
+    
+                console.log(`🔍 Fetching contexts from: ${apiUrl}`);
+    
+                const response = await axios.get(apiUrl, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
                 });
-                contextsDispatch({ type: 'SET_CONTEXTS', payload: response.data }); // Update context state with fetched data
-            } catch (error) {
-                console.error('Error fetching contexts:', error);
-                toast.error('Error fetching contexts:', error);
-                // Handle error as needed
+    
+                if (response.data.success) {
+                    contextsDispatch({ 
+                        
+                        type: "SET_CONTEXTS", 
+                        payload: { 
+                            contexts: response.data.contexts, 
+                            totalPages: searchQuery.trim() ? 1 : response.data.totalPages, 
+                            page: searchQuery.trim() ? 1 : response.data.page
+                        } 
+                    });
+                
+                }
+            } catch (err) {
+                console.error("❌ Error fetching contexts:", err);
+                toast.error("❌ Error fetching contexts.");
+            } finally {
+                setIsLoading(false);
             }
         };
-
+    
         fetchContexts();
-    }, [contextsDispatch]); // Only run on mount
-
+    }, [page, searchQuery]); // ✅ Fetch when `page` or `searchQuery` changes
     
     
-    
-
     // Helper function to get sector names from IDs
     const getSectorNames = (ids, data) => {
         if (!Array.isArray(ids)) return 'Unknown'; // Return 'Unknown' if IDs are not an array
@@ -129,10 +169,19 @@ export default function ContextList() {
     }, [contexts.data, sortConfig, sectors.data, subSectors.data, signals.data, themes.data]);
 
     // Filter contexts based on the search query
-    const filteredContexts = sortedContexts.filter(context =>
-        (context.contextTitle || '').toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
+    const filteredContexts = useMemo(() => {
+        if (!searchQuery) return contexts.data || []; // ✅ Use API data if no search query
+        
+        return contexts.data.filter(context => {
+            const formattedDate = format(new Date(context.date), 'yyyy-MM-dd');
+    
+            return (
+                (context.contextTitle && context.contextTitle.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                (formattedDate && formattedDate.startsWith(searchQuery))
+            );
+        });
+    }, [contexts.data, searchQuery]);
+    
     // Handle the removal of a context
     const handleRemove = async (id) => {
         const userInput = window.confirm('Are you sure you want to remove this context?'); // Ask for confirmation
@@ -151,10 +200,80 @@ export default function ContextList() {
     };
 
     // Placeholder for additional logic if needed during search
-    const handleSearch = () => {
-        // Implement search logic if necessary
+    
+    const handleSearch = async () => {
+        if (!searchQuery.trim()) {
+            setPage(1);
+            fetchContexts(); // ✅ Reset to full list when input is cleared
+            return;
+        }
+    
+        try {
+            const response = await axios.get(`/api/admin/contexts/all?search=${encodeURIComponent(searchQuery)}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            });
+    
+            console.log("✅ Search Results:", response.data);
+    
+            if (response.data.success) {
+                contextsDispatch({ 
+                    type: "SET_CONTEXTS", 
+                    payload: { 
+                        contexts: response.data.contexts, 
+                        totalPages: 1, // ✅ No pagination for search results
+                        page: 1 
+                    }
+                });
+            } else {
+                contextsDispatch({ type: "SET_CONTEXTS", payload: { contexts: [], totalPages: 1, page: 1 } });
+            }
+        } catch (error) {
+            console.error("❌ Search API Error:", error);
+            toast.error("❌ Search API Error: Please try again.");
+        }
     };
-
+    
+    
+    // useEffect(() => {
+    //     const savedPage = localStorage.getItem('currentPage');
+    //     if (savedPage) {
+    //         setPage(parseInt(savedPage)); // ✅ Restore last viewed page on reload
+    //     }
+    // }, []);
+    
+    // const handleNextPage = () => {
+    //     if (page < totalPages) {
+    //         console.log("Navigating to Next Page:", page + 1);
+    //         const newPage = page + 1;
+    //         setPage(newPage);
+    //         localStorage.setItem('currentPage', newPage); // ✅ Store new page
+    //     }
+    // };
+    
+    // const handlePrevPage = () => {
+    //     if (page > 1) {
+    //         console.log("Navigating to Previous Page:", page - 1);
+    //         const newPage = page - 1;
+    //         setPage(newPage);
+    //         localStorage.setItem('currentPage', newPage); // ✅ Store new page
+    //     }
+    // };
+    const handleNextPage = () => {
+        if (page < totalPages) {
+            console.log("Navigating to Next Page:", page + 1);
+            setPage(page + 1);
+            localStorage.setItem('contextPage', page + 1);  // ✅ Store updated page in local storage
+        }
+    };
+    
+    const handlePrevPage = () => {
+        if (page > 1) {
+            console.log("Navigating to Previous Page:", page - 1);
+            setPage(page - 1);
+            localStorage.setItem('contextPage', page - 1);  // ✅ Store updated page in local storage
+        }
+    };
+    
     // Request to sort contexts by a specific key
     const requestSort = (key) => {
         let direction = 'ascending'; // Default sorting direction
@@ -170,20 +289,21 @@ export default function ContextList() {
             {/* Button to add a new context */}
             <button className="add-context-btn" onClick={handleAddClick}>Add Context</button>
             <div className="search-container">
-                        {/* Input field for search query */}
                         <input
-                            type="text"
-                            placeholder="Search..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="search-input"
-                        />
-                        {/* Button to trigger search */}
+                                type="text"
+                                placeholder="Search by Title or Date..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}  // ✅ Correctly updating searchQuery
+                                className="search-input"
+                            />
+
+                        {/* <button className="search-btn" onClick={() => setPage(1)}>Search</button> */}
                         <button className="search-btn" onClick={handleSearch}>Search</button>
+
                     </div>
 
-            <table className="context-table">
-                <thead>
+                <table className="context-table">
+                    <thead>
                     <tr>
                         {/* Table headers with sorting functionality */}
                         <th onClick={() => requestSort('date')}>
@@ -237,6 +357,23 @@ export default function ContextList() {
                     ))}
                 </tbody>
             </table>
-        </div>
+            <div className="pagination">
+                    <button 
+                        onClick={handlePrevPage}  // ✅ Handle Previous Page
+                        disabled={page === 1}     // ✅ Disable on First Page
+                    >
+                        Previous
+                    </button>
+
+                    <span> Page {page} of {totalPages} </span>  {/* ✅ Display Current Page & Total Pages */}
+
+                    <button 
+                        onClick={handleNextPage}  // ✅ Handle Next Page
+                        disabled={page === totalPages}  // ✅ Disable on Last Page
+                    >
+                        Next
+                    </button>
+                </div>
+                </div>
     );
 }
