@@ -163,55 +163,94 @@ export default function StoryView() {
             setEndDate(value);
         }
     };
+
     const fetchStoryOrders = async () => {
-        if (!endDate) {
-            toast.error('Please select an End Date before fetching records!');
-            return;
+        if (!contexts || contexts.length === 0) {
+            console.log("⏳ Waiting for contexts before fetching story orders...");
+            return; // ✅ Ensure `contexts` is loaded first
         }
-    
-        // Convert date to proper format
-        const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
-        const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
-    
-        console.log("Fetching with:", formattedStartDate, formattedEndDate); // Debugging
     
         setLoading(true);
         try {
             const response = await axios.get('/api/admin/story-orders', {
-                params: { startDate: formattedStartDate, endDate: formattedEndDate },
+                params: { startDate, endDate },
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
     
-            console.log("API Response:", response.data); // Debugging
+            let orders = response.data;
+            console.log("📢 Story Orders Response:", orders);
     
-            setStoryOrders(response.data);
+            // ✅ Remove story orders where `contextId` is not found in `contexts`
+            const validContextIds = new Set(contexts.map(ctx => ctx._id));
+            orders = orders.filter(order => validContextIds.has(order.contextId));
+    
+            // ✅ Map story orders to include the `contextTitle`
+            const updatedOrders = orders.map(order => ({
+                ...order,
+                contextTitle: contextMap[order.contextId] || "🚨 No Title Found!"
+            }));
+            console.log("🗂 All Context IDs in contexts:", Array.from(validContextIds));
+            const validOrders = orders.filter(order => contextMap[order.contextId]);
+            console.log("📌 Final Story Orders Sent to UI:", validOrders.length);
+
+                setStoryOrders(validOrders); // ✅ Ensure it only updates once
+
+            if (updatedOrders.length > 0) {
+                setStoryOrders(updatedOrders);
+            } else {
+                console.log("⚠️ No valid story orders found.");
+                setStoryOrders([]); // ✅ Ensure empty array if no records
+            }
         } catch (err) {
-            console.error('Error fetching story orders:', err);
-            toast.error('Error fetching records! Please try again.');
+            console.error('❌ Error fetching story orders:', err);
         } finally {
             setLoading(false);
         }
     };
     
-
+    
     const fetchContexts = async () => {
         setLoading(true);
+        let allContexts = [];
+        let currentPage = 1;
+        let totalPages = 1;
+    
         try {
-            const response = await axios.get('/api/contexts', {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setContexts(response.data);
+            do {
+                const response = await axios.get('/api/contexts', {
+                    params: { page: currentPage, limit: 999 }, // ✅ Increase limit to fetch more at once
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+    
+                if (response.data.success && Array.isArray(response.data.contexts)) {
+                    allContexts = [...allContexts, ...response.data.contexts];
+                    totalPages = response.data.totalPages;
+                    currentPage++;
+                } else {
+                    console.error("⚠️ Invalid API response for contexts:", response.data);
+                    break;
+                }
+            } while (currentPage <= totalPages);
+    
+            console.log("✅ Fetched ALL Contexts:", allContexts.length);
+            console.log("✅ Contexts Fetched:", contexts.length);
+            console.log("📌 All Context IDs:", contexts.map(ctx => ctx._id)); 
+
+            setContexts(allContexts);
         } catch (err) {
-            console.error('Error fetching contexts:', err);
+            console.error('❌ Error fetching contexts:', err);
+            setContexts([]);
         } finally {
             setLoading(false);
         }
     };
-
-    const handleFetchRecords = () => {
-        setShouldFetch(true);
+    
+    const handleFetchRecords = async () => {
+        setShouldFetch(false);
+        await fetchContexts(); // ✅ Fetch contexts first
+        fetchStoryOrders(); // ✅ Then fetch story orders
     };
-
+    
     const handleSort = (key) => {
         setSortConfig(prevConfig => ({
             key,
@@ -229,11 +268,13 @@ export default function StoryView() {
         return 0;
     });
 
-    const contextMap = contexts.reduce((acc, context) => {
-        acc[context._id] = context.contextTitle;
+    const contextMap = (Array.isArray(contexts) ? contexts : []).reduce((acc, context) => {
+        if (context && context._id) {
+            acc[context._id] = context.contextTitle?.trim() || "🚨 No Title Found!";
+        }
         return acc;
     }, {});
-
+    
     return (
         <div>
             <h1>Story View</h1>

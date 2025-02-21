@@ -22,70 +22,115 @@ export default function StoryOrder() {
     // Handle date selection
     const handleDateChange = (e) => {
         const { name, value } = e.target;
-        if (name === 'startDate') setStartDate(value);
-        else if (name === 'endDate') setEndDate(value);
+        if (name === 'startDate') {
+            setStartDate(value);
+        } else if (name === 'endDate') {
+            setEndDate(value);
+        }
     };
+    
 
     const handlePublishDateChange = (e) => {
         setPublishDate(e.target.value);
     };
 
-    // Fetch posts based on selected date range
     const fetchPosts = async () => {
         if (!startDate || !endDate) {
-            alert("Please select start and end dates before fetching.");
+            alert("⚠️ Please select start and end dates before fetching.");
             return;
         }
-        
+    
         setLoading(true);
+        setPublishDate(''); // ✅ Reset publishDate before fetching posts
+    
         try {
-            const response = await axios.get('/api/admin/posts/date', {
+            console.log("🔄 Fetching ALL posts within date range...");
+            const response = await axios.get('/api/admin/posts/all', {
                 params: { startDate, endDate },
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            setPosts(response.data);
+    
+            if (response.data.success) {
+                console.log("✅ Successfully fetched ALL posts:", response.data.posts.length);
+                setPosts(response.data.posts); // ✅ Store all posts
+            }
         } catch (err) {
-            console.error('Error fetching posts:', err);
+            console.error('❌ Error fetching all posts:', err);
         } finally {
             setLoading(false);
         }
     };
-
-    // Fetch contexts related to posts
+    
     const fetchContexts = async () => {
         if (posts.length === 0) return;
-        
+    
         setLoading(true);
+        let allContexts = [];
+        let currentPage = 1;
+        const limit = 999; // ✅ Increase the limit to reduce API calls
+        let totalPages = 1;
+    
+        const postIds = posts.map(post => post._id); // ✅ Get all post IDs
+    
         try {
-            const postIds = posts.map(post => post._id);
-            const response = await axios.get('/api/contexts', {
-                params: { postIds },
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setContexts(response.data);
+            do {
+                console.log(`🔄 Fetching ALL contexts - Page ${currentPage}`);
+                const response = await axios.get('/api/admin/contexts/all', { // ✅ Fetch ALL contexts
+                    params: { postIds, page: currentPage, limit },
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+    
+                if (Array.isArray(response.data.contexts)) {
+                    allContexts = [...allContexts, ...response.data.contexts];
+                }
+    
+                totalPages = response.data.totalPages;
+                currentPage++;
+            } while (currentPage <= totalPages); // ✅ Fetch all pages
+    
+            console.log("✅ Final Contexts Fetched:", allContexts.length);
+            setContexts(allContexts);
         } catch (err) {
-            console.error('Error fetching contexts:', err);
+            console.error('❌ Error fetching all contexts:', err);
+            setContexts([]);
         } finally {
             setLoading(false);
         }
     };
 
-    // Fetch existing story orders
     const fetchStoryOrders = async () => {
         if (contexts.length === 0) return;
-
+    
         setLoading(true);
+        setPublishDate(''); // ✅ Reset publishDate before fetching new data
+    
         try {
             const response = await axios.get('/api/admin/story-orders', {
                 params: { startDate, endDate },
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
+    
             const orders = response.data;
-
-            if (orders.length > 0) {
-                setPublishDate(new Date(orders[0].publishDate).toISOString().split('T')[0]);
+            console.log("📢 Story Orders Response:", orders);
+    
+            if (orders.length > 0) { 
+                // ✅ Find the most recent publishDate
+                const latestPublishDate = orders
+                    .map(order => new Date(order.publishDate))
+                    .sort((a, b) => b - a)[0]; // Get the most recent date
+    
+                if (latestPublishDate) {
+                    setPublishDate(latestPublishDate.toISOString().split('T')[0]); // ✅ Update the UI
+                } else {
+                    console.log("❌ No valid publishDate found.");
+                    setPublishDate(''); // ✅ Ensure it remains empty if no orders exist
+                }
+            } else {
+                console.log("❌ No existing story orders found.");
+                setPublishDate(''); // ✅ Ensure it remains empty if no orders exist
             }
-
+    
+            // ✅ Update Rank Data
             const newRank = {};
             orders.forEach(order => {
                 const context = contexts.find(ctx => ctx._id === order.contextId);
@@ -93,24 +138,23 @@ export default function StoryOrder() {
                     newRank[context.contextTitle] = order.rank;
                 }
             });
-
+    
             setRank(newRank);
         } catch (err) {
-            console.error('Error fetching story orders:', err);
+            console.error('❌ Error fetching story orders:', err);
         } finally {
             setLoading(false);
         }
     };
-
-    // Save or update story orders
+    
     const handleSave = async () => {
         if (!publishDate || !startDate || !endDate) {
-            alert("Please select a publish date, start date, and end date.");
+            alert("⚠️ Please select a publish date, start date, and end date.");
             return;
         }
     
         try {
-            console.log("Saving Story Orders for:", publishDate, startDate, endDate);
+            console.log("📢 Saving Story Orders for:", publishDate, startDate, endDate);
     
             const existingOrdersResponse = await axios.get('/api/admin/story-orders', {
                 params: { startDate, endDate, publishDate },
@@ -118,7 +162,6 @@ export default function StoryOrder() {
             });
     
             console.log("Existing Story Orders:", existingOrdersResponse.data);
-    
             const existingOrders = existingOrdersResponse.data;
     
             const storyOrders = Object.entries(rank).map(([contextTitle, contextRank]) => {
@@ -131,30 +174,24 @@ export default function StoryOrder() {
                 );
     
                 return {
-                    publishDate: new Date(publishDate).toISOString(), // Convert to ISO format
+                    publishDate: new Date(publishDate).toISOString(),
                     contextId: context._id,
                     rank: contextRank,
                     _id: existingOrder ? existingOrder._id : null
                 };
             }).filter(Boolean);
     
-            console.log("Final Story Orders Payload:", storyOrders);
+            console.log("✅ Final Story Orders Payload:", storyOrders);
     
             await Promise.all(storyOrders.map(async order => {
                 if (order._id) {
-                    // await axios.put(`/api/admin/story-orders/${order._id}`, {
-                    //     rank: order.rank
-                    // }, {
-                    //     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                    // });
                     await axios.put(`/api/admin/story-orders/${order._id}`, {
-                        publishDate: new Date(order.publishDate).toISOString(), // Ensure correct date format
+                        publishDate: new Date(order.publishDate).toISOString(),
                         contextId: order.contextId,
-                        rank: parseInt(order.rank) // Ensure rank is a number
+                        rank: parseInt(order.rank)
                     }, {
                         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                     });
-                    
                 } else {
                     await axios.post('/api/admin/story-orders', {
                         publishDate: order.publishDate,
@@ -166,11 +203,16 @@ export default function StoryOrder() {
                 }
             }));
     
-            console.log('Story orders saved successfully');
-            fetchStoryOrders();
+            console.log('✅ Story orders saved successfully');
+    
+            // ✅ Clear the publish date after saving
+            setPublishDate('');
+            alert("✅ Story Orders Saved Successfully!");
+    
+            fetchStoryOrders(); // ✅ Refresh Story Orders
     
         } catch (err) {
-            console.error('Error saving story orders:', err);
+            console.error('❌ Error saving story orders:', err);
         }
     };
     
@@ -190,12 +232,12 @@ export default function StoryOrder() {
         }
     }, [contexts]);
 
-    const contextMap = contexts.reduce((acc, context) => {
+        const contextMap = (Array.isArray(contexts) ? contexts : []).reduce((acc, context) => {
         if (context.posts && Array.isArray(context.posts)) {
             const postTitles = posts
                 .filter(post => context.posts.some(p => p.postId === post._id))
                 .map(post => post.postTitle);
-
+    
             if (postTitles.length > 0) {
                 acc[context.contextTitle] = {
                     postTitles,
@@ -205,8 +247,8 @@ export default function StoryOrder() {
             }
         }
         return acc;
-    }, {});
-
+    }, {})  // ✅ Prevents `.reduce()` from running if `contexts` is not an array
+    
     return (
         <div className="story-order-container">
             <h1>Story Order</h1>
