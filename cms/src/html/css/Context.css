@@ -82,6 +82,7 @@
 
 .search-input {
     padding: 8px;
+    max-width: 2000px;
     font-size: 14px;
     width: 1500px; /* Adjust width as needed */
     border: 1px solid #ccc;
@@ -100,4 +101,84 @@
 
 .search-btn:hover {
     background-color: #0056b3;
+}
+/* ✅ Fix dropdown size and prevent double scrollbar */
+.context-select .css-26l3qy-menu, 
+.theme-select .css-26l3qy-menu, 
+.post-select .css-26l3qy-menu {
+    max-height: 300px !important;  /* ✅ Increase dropdown size */
+    min-height: 150px !important;  /* ✅ Avoid very small dropdown */
+    overflow-y: auto !important;   /* ✅ Enable scrolling only if needed */
+    padding: 5px !important;
+}
+
+/* ✅ Prevent scrollbar from appearing at the bottom */
+.context-select .css-4ljt47-MenuList,
+.theme-select .css-4ljt47-MenuList,
+.post-select .css-4ljt47-MenuList {
+    max-height: 250px !important;
+    overflow-y: auto !important;
+    padding-top: 0 !important; 
+}
+
+/* ✅ Ensure selected value does not push dropdown down */
+.context-select .css-1uccc91-singleValue,
+.theme-select .css-1uccc91-singleValue,
+.post-select .css-1uccc91-singleValue {
+    padding: 5px !important;
+    white-space: nowrap; /* ✅ Prevent wrapping issues */
+}
+
+/* ✅ Fix dropdown opening with an extra space */
+.context-select .css-1p3m7a8-multiValue,
+.theme-select .css-1p3m7a8-multiValue,
+.post-select .css-1p3m7a8-multiValue {
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* ✅ Remove double scrollbar */
+.context-select .css-1n7v3ny-option,
+.theme-select .css-1n7v3ny-option,
+.post-select .css-1n7v3ny-option {
+    padding: 10px !important; /* ✅ Reduce padding to avoid extra space */
+}
+
+/* ✅ Ensure dropdown opens fully visible */
+.context-select .css-1okebmr-indicatorSeparator,
+.theme-select .css-1okebmr-indicatorSeparator,
+.post-select .css-1okebmr-indicatorSeparator {
+    display: none !important;
+}
+
+/* ✅ Fix extra spacing issues */
+.context-form-container, .post-form-container {
+    padding: 20px;
+}
+
+.context-form, .post-form {
+    display: flex;
+    flex-direction: column;
+}
+/* Pagination Styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.pagination button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.pagination button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
 }

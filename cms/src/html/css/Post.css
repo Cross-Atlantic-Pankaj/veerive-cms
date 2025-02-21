@@ -190,3 +190,23 @@
 .post-textarea {
     height: 100px;
 }
+
+/* ✅ Fix dropdown size for Posts */
+.post-select .css-26l3qy-menu {
+    max-height: 300px !important;
+    min-height: 150px !important;
+    overflow-y: auto !important;
+    padding: 5px !important;
+}
+
+/* ✅ Remove the double scrollbar */
+.post-select .css-4ljt47-MenuList {
+    max-height: 250px !important;
+    overflow-y: auto !important;
+    padding-top: 0 !important;
+}
+
+/* ✅ Ensure dropdown items are not cut off */
+.post-select .css-1n7v3ny-option {
+    padding: 10px !important;
+}

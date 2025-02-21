@@ -127,3 +127,29 @@ h2 {
 .country-submit-btn:hover {
     background-color: #0056b3; /* Darken the background color of the submit button on hover */
 }
+/* Search container alignment */
+.search-container {
+    display: flex;
+    justify-content: flex-end; /* Aligns to the right */
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+/* Style search input */
+.search-input {
+    width: 50%; /* Adjust width to align with table */
+    min-width: 350px; /* Ensure it doesn’t shrink too much */
+    max-width: 600px; /* Limit maximum width */
+    padding: 8px 12px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+
+.country-list-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Align to the right to match the table */
+    width: 100%;
+}

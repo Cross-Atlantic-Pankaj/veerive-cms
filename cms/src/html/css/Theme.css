@@ -146,3 +146,33 @@
 }
 
 
+/* Fix Themes dropdown height and scrolling */
+.theme-select .css-26l3qy-menu {
+    max-height: 250px !important; /* ✅ Expand dropdown */
+    min-height: 150px !important;
+    overflow-y: auto !important;
+    padding: 5px !important;
+}
+
+/* Prevent scroll bar from going to the bottom */
+.theme-select .css-4ljt47-MenuList {
+    max-height: 250px !important;
+    overflow-y: auto !important;
+}
+
+/* Reduce extra spacing inside dropdown */
+.theme-select .css-319lph-ValueContainer {
+    padding: 5px !important;
+}
+
+/* Prevent dropdown from closing after clicking */
+.theme-select .css-1wa3eu0-placeholder {
+    padding: 5px !important;
+}
+
+/* Ensure selected theme does not auto-scroll down */
+.theme-select .css-1uccc91-singleValue {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+

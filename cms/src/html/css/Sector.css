@@ -82,3 +82,15 @@
 .sector-submit-btn:hover {
     background-color: #45a049; /* Change the background color to a slightly darker green when hovered */
 }
+.search-input {
+    width: calc(100% - 150px); /* Make it match the table width */
+    max-width: 780px;
+    padding: 8px 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
