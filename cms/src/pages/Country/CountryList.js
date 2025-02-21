@@ -97,6 +97,7 @@ export default function CountryList() {
     
     return (
         <div className="country-list-container">
+            <div className="search-container">
             <input
                 type="text"
                 placeholder="Search..."
@@ -104,6 +105,7 @@ export default function CountryList() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="search-input"
             />
+            </div>
             <table className="country-table">
                 <thead>
                     <tr>
