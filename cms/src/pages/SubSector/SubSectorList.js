@@ -84,6 +84,7 @@ export default function SubSectorList() {
 
     return (
         <div className="sub-sector-list-container">
+            <div className="search-container">
             <input
                 type="text"
                 placeholder="Search Sub-Sectors..."
@@ -91,6 +92,7 @@ export default function SubSectorList() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
             />
+            </div>
             <table className="sub-sector-table">
                 <thead>
                     <tr>
