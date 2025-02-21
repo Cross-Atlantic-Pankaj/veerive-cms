@@ -155,6 +155,11 @@ app.post('/api/admin/contexts', authenticateUser, authorizeUser(['Admin', 'Moder
 app.put('/api/admin/contexts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), contextsCltr.update)
 app.put('/api/admin/contexts/:contextId/postId', authenticateUser, authorizeUser(['Admin', 'Moderator']), contextsCltr.updatePostId) // for updating postId in context when a post is saved
 app.delete('/api/admin/contexts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), contextsCltr.delete)
+// ✅ Route for fetching all posts (for Context Form)
+app.get('/api/admin/posts/all', authenticateUser, authorizeUser(['Admin', 'Moderator']), postsCltr.getAllPosts);
+
+// ✅ Route for fetching all contexts (for Post Form)
+app.get('/api/admin/contexts/all', authenticateUser, authorizeUser(['Admin', 'Moderator']), contextsCltr.getAllContexts);
 
 // post routes
 app.get('/api/posts', authenticateUser, postsCltr.list)
