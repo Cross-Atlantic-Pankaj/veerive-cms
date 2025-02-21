@@ -16,8 +16,6 @@ import { ThemeProvider } from './components/ThemeProvider';
 import { SourceProvider } from './components/SourceProvider';
 import { ContextProvider } from './components/ContextProvider';
 import { PostProvider } from './components/PostProvider';
-//import { ContainerProvider } from './components/ContainerProvider';
-//import Register from './pages/Register';
 import Login from './pages/Login';
 import HeaderComponent from './pages/HeaderComponent';
 import RegionPage from './pages/Region/RegionPage';
@@ -51,13 +49,6 @@ function App() {
       fetchPosts(); // ✅ Fetch all posts only when logged in
     }
   }, [state.isLoggedIn, fetchPosts]);
-  //const postContext = useContext(PostContext); // ✅ Get PostContext safely
-
-  // useEffect(() => {
-  //   if (state.isLoggedIn && postContext?.fetchPosts) {
-  //     postContext.fetchPosts(); // ✅ Fetch all posts only when logged in
-  //   }
-  // }, [state.isLoggedIn]); // ✅ Removed fetchPosts from dependency array
 
   // If loading is true, show a loading indicator
   if (loading) {
@@ -83,12 +74,6 @@ function App() {
                               <Route path="/login" element={<Login />} />
                               <Route path="/forgot-password" element={<ForgotPassword />} />
                               <Route path="/reset-password" element={<ResetPassword />} />
-                              
-                              {/* <Route path="/admin-home" element={
-                                <PrivateRoute>
-                                <div>AdminHome</div>
-                                </PrivateRoute>
-                                } /> */}
                                 <Route
                                     path="/admin-home"
                                     element={
