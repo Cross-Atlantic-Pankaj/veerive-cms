@@ -1,67 +1,5 @@
 import Post from '../models/post-model.js'
 const postsCltr = {}
-
-
-
-postsCltr.list = async (req, res) => {
-    try {
-        const { context, postType, startDate, endDate, page = 1, limit = 10, search } = req.query;
-
-        let query = {};
-
-        // 🔹 Search by Post Title (Case-Insensitive)
-        if (search) {
-            query.postTitle = { $regex: search, $options: "i" };
-        }
-
-        // 🔹 Filter by Context
-        if (context) {
-            const contextArray = context.split(',').map(id => id.trim());
-            query.context = { $in: contextArray };
-        }
-
-        // 🔹 Filter by Post Type
-        if (postType) {
-            query.postType = postType;
-        }
-
-        // 🔹 Filter by Date Range
-        if (startDate && endDate) {
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-                query.date = { $gte: start, $lte: end };
-            }
-        }
-
-        // 🔹 If searching, ignore pagination and return all matching posts
-        let posts;
-        if (search) {
-            posts = await Post.find(query);
-        } else {
-            posts = await Post.find(query)
-                .skip((page - 1) * limit)
-                .limit(parseInt(limit));
-        }
-
-        const totalPosts = await Post.countDocuments(query);
-
-        res.json({
-            success: true,
-            total: totalPosts,
-            page: search ? 1 : parseInt(page),  // Reset to page 1 for search
-            limit: parseInt(limit),
-            totalPages: search ? 1 : Math.ceil(totalPosts / limit),
-            posts
-        });
-    } catch (err) {
-        console.error("Error fetching posts:", err);
-        res.status(500).json({ error: "Server Error" });
-    }
-};
-
-
-
 postsCltr.date = async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
@@ -96,25 +34,71 @@ postsCltr.date = async (req, res) => {
     }
 };
 
+postsCltr.list = async (req, res) => {
+    try {
+        const { page = 1, limit = 10 } = req.query;
+
+        let posts = await Post.find()
+            .populate("contexts", "contextTitle _id") // ✅ Populate contexts here
+            .skip((page - 1) * parseInt(limit))
+            .limit(parseInt(limit))
+            .lean();
+
+        posts = posts.map(post => ({
+            ...post,
+            contexts: post.contexts?.map(ctx => ({ _id: ctx._id, contextTitle: ctx.contextTitle })) || []
+        }));
+
+        const totalPosts = await Post.countDocuments();
+
+        res.json({
+            success: true,
+            total: totalPosts,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            totalPages: Math.ceil(totalPosts / limit),
+            posts
+        });
+    } catch (err) {
+        console.error("❌ Error fetching posts:", err);
+        res.status(500).json({ error: "Server Error" });
+    }
+};
+
 
 postsCltr.create = async (req, res) => {
     try {
         console.log("Received Post Data:", req.body); // Debugging
 
-        // Check for required fields before saving
-        if (!req.body.summary || !req.body.sourceUrl) {
-            return res.status(400).json({ error: 'Summary and Source URL are required.' });
+        const cleanSummary = req.body.summary ? req.body.summary.replace(/<[^>]*>/g, '').trim() : "";
+
+        if (!cleanSummary) {
+            return res.status(400).json({ error: "Summary cannot be empty." });
         }
 
-        const post = new Post(req.body);
+        if (!Array.isArray(req.body.sourceUrls) || req.body.sourceUrls.length === 0) {
+            return res.status(400).json({ error: "At least one Source URL is required." });
+        }
+
+        const formattedPost = {
+            ...req.body,
+            summary: cleanSummary,
+            contexts: req.body.contexts.map(ctx => ctx._id) // ✅ Store only context IDs
+        };
+
+        let post = new Post(formattedPost);
         await post.save();
-        res.status(201).json(post);
+
+        // ✅ Populate contexts so frontend sees `contextTitle`
+        post = await post.populate("contexts", "contextTitle _id");
+
+        res.status(201).json({ success: true, message: "Post created successfully.", post });
+
     } catch (err) {
-        console.error('Error creating post:', err);
-        res.status(500).json({ error: 'Something went wrong' });
+        console.error("❌ Error creating post:", err);
+        res.status(500).json({ error: "Something went wrong" });
     }
 };
-
 
 
 postsCltr.update = async (req, res) => {
@@ -124,29 +108,35 @@ postsCltr.update = async (req, res) => {
 
         console.log("Updating Post ID:", id, "Data:", body);
 
-        if (!body.postTitle || !body.date || !body.postType) {
-            return res.status(400).json({ error: "Post Title, Date, and Post Type are required." });
+        const cleanSummary = body.summary ? body.summary.replace(/<[^>]*>/g, '').trim() : "";
+
+        if (!body.postTitle || !body.date || !body.postType || !cleanSummary) {
+            return res.status(400).json({ error: "Post Title, Date, Post Type, and Summary are required." });
         }
 
-        // Ensure the post exists
+        if (!Array.isArray(body.sourceUrls) || body.sourceUrls.length === 0) {
+            return res.status(400).json({ error: "At least one Source URL is required." });
+        }
+
         const post = await Post.findById(id);
         if (!post) {
             return res.status(404).json({ error: "Post not found." });
         }
 
-        // Update the post
-        const updatedPost = await Post.findByIdAndUpdate(id, body, { new: true });
+        const updatedPost = await Post.findByIdAndUpdate(id, { ...body, summary: cleanSummary }, { new: true });
 
         res.json({
             success: true,
             message: "Post updated successfully.",
             updatedPost
         });
+
     } catch (err) {
-        console.error("Error updating post:", err);
+        console.error("❌ Error updating post:", err);
         res.status(500).json({ error: "Server Error" });
     }
 };
+
 
 postsCltr.delete = async (req, res) => {
     try {
@@ -171,5 +161,25 @@ postsCltr.delete = async (req, res) => {
         res.status(500).json({ error: "Server Error" });
     }
 };
+postsCltr.getAllPosts = async (req, res) => {
+    try {
+        console.log("🔍 Fetching all posts...");
+
+        // Fetch all posts and populate the contexts for better UI display
+        const posts = await Post.find({})
+            .populate("contexts", "contextTitle _id")
+            .sort({ date: -1 })
+            .lean();
+
+        console.log(`✅ Total Posts Fetched: ${posts.length}`);
+
+        res.json({ success: true, posts });
+    } catch (err) {
+        console.error("❌ Error fetching all posts:", err);
+        res.status(500).json({ error: "Server Error" });
+    }
+};
+
+
 
 export default postsCltr

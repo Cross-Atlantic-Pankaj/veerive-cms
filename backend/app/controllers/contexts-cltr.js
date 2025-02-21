@@ -1,32 +1,106 @@
 import Context from '../models/context-model.js'
+
+
 const contextsCltr = {}
 
-contextsCltr.list = async (req, res) => {
-    try{
+contextsCltr.getAllContexts = async (req, res) => {
+    try {
+        console.log("🔍 Fetching all contexts...");
+
+        // Fetch all contexts from the database, sorted alphabetically
         const contexts = await Context.find({})
-        res.json(contexts)
-        console.log(contexts)
-    } catch(err) {
-        console.log(err)
-        res.json(err)
+            .sort({ contextTitle: 1 })
+            .lean();
+
+        console.log(`✅ Total Contexts Fetched: ${contexts.length}`);
+
+        res.json({ success: true, contexts });
+    } catch (err) {
+        console.error("❌ Error fetching all contexts:", err);
+        res.status(500).json({ error: "Server Error" });
     }
-    
-}
+};
+
+
+
+contextsCltr.list = async (req, res) => {
+    try {
+        const { search, page = 1, limit = 10 } = req.query;
+        console.log(`API Request - Page: ${page}, Search: ${search}`);
+
+        let query = {};
+
+        if (search) {
+            const isDateSearch = /^\d{4}-\d{2}-\d{2}$/.test(search);
+
+            if (isDateSearch) {
+                const parsedDate = new Date(search);
+
+                if (!isNaN(parsedDate.getTime())) {
+                    const startDate = new Date(parsedDate);
+                    startDate.setUTCHours(0, 0, 0, 0); // Force UTC start time
+
+                    const endDate = new Date(startDate);
+                    endDate.setUTCHours(23, 59, 59, 999); // End of the same day
+
+                    query.date = { $gte: startDate, $lte: endDate };
+                    console.log("🔍 Date Search Query:", query.date);
+                }
+            } else {
+                query.contextTitle = { $regex: search, $options: "i" }; // Text search
+            }
+        }
+
+        console.log("🔥 Executing MongoDB Query:", query);
+
+        const totalContexts = await Context.countDocuments(query);
+
+        const pageNumber = parseInt(page) || 1;
+        const pageSize = parseInt(limit) || 10;
+        const skipRecords = (pageNumber - 1) * pageSize;
+
+        const contexts = await Context.find(query)
+            .sort({ date: -1 })
+            .skip(skipRecords)
+            .limit(pageSize)
+            .lean();
+
+        console.log("✅ API Response:", { totalContexts, totalPages: Math.ceil(totalContexts / pageSize), page: pageNumber, returnedRecords: contexts.length });
+
+        res.json({
+            success: true,
+            total: totalContexts,
+            page: pageNumber,
+            limit: pageSize,
+            totalPages: Math.ceil(totalContexts / pageSize),
+            contexts
+        });
+    } catch (err) {
+        console.error("❌ Error fetching contexts:", err);
+        res.status(500).json({ error: "Something went wrong" });
+    }
+};
 
 contextsCltr.show = async (req, res) => {
     try {
-        const contextId = req.params.id; // Get the context ID from the request parameters
-        if (!contextId) {
-            return res.status(400).json({ message: 'Context ID is required' });
+        const contextId = req.params.id;
+
+        // ✅ Handle case when ID is "all" by calling getAllContexts
+        if (contextId === "all") {
+            return contextsCltr.getAllContexts(req, res);
         }
 
-        const context = await Context.findById(contextId); // Find the context by ID
+        // ✅ Validate ObjectId format before searching
+        if (!contextId.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ message: 'Invalid Context ID format' });
+        }
+
+        const context = await Context.findById(contextId);
         if (!context) {
             return res.status(404).json({ message: 'Context not found' });
         }
 
-        res.json(context); // Send the found context as the response
-        console.log(context); // Log the context for debugging
+        res.json(context);
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: 'Server error', error: err });
@@ -44,17 +118,6 @@ contextsCltr.postContext = async (req, res) => {
     }
 };
 
-// contextsCltr.create = async (req, res) => {
-
-//     try{
-//         const context = new Context(req.body)
-//         await context.save()
-//         res.status(201).json(context)
-//     }catch(err){
-//         console.log(err)
-//         res.status(500).json({error: 'something went wrong'})
-//     }
-// }
 contextsCltr.create = async (req, res) => {
     try {
         console.log("Received Request Body:", req.body); // Debugging
@@ -72,6 +135,8 @@ contextsCltr.create = async (req, res) => {
         res.status(500).json({ error: 'Something went wrong' });
     }
 };
+
+
 
 contextsCltr.update = async (req, res) => {
 
@@ -91,6 +156,8 @@ contextsCltr.update = async (req, res) => {
         res.status(500).json({error: 'something went wrong'})
     }
 }
+
+
 
 // for updating postId in context when a post is saved
     

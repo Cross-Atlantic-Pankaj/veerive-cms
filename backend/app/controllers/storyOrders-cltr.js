@@ -1,17 +1,7 @@
 import StoryOrder from '../models/storyOrder-model.js'
 const storyOrdersCltr = {}
 
-// storyOrdersCltr.list = async (req, res) => {
-//     try{
-//         const response = await StoryOrder.find({})
-//         res.json(response)
-//         console.log(response)
-//     } catch(err) {
-//         console.log(err)
-//         res.json(err)
-//     }
-    
-// }
+
 
 storyOrdersCltr.list = async (req, res) => {
     try {
@@ -48,17 +38,6 @@ storyOrdersCltr.list = async (req, res) => {
 
 
 
-// storyOrdersCltr.create = async (req, res) => {
-
-//     try{
-//         const storyOrder = new StoryOrder(req.body)
-//         await storyOrder.save()
-//         res.status(201).json(storyOrder)
-//     }catch(err){
-//         console.log(err)
-//         res.status(500).json({error: 'something went wrong'})
-//     }
-// }
 
 storyOrdersCltr.create = async (req, res) => {
     try {
@@ -81,53 +60,7 @@ storyOrdersCltr.create = async (req, res) => {
 };
 
 
-// storyOrdersCltr.update = async (req, res) => {
 
-//     try{
-//         let storyOrder
-//         const id = req.params.id
-//         const body = req.body
-//         storyOrder = await StoryOrder.findByIdAndUpdate(id, body, {new: true})
-        
-//         if(!storyOrder){
-//             return res.status(404).json({ message: 'Story Order not found' })
-//         }
-//         return res.json(storyOrder)
-
-//     }catch(err){
-//         console.log(err)
-//         res.status(500).json({error: 'something went wrong'})
-//     }
-// }
-
-
-// storyOrdersCltr.update = async (req, res) => {
-//     try {
-//         const id = req.params.id;
-//         const { publishDate, rank } = req.body;
-
-//         if (!publishDate || !rank) {
-//             return res.status(400).json({ error: "Publish Date and Rank are required." });
-//         }
-
-//         const publishDateObj = new Date(publishDate); // Convert to Date object
-
-//         const storyOrder = await StoryOrder.findByIdAndUpdate(
-//             id,
-//             { publishDate: publishDateObj, rank },
-//             { new: true }
-//         );
-
-//         if (!storyOrder) {
-//             return res.status(404).json({ message: "Story Order not found" });
-//         }
-
-//         res.json(storyOrder);
-//     } catch (err) {
-//         console.error("Error updating story order:", err);
-//         res.status(500).json({ error: "Something went wrong" });
-//     }
-// };
 storyOrdersCltr.update = async (req, res) => {
     try {
         const id = req.params.id;
