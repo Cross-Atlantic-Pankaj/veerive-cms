@@ -103,6 +103,7 @@ export default function CompanyList() {
                 />
                 <button className="search-btn" onClick={handleSearch}>Search</button> {/* Button to trigger search */}
             </div>
+            <div className="table-responsive"> 
             <table className="company-table"> {/* Table to display the list of companies */}
                 <thead>
                     <tr>
@@ -134,6 +135,7 @@ export default function CompanyList() {
                     ))}
                 </tbody>
             </table>
+        </div>
         </div>
     );
 }
