@@ -55,6 +55,7 @@ export const ContextProvider = ({ children }) => {
     const [contexts, contextsDispatch] = useReducer(contextReducer, { data: [], totalPages: 1, currentPage: 1, editId: null, loading: true });
     const [searchQuery, setSearchQuery] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [allThemes, setAllThemes] = useState([]); // ✅ Store all themes (without pagination)
     const [isLoading, setIsLoading] = useState(true);
     const [isFormVisible, setIsFormVisible] = useState(false);
     const [page, setPage] = useState(1);
@@ -114,14 +115,37 @@ export const ContextProvider = ({ children }) => {
         }
     };
     
+    const fetchAllThemes = async () => {
+        try {
+            console.log("🔄 Fetching ALL Themes...");
+            const response = await axios.get('/api/admin/themes/all', {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+            });
+    
+            if (response.data.success) {
+                console.log("✅ Successfully fetched All Themes:", response.data.themes.length);
+                setAllThemes(response.data.themes); // ✅ Store all themes separately
+            }
+        } catch (err) {
+            console.error("❌ Error fetching all themes:", err);
+        }
+    };
+    
 
 // ✅ Now `fetchContexts` is defined before it's used in useEffect
 useEffect(() => {
     if (state.isLoggedIn) {
         fetchContexts();
         fetchPosts();
+        fetchAllThemes();
     }
 }, [state.isLoggedIn, page, searchQuery]); // ✅ Fetch only when `page` or `searchQuery` changes
+
+
+// Call fetchAllThemes once when the component mounts
+// useEffect(() => {
+//     fetchAllThemes();
+// }, []);
 
     
     const handleAddClick = () => {
@@ -176,6 +200,7 @@ useEffect(() => {
             sectors,
             subSectors,
             themes,
+            allThemes, // ✅ Pass all themes separately
             signals,
             subSignals,
             searchQuery,
