@@ -179,10 +179,17 @@ app.put('/api/admin/post-types/:id', authenticateUser, authorizeUser(['Admin', '
 app.delete('/api/admin/post-types/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), postTypesCltr.delete)
 
 //themes routes
-app.get('/api/themes', authenticateUser, themesCltr.list)
+//app.get('/api/themes', authenticateUser, themesCltr.list)
+// Themes routes (Accessible by authenticated users)
+app.get('/api/themes', authenticateUser, themesCltr.list); // Paginated themes
+app.get('/api/themes/all', authenticateUser, themesCltr.getAllThemes); // All themes (no pagination)
+
+// Admin routes (Only accessible by Admins and Moderators)
+app.get('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.list); // Paginated themes
+app.get('/api/admin/themes/all', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.getAllThemes); // All themes (no pagination)
 
 //admin routes
-app.get('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.list)
+//app.get('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.list)
 app.post('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.create)
 app.put('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.update)
 app.delete('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.delete)
