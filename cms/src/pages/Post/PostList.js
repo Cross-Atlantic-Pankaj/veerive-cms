@@ -11,20 +11,12 @@ export default function PostList() {
     const { contexts, isLoading } = useContext(ContextContext); // ✅ Get contexts & loading state
 
     const [searchQuery, setSearchQuery] = useState("");
-    const [sortConfig, setSortConfig] = useState({ key: "postTitle", direction: "ascending" });
+    //const [sortConfig, setSortConfig] = useState({ key: "postTitle", direction: "ascending" });
+    const [sortConfig, setSortConfig] = useState({ key: "date", direction: "descending" });
     const [page, setPage] = useState(() => parseInt(localStorage.getItem("currentPage")) || 1);
     const [totalPages, setTotalPages] = useState(1);
 
     // ✅ Store current page in localStorage
-    
-    // useEffect(() => {
-    //     const storedPage = parseInt(localStorage.getItem("currentPage")) || 1;
-    //     setPage(storedPage); // ✅ Restore the last visited page
-    // }, []);
-    
-    // useEffect(() => {
-    //     fetchPosts(page); // ✅ Fetch posts only for the current page
-    // }, [page]); // ✅ Only refetch when `page` changes
     
     useEffect(() => {
         const storedPage = parseInt(localStorage.getItem("currentPage"), 10);
@@ -71,7 +63,8 @@ export default function PostList() {
             toString.error("❌ API Fetch Error:", error);
         }
     };
-
+   
+    
 
     // ✅ Fetch full post list automatically when search query is cleared
     useEffect(() => {
@@ -81,30 +74,6 @@ export default function PostList() {
     }, [searchQuery]);
 
     // ✅ Search Function
-    // const handleSearch = async () => {
-    //     if (searchQuery.trim() === "") {
-    //         fetchPosts(); // ✅ Reset to full list when input is cleared
-    //         return;
-    //     }
-    
-    //     try {
-    //         const response = await axios.get(`/api/admin/posts?search=${searchQuery}`, {
-    //             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    //         });
-    
-    //         console.log("✅ Search Results:", response.data);
-    
-    //         postsDispatch({ type: "SET_POSTS", payload: response.data.posts });
-    
-    //         // ✅ Update total pages to 1 since search results are not paginated
-    //         setTotalPages(1);
-    //         setPage(1);
-    //     } catch (error) {
-    //         console.error("❌ Search API Error:", error);
-    //         toast.error("❌ Search API Error:", error);
-    //     }
-    // };
-    
     const handleSearch = async () => {
         if (searchQuery.trim() === "") {
             fetchPosts(); // ✅ Reset to full list when input is cleared
@@ -173,53 +142,55 @@ useEffect(() => {
     };
     
     // ✅ Sorting Function
+
     const requestSort = (key) => {
-        let direction = "ascending";
-        if (sortConfig.key === key && sortConfig.direction === "ascending") {
-            direction = "descending";
+        let direction = key === "date" ? "descending" : "ascending"; // ✅ Default to descending for date sorting
+    
+        if (sortConfig.key === key) {
+            direction = sortConfig.direction === "ascending" ? "descending" : "ascending"; // ✅ Toggle sorting on repeated clicks
         }
+    
         setSortConfig({ key, direction });
     };
-
+    
+    
     // ✅ Sorting and Filtering Posts
-    const sortedPosts = useMemo(() => {
-        //let sortablePosts = Array.isArray(posts?.data) ? [...posts.data] : [];
+   const sortedPosts = useMemo(() => {
         let sortablePosts = Array.isArray(posts?.data) ? [...new Set(posts.data)] : []; // ✅ Remove duplicates
+    
         if (sortConfig !== null) {
             sortablePosts.sort((a, b) => {
                 let aValue, bValue;
-
+    
                 switch (sortConfig.key) {
                     case "postTitle":
                     case "postType":
                         aValue = (a[sortConfig.key] || "").toLowerCase();
                         bValue = (b[sortConfig.key] || "").toLowerCase();
-                        break;
+                        return sortConfig.direction === "ascending" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+    
                     case "date":
                         aValue = new Date(a.date || 0);
                         bValue = new Date(b.date || 0);
-                        break;
+                        return sortConfig.direction === "ascending" ? aValue - bValue : bValue - aValue; // ✅ Ensures latest post comes first
+    
                     case "context":
                         aValue = getContextName(a.context).toLowerCase();
                         bValue = getContextName(b.context).toLowerCase();
-                        break;
+                        return sortConfig.direction === "ascending" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+    
                     default:
                         aValue = a[sortConfig.key] || "";
                         bValue = b[sortConfig.key] || "";
-                        break;
+                        return sortConfig.direction === "ascending" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
                 }
-
-                return sortConfig.direction === "ascending"
-                    ? aValue < bValue
-                        ? -1
-                        : 1
-                    : aValue > bValue
-                    ? -1
-                    : 1;
             });
         }
+    
         return sortablePosts;
     }, [posts?.data, sortConfig, contexts?.data]);
+    
+    
 
     // ✅ Filter Posts Based on Search Query
     const filteredPosts = useMemo(() => {

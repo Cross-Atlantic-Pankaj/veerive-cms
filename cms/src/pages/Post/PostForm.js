@@ -374,7 +374,38 @@ export default function PostForm({ handleFormSubmit }) {
             setSourceUrls([...sourceUrls, newUrl]); // ✅ Add URL inside input field
         }
     };
-    
+
+    // ✅ Custom Multi-Value Component for Clickable Links & Copy Button
+const MultiValue = ({ data, removeProps }) => (
+    <div className="custom-url">
+        <a
+            href={data.value}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="source-url-link"
+        >
+            {data.label}
+        </a>
+        <button
+            type="button"
+            className="copy-btn"
+            onClick={() => {
+                navigator.clipboard.writeText(data.value);
+                toast.success("📋 URL copied to clipboard!");
+            }}
+        >
+            📋
+        </button>
+        <button
+            type="button"
+            className="remove-btn"
+            {...removeProps}
+        >
+            ❌
+        </button>
+    </div>
+);
+
     return (
         <div className="post-form-container">
             <button type="button" className="submit-btn" onClick={handleHomeNav}>Post Home</button>
@@ -519,7 +550,7 @@ export default function PostForm({ handleFormSubmit }) {
                         placeholder="Search and select sources"
                         className="post-select"
                     />
-                    <label htmlFor="sourceUrls"><b>Source URLs</b></label>
+                    {/* <label htmlFor="sourceUrls"><b>Source URLs</b></label>
                     <CreatableSelect
                         id="sourceUrls"
                         value={sourceUrls.map(url => ({ value: url, label: url }))} // ✅ Show URLs inside input field
@@ -529,8 +560,20 @@ export default function PostForm({ handleFormSubmit }) {
                         placeholder="Enter URL and press Enter"
                         className="post-select"
                         onCreateOption={handleCreateUrl} // ✅ Handle Enter key for adding URLs
-                    />
+                    /> */}
+<label htmlFor="sourceUrls"><b>Source URLs</b></label>
 
+<CreatableSelect
+    id="sourceUrls"
+    value={sourceUrls.map(url => ({ value: url, label: url }))}
+    onChange={(selectedOptions) => setSourceUrls(selectedOptions.map(opt => opt.value))}
+    isMulti
+    isSearchable
+    placeholder="Enter URL and press Enter"
+    className="post-select"
+    onCreateOption={handleCreateUrl}
+    components={{ MultiValue }} // ✅ Use the custom MultiValue component
+/>
                 <label htmlFor="generalComment"><b>General Comment</b></label>
                 <textarea
                     id="generalComment"
