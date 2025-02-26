@@ -34,12 +34,44 @@ postsCltr.date = async (req, res) => {
     }
 };
 
+// postsCltr.list = async (req, res) => {
+//     try {
+//         const { page = 1, limit = 10 } = req.query;
+
+//         let posts = await Post.find()
+//             .populate("contexts", "contextTitle _id") // ✅ Populate contexts here
+//             .skip((page - 1) * parseInt(limit))
+//             .limit(parseInt(limit))
+//             .lean();
+
+//         posts = posts.map(post => ({
+//             ...post,
+//             contexts: post.contexts?.map(ctx => ({ _id: ctx._id, contextTitle: ctx.contextTitle })) || []
+//         }));
+
+//         const totalPosts = await Post.countDocuments();
+
+//         res.json({
+//             success: true,
+//             total: totalPosts,
+//             page: parseInt(page),
+//             limit: parseInt(limit),
+//             totalPages: Math.ceil(totalPosts / limit),
+//             posts
+//         });
+//     } catch (err) {
+//         console.error("❌ Error fetching posts:", err);
+//         res.status(500).json({ error: "Server Error" });
+//     }
+// };
+
 postsCltr.list = async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query;
 
         let posts = await Post.find()
             .populate("contexts", "contextTitle _id") // ✅ Populate contexts here
+            .sort({ date: -1 }) // ✅ Ensure descending order (latest first)
             .skip((page - 1) * parseInt(limit))
             .limit(parseInt(limit))
             .lean();
@@ -64,6 +96,7 @@ postsCltr.list = async (req, res) => {
         res.status(500).json({ error: "Server Error" });
     }
 };
+
 
 
 postsCltr.create = async (req, res) => {
