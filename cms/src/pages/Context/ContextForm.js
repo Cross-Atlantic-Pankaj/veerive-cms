@@ -12,7 +12,7 @@ import PostContext from '../../context/PostContext';
 export default function ContextForm({ handleFormSubmit }) {
     const { contexts, contextsDispatch, sectors: sectorsData, subSectors: subSectorsData, signals: signalsData, subSignals: subSignalsData, themes: themesData, setIsFormVisible, isFormVisible } = useContext(ContextContext);
     const{  fetchPosts} = useContext(PostContext)
-
+    const { allThemes } = useContext(ContextContext); // ✅ Get all themes
     // State for form inputs
     const [posts, setPosts] = useState([]); // ✅ Store posts locally inside the component
     const [selectedPosts, setSelectedPosts] = useState([]); // ✅ Local selected posts state
@@ -26,7 +26,6 @@ export default function ContextForm({ handleFormSubmit }) {
     const [selectedSignalCategories, setSelectedSignalCategories] = useState([]);
     const [selectedSignalSubCategories, setSelectedSignalSubCategories] = useState([]);
     const [selectedThemes, setSelectedThemes] = useState([]);
-    //const [selectedPosts, setSelectedPosts] = useState([]); // New state for selected posts
     const [bannerShow, setBannerShow] = useState(false);
     const [homePageShow, setHomePageShow] = useState(false);
     const [bannerImage, setBannerImage] = useState('');
@@ -83,98 +82,6 @@ export default function ContextForm({ handleFormSubmit }) {
         }
     }, [posts]);
 
-    
-    // useEffect(() => {
-        
-    //     if (contexts.editId && posts?.data?.length > 0) {
-    //         const context = contexts.data.find((ele) => ele._id === contexts.editId);
-    //         if (context) {
-    //             setContextTitle(context.contextTitle);
-    //             setDate(new Date(context.date).toISOString().substring(0, 10)); // Set the date field
-    //             setContainerType(context.containerType || 'Type-One'); // Set container type
-    //             setIsTrending(context.isTrending);
-    //             setDisplayOrder(context.displayOrder);
-    //             setSelectedSectors(context.sectors || []);
-    //             setSelectedSubSectors(context.subSectors || []);
-    //             setSelectedSignalCategories(context.signalCategories || []);
-    //             setSelectedSignalSubCategories(context.signalSubCategories || []);
-                
-    //             // Set selected themes with the correct format for react-select
-    //             setSelectedThemes(context.themes.map(themeId => ({
-    //                 value: themeId,
-    //                 label: themesData.data.find(theme => theme._id === themeId)?.themeTitle || ''
-    //             })));
-                
-    //             setSelectedPosts(
-    //             context.posts.map(post => {
-    //                 const matchedPost = posts.data.find(p => p._id === post.postId);
-    //                 return {
-    //                     value: post.postId,
-    //                     label: matchedPost?.postTitle && matchedPost.postTitle.trim() !== "" 
-    //                         ? matchedPost.postTitle 
-    //                         : "No Title Available",
-    //                     includeInContainer: post.includeInContainer
-    //                 };
-    //             })
-    //         );
-        
-    //             setBannerShow(context.bannerShow);
-    //             setHomePageShow(context.homePageShow);
-    //             setBannerImage(context.bannerImage || '');
-    //             setOtherImage(context.otherImage || '');
-    //             setGeneralComment(context.generalComment || '');
-    //             setDataForTypeNum(context.dataForTypeNum || '');
-    //             setSummary(context.summary || '');
-    //             setHasSlider(context.hasSlider || false);
-    //             setSlides({
-    //                 slide1: context.slide1 || { title: '', description: '' },
-    //                 slide2: context.slide2 || { title: '', description: '' },
-    //                 slide3: context.slide3 || { title: '', description: '' },
-    //                 slide4: context.slide4 || { title: '', description: '' },
-    //                 slide5: context.slide5 || { title: '', description: '' },
-    //                 slide6: context.slide6 || { title: '', description: '' },
-    //                 slide7: context.slide7 || { title: '', description: '' },
-    //                 slide8: context.slide8 || { title: '', description: '' },
-    //                 slide9: context.slide9 || { title: '', description: '' },
-    //                 slide10: context.slide10 || { title: '', description: '' }
-    //             });
-    //         }
-    //     } else {
-    //         setContextTitle('');
-    //         setDate('');
-    //         setContainerType('');
-    //         setIsTrending(false);
-    //         setSelectedSectors([]);
-    //         setSelectedSubSectors([]);
-    //         setSelectedSignalCategories([]);
-    //         setSelectedSignalSubCategories([]);
-    //         setSelectedThemes([]);
-    //         setSelectedPosts([]); // Reset posts when adding a new context
-    //         setBannerShow(false);
-    //         setHomePageShow(false);
-    //         setBannerImage('');
-    //         setOtherImage('');
-    //         setGeneralComment('');
-    //         setDataForTypeNum('');
-    //         setSummary('');
-    //         setHasSlider(false);
-    //         setSlides({
-    //             slide1: { title: '', description: '' },
-    //             slide2: { title: '', description: '' },
-    //             slide3: { title: '', description: '' },
-    //             slide4: { title: '', description: '' },
-    //             slide5: { title: '', description: '' },
-    //             slide6: { title: '', description: '' },
-    //             slide7: { title: '', description: '' },
-    //             slide8: { title: '', description: '' },
-    //             slide9: { title: '', description: '' },
-    //             slide10: { title: '', description: '' }
-    //         });
-            
-    //     }
-        
-    // }, [contexts.editId, contexts.data,posts.data]);
-
     useEffect(() => {
         if (contexts.editId && Array.isArray(posts) && posts.length > 0) {
             console.log("✏️ Editing Context Data, Pre-filling form...");
@@ -192,11 +99,21 @@ export default function ContextForm({ handleFormSubmit }) {
                 setSelectedSignalSubCategories(context.signalSubCategories || []);
                 
                 // ✅ Set selected themes with the correct format for react-select
-                setSelectedThemes(context.themes.map(themeId => ({
-                    value: themeId,
-                    label: themesData.data.find(theme => theme._id === themeId)?.themeTitle || ''
-                })));
-    
+                // setSelectedThemes(context.themes.map(themeId => ({
+                //     value: themeId,
+                //     label: themesData.data.find(theme => theme._id === themeId)?.themeTitle || ''
+                // })));
+
+                setSelectedThemes(
+                    context.themes.map(themeId => {
+                        const matchedTheme = allThemes.find(theme => theme._id === themeId);
+                        return {
+                            value: themeId,
+                            label: matchedTheme ? matchedTheme.themeTitle : 'Unknown Theme'
+                        };
+                    })
+                );
+                
                 // ✅ Fix: Set Selected Posts Correctly
                 setSelectedPosts(
                     Array.from(new Map(
@@ -378,7 +295,8 @@ export default function ContextForm({ handleFormSubmit }) {
                 signalCategories: selectedSignalCategories,
                 signalSubCategories: selectedSignalSubCategories,
                 // themes: selectedThemes.map(theme => theme.value),
-                themes: selectedThemes.length > 0 ? selectedThemes.map(theme => theme.value) : [], // ✅ Allow empty array
+                //themes: selectedThemes.length > 0 ? selectedThemes.map(theme => theme.value) : [], // ✅ Allow empty array
+                themes: selectedThemes.map(theme => theme.value), // ✅ Use formatted themes
                 posts: updatedPosts,
                 bannerShow,
                 homePageShow,
@@ -449,10 +367,15 @@ export default function ContextForm({ handleFormSubmit }) {
     };
 
     // Convert themesData into a format suitable for react-select
-    const themeOptions = themesData.data.map(theme => ({
-        value: theme._id,
-        label: theme.themeTitle
-    }));
+    // const themeOptions = themesData.data.map(theme => ({
+    //     value: theme._id,
+    //     label: theme.themeTitle
+    // }));
+    // Convert allThemes into a format suitable for react-select
+const themeOptions = allThemes.map(theme => ({
+    value: theme._id,
+    label: theme.themeTitle
+}));
 
 
 
@@ -582,40 +505,6 @@ useEffect(() => {
                             />
                         </div>
                     </div>
-                {/* Signal Categories and Sub-Categories in another row */}
-                {/* <div className="row">
-                    <div className="column">
-                        <label htmlFor="signalCategories"><b>Signal Categories</b></label>
-                        <select
-                            id="signalCategories"
-                            name="signalCategories"
-                            value={selectedSignalCategories}
-                            onChange={(e) => setSelectedSignalCategories(Array.from(e.target.selectedOptions, option => option.value))}
-                            className="context-select"
-                            multiple
-                        >
-                            {signalsData.data.map(signal => (
-                                <option key={signal._id} value={signal._id}>{signal.signalName}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="column">
-                        <label htmlFor="signalSubCategories"><b>Signal Sub-Categories</b></label>
-                        <select
-                            id="signalSubCategories"
-                            name="signalSubCategories"
-                            value={selectedSignalSubCategories}
-                            onChange={(e) => setSelectedSignalSubCategories(Array.from(e.target.selectedOptions, option => option.value))}
-                            className="context-select"
-                            multiple
-                        >
-                            {subSignalsData.data.filter(subSignal => selectedSignalCategories.includes(subSignal.signalId)).map(subSignal => (
-                                <option key={subSignal._id} value={subSignal._id}>{subSignal.subSignalName}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div> */}
-                
                     {/* Signal Categories and Sub-Categories in one row */}
                     <div className="row">
                         {/* Signal Categories Multi-Select Dropdown */}

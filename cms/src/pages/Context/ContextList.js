@@ -12,7 +12,7 @@ export default function ContextList() {
     // Destructuring necessary state and functions from ContextContext
     const { contexts, contextsDispatch, handleAddClick, handleEditClick,searchQuery, setSearchQuery, sectors, subSectors, themes, signals, subSignals ,setIsLoading, fetchContexts} = useContext(ContextContext);
     const { page, setPage, totalPages } = useContext(ContextContext);  // ✅ Use global state
-
+    const { allThemes } = useContext(ContextContext); // ✅ Use allThemes
     // Local state to manage the search query and sorting configuration
     // const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState({ key: 'contextTitle', direction: 'ascending' });
@@ -110,13 +110,21 @@ useEffect(() => {
     };
 
     // Helper function to get theme names from IDs
-    const getThemeNames = (ids, data) => {
-        if (!Array.isArray(ids)) return 'Unknown'; // Return 'Unknown' if IDs are not an array
-        const themeNames = ids.map(id => {
-            const item = data.find(ele => ele._id === id); // Find the theme by ID
-            return item ? item.themeTitle : 'Unknown'; // Return the theme title or 'Unknown' if not found
-        });
-        return themeNames.join(', '); // Join theme titles with a comma
+    // const getThemeNames = (ids, data) => {
+    //     if (!Array.isArray(ids)) return 'Unknown'; // Return 'Unknown' if IDs are not an array
+    //     const themeNames = ids.map(id => {
+    //         const item = data.find(ele => ele._id === id); // Find the theme by ID
+    //         return item ? item.themeTitle : 'Unknown'; // Return the theme title or 'Unknown' if not found
+    //     });
+    //     return themeNames.join(', '); // Join theme titles with a comma
+    // };
+    const getThemeNames = (ids) => {
+        if (!Array.isArray(ids)) return 'Unknown';
+        
+        return ids.map(id => {
+            const matchedTheme = allThemes.find(theme => theme._id === id);
+            return matchedTheme ? matchedTheme.themeTitle : 'Unknown Theme';
+        }).join(', ');
     };
 
     // Memoized sortedContexts to avoid re-sorting on every render
@@ -232,32 +240,7 @@ useEffect(() => {
             toast.error("❌ Search API Error: Please try again.");
         }
     };
-    
-    
-    // useEffect(() => {
-    //     const savedPage = localStorage.getItem('currentPage');
-    //     if (savedPage) {
-    //         setPage(parseInt(savedPage)); // ✅ Restore last viewed page on reload
-    //     }
-    // }, []);
-    
-    // const handleNextPage = () => {
-    //     if (page < totalPages) {
-    //         console.log("Navigating to Next Page:", page + 1);
-    //         const newPage = page + 1;
-    //         setPage(newPage);
-    //         localStorage.setItem('currentPage', newPage); // ✅ Store new page
-    //     }
-    // };
-    
-    // const handlePrevPage = () => {
-    //     if (page > 1) {
-    //         console.log("Navigating to Previous Page:", page - 1);
-    //         const newPage = page - 1;
-    //         setPage(newPage);
-    //         localStorage.setItem('currentPage', newPage); // ✅ Store new page
-    //     }
-    // };
+
     const handleNextPage = () => {
         if (page < totalPages) {
             console.log("Navigating to Next Page:", page + 1);
@@ -346,7 +329,9 @@ useEffect(() => {
                             <td>{getSectorNames(ele.sectors, sectors.data)}</td>
                             <td>{getSubSectorNames(ele.subSectors, subSectors.data)}</td>
                             <td>{getSignalNames(ele.signalCategories, signals.data)}</td>
-                            <td>{getThemeNames(ele.themes, themes.data)}</td>
+                            {/* <td>{getThemeNames(ele.themes, themes.data)}</td> */}
+                            <td>{getThemeNames(ele.themes)}</td>
+
                             <td>{ele.isTrending ? 'Yes' : 'No'}</td>
                             <td>
                                 {/* Buttons for editing and removing contexts */}
