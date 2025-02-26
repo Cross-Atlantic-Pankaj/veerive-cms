@@ -10,7 +10,48 @@ export default function StoryOrder() {
     const [loading, setLoading] = useState(false);
     const [publishDate, setPublishDate] = useState('');
     const [rank, setRank] = useState({});
+    const [filteredContextsState, setFilteredContextsState] = useState([]); // ✅ Separate filtered contexts
 
+    // ✅ Add Pagination State Here
+    const [currentPage, setCurrentPage] = useState(1);
+    const contextsPerPage = 10; // ✅ Show 10 contexts per page
+
+    // ✅ Calculate which contexts to display on the current page
+    const indexOfLastContext = currentPage * contextsPerPage;
+    const indexOfFirstContext = indexOfLastContext - contextsPerPage;
+    const currentContexts = filteredContextsState.slice(indexOfFirstContext, indexOfLastContext);
+   
+    useEffect(() => {
+        // Retrieve stored state on mount
+        const storedStartDate = localStorage.getItem('startDate');
+        const storedEndDate = localStorage.getItem('endDate');
+        const storedPage = localStorage.getItem('currentPage');
+    
+        if (storedStartDate) setStartDate(storedStartDate);
+        if (storedEndDate) setEndDate(storedEndDate);
+        if (storedPage) setCurrentPage(parseInt(storedPage));
+    
+        
+    }, []);
+    
+  useEffect(() => {
+        if (posts.length > 0) { 
+            fetchContexts();  // ✅ Always fetch new contexts when posts change
+        }
+    }, [posts]); 
+    
+    useEffect(() => {
+        if (contexts.length > 0 && filteredContextsState.length === 0) {
+            fetchStoryOrders();
+        }
+    }, [contexts]); // ✅ Runs only once when contexts change
+    
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        localStorage.setItem('currentPage', page); // ✅ Store current page in localStorage
+    };
+    
+    
     // Handle changes in rank input fields
     const handleRankChange = (contextTitle, value) => {
         setRank(prevRank => ({
@@ -41,18 +82,35 @@ export default function StoryOrder() {
         }
     
         setLoading(true);
-        setPublishDate(''); // ✅ Reset publishDate before fetching posts
-    
+        setPublishDate('');
+        setContexts([]);  // ✅ Clear previous contexts to prevent old data from showing.
+        setPosts([]);  // ✅ Clear previous posts before fetching
+        setFilteredContextsState([]); // ✅ Clear previous contexts before fetching
+        
         try {
             console.log("🔄 Fetching ALL posts within date range...");
             const response = await axios.get('/api/admin/posts/all', {
-                params: { startDate, endDate },
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
     
             if (response.data.success) {
                 console.log("✅ Successfully fetched ALL posts:", response.data.posts.length);
-                setPosts(response.data.posts); // ✅ Store all posts
+    
+                // ✅ Manually filter posts by date
+                const filteredPosts = response.data.posts.filter(post => {
+                    const postDate = new Date(post.date); // Ensure post.date is a Date object
+                    const start = new Date(startDate);
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59, 999); // Include full end day
+    
+                    return postDate >= start && postDate <= end; // ✅ Keep only posts in range
+                });
+    
+                console.log("✅ Filtered Posts Count:", filteredPosts.length);
+                setPosts(filteredPosts);
+                // ✅ Store in `localStorage` to persist after reload
+            localStorage.setItem('startDate', startDate);
+            localStorage.setItem('endDate', endDate);
             }
         } catch (err) {
             console.error('❌ Error fetching all posts:', err);
@@ -65,9 +123,11 @@ export default function StoryOrder() {
         if (posts.length === 0) return;
     
         setLoading(true);
+        setFilteredContextsState([]); // ✅ Reset displayed contexts when fetching new ones
+
         let allContexts = [];
         let currentPage = 1;
-        const limit = 999; // ✅ Increase the limit to reduce API calls
+        const limit = 999;
         let totalPages = 1;
     
         const postIds = posts.map(post => post._id); // ✅ Get all post IDs
@@ -75,7 +135,7 @@ export default function StoryOrder() {
         try {
             do {
                 console.log(`🔄 Fetching ALL contexts - Page ${currentPage}`);
-                const response = await axios.get('/api/admin/contexts/all', { // ✅ Fetch ALL contexts
+                const response = await axios.get('/api/admin/contexts/all', {
                     params: { postIds, page: currentPage, limit },
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                 });
@@ -86,10 +146,17 @@ export default function StoryOrder() {
     
                 totalPages = response.data.totalPages;
                 currentPage++;
-            } while (currentPage <= totalPages); // ✅ Fetch all pages
+            } while (currentPage <= totalPages);
     
             console.log("✅ Final Contexts Fetched:", allContexts.length);
-            setContexts(allContexts);
+    
+            // ✅ Only keep contexts that are linked to fetched posts
+            const filteredContexts = allContexts.filter(context =>
+                context.posts.some(p => postIds.includes(p.postId))
+            );
+    
+            console.log("✅ Filtered Contexts Count:", filteredContexts.length);
+            setContexts(filteredContexts);
         } catch (err) {
             console.error('❌ Error fetching all contexts:', err);
             setContexts([]);
@@ -97,12 +164,12 @@ export default function StoryOrder() {
             setLoading(false);
         }
     };
-
+  
     const fetchStoryOrders = async () => {
-        if (contexts.length === 0) return;
+        if (contexts.length === 0) return; // Ensure contexts exist before running
     
         setLoading(true);
-        setPublishDate(''); // ✅ Reset publishDate before fetching new data
+        setPublishDate(''); // Reset publish date before fetching new data
     
         try {
             const response = await axios.get('/api/admin/story-orders', {
@@ -113,27 +180,38 @@ export default function StoryOrder() {
             const orders = response.data;
             console.log("📢 Story Orders Response:", orders);
     
-            if (orders.length > 0) { 
-                // ✅ Find the most recent publishDate
-                const latestPublishDate = orders
-                    .map(order => new Date(order.publishDate))
-                    .sort((a, b) => b - a)[0]; // Get the most recent date
+            // ✅ Extract contexts that are linked to posts
+            const postLinkedContextIds = contexts
+                .filter(ctx => ctx.posts.some(p => posts.some(post => post._id === p.postId)))
+                .map(ctx => ctx._id);
     
-                if (latestPublishDate) {
-                    setPublishDate(latestPublishDate.toISOString().split('T')[0]); // ✅ Update the UI
-                } else {
-                    console.log("❌ No valid publishDate found.");
-                    setPublishDate(''); // ✅ Ensure it remains empty if no orders exist
-                }
-            } else {
-                console.log("❌ No existing story orders found.");
-                setPublishDate(''); // ✅ Ensure it remains empty if no orders exist
-            }
+            // ✅ Extract valid contexts from story orders (contexts with a rank)
+            const validContextIds = [...new Set(orders.map(order => order.contextId))];
     
-            // ✅ Update Rank Data
+            // ✅ Include contexts that are in valid story orders OR linked to posts
+            const newFilteredContexts = contexts.filter(ctx => 
+                validContextIds.includes(ctx._id) || postLinkedContextIds.includes(ctx._id)
+            );
+    
+            console.log("✅ Filtered Story Orders Count:", orders.length);
+            console.log("✅ Final Displayed Contexts Count:", newFilteredContexts.length);
+            setFilteredContextsState(newFilteredContexts); // ✅ Update state with filtered contexts
+    
+            // ✅ Set the latest publish date if available
+            // if (orders.length > 0) {
+            //     const latestPublishDate = orders
+            //         .map(order => new Date(order.publishDate))
+            //         .sort((a, b) => b - a)[0];
+    
+            //     setPublishDate(latestPublishDate.toISOString().split('T')[0]);
+            // } else {
+            //     setPublishDate('');
+            // }
+    
+            // ✅ Set Rank for contexts that exist in `newFilteredContexts`
             const newRank = {};
             orders.forEach(order => {
-                const context = contexts.find(ctx => ctx._id === order.contextId);
+                const context = newFilteredContexts.find(ctx => ctx._id === order.contextId);
                 if (context) {
                     newRank[context.contextTitle] = order.rank;
                 }
@@ -216,23 +294,7 @@ export default function StoryOrder() {
         }
     };
     
-    // Fetch contexts only after posts are fetched
-    useEffect(() => {
-        if (posts.length > 0) {
-            fetchContexts();
-        } else {
-            setContexts([]);
-        }
-    }, [posts]);
-
-    // Fetch story orders after contexts are loaded
-    useEffect(() => {
-        if (contexts.length > 0) {
-            fetchStoryOrders();
-        }
-    }, [contexts]);
-
-        const contextMap = (Array.isArray(contexts) ? contexts : []).reduce((acc, context) => {
+  const contextMap = (Array.isArray(filteredContextsState) ? filteredContextsState : []).reduce((acc, context) => {
         if (context.posts && Array.isArray(context.posts)) {
             const postTitles = posts
                 .filter(post => context.posts.some(p => p.postId === post._id))
@@ -247,7 +309,19 @@ export default function StoryOrder() {
             }
         }
         return acc;
-    }, {})  // ✅ Prevents `.reduce()` from running if `contexts` is not an array
+    }, {});
+    useEffect(() => {
+        // Clear stored start and end dates when navigating to the page
+        localStorage.removeItem('startDate');
+        localStorage.removeItem('endDate');
+        localStorage.removeItem('currentPage');
+    
+        // Reset state to empty values
+        setStartDate('');
+        setEndDate('');
+        setCurrentPage(1);
+    }, []);
+    
     
     return (
         <div className="story-order-container">
@@ -260,6 +334,13 @@ export default function StoryOrder() {
                     {loading ? 'Loading...' : 'Fetch Posts'}
                 </button>
             </div>
+            <br/>
+            <br/>
+            <div className="summary">
+                    <h3>Total Posts: {posts.length}</h3>
+                    <h3>Total Contexts: {contexts.length}</h3>
+                    <h3>Displayed Contexts: {filteredContextsState.length}</h3> 
+                </div>
 
             {posts.length > 0 && contexts.length > 0 ? (
                 <div className="table-container">
@@ -267,14 +348,17 @@ export default function StoryOrder() {
                     <label>
                         Publish Date:
                         <input type="date" name="publishDate" value={publishDate} onChange={handlePublishDateChange} />
+                        <br/>
+                        <br/>
                         <button onClick={handleSave} className="save-btn">Save</button>
                     </label>
-
+                    <br/>
+                    <br/>
                     <table>
                         <thead>
                             <tr><th>Context Title</th><th>Post Titles</th><th>Trending?</th><th>Rank</th></tr>
                         </thead>
-                        <tbody>
+                        {/* <tbody>
                             {Object.entries(contextMap).map(([contextTitle, { postTitles, isTrending, rank }]) => (
                                 <tr key={contextTitle} className={isTrending ? 'trending-context' : ''}>
                                     <td>{contextTitle}</td>
@@ -283,9 +367,49 @@ export default function StoryOrder() {
                                     <td><input type="number" value={rank || ''} onChange={(e) => handleRankChange(contextTitle, e.target.value)} /></td>
                                 </tr>
                             ))}
+                        </tbody> */}
+                        <tbody>
+                                                {Object.entries(contextMap)
+                                    .slice(indexOfFirstContext, indexOfLastContext) // ✅ Apply pagination here
+                                    .map(([contextTitle, { postTitles, isTrending, rank }]) => (
+                                        <tr key={contextTitle} className={isTrending ? 'trending-context' : ''}>
+                                            <td>{contextTitle}</td>
+                                            <td>{postTitles.join(', ')}</td>
+                                            <td>{isTrending ? 'Yes' : 'No'}</td>
+                                            <td>
+                                                <input 
+                                                    type="number" 
+                                                    value={rank || ''} 
+                                                    onChange={(e) => handleRankChange(contextTitle, e.target.value)} 
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
                         </tbody>
-                    </table>
-                </div>
+                        </table>
+                    
+                {/* Pagination Controls */}
+                        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                            {Array.from({ length: Math.ceil(filteredContextsState.length / contextsPerPage) }).map((_, index) => (
+                                <button 
+                                    key={index} 
+                                    onClick={() => handlePageChange(index + 1)}
+                                    style={{
+                                        padding: '8px 12px',
+                                        margin: '5px',
+                                        border: '1px solid #007bff',
+                                        backgroundColor: currentPage === index + 1 ? '#007bff' : 'white',
+                                        color: currentPage === index + 1 ? 'white' : '#007bff',
+                                        borderRadius: '5px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {index + 1}
+                                </button>
+                            ))}
+                        </div>
+
+                    </div>
             ) : (
                 <p className="no-data">No posts available for the selected date range.</p>
             )}
