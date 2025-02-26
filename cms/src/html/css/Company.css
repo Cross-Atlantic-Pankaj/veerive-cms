@@ -1,4 +1,4 @@
-/* General container styling */
+/* /* General container styling */
 .company-page {
     padding: 20px; /* Add 20px padding inside the container */
     max-width: 800px; /* Limit the maximum width of the container to 800px */
@@ -123,16 +123,3 @@
     background-color: #0056b3; /* Change background color to a darker blue on hover */
 }
 
-.company-table {
-    width: 100%; /* Set the table to take up 100% of the container width */
-    border-collapse: collapse; /* Collapse table borders into a single border */
-}
-
-.company-table th, .company-table td {
-    border: 1px solid #ddd; /* Add a 1px solid border with a light grey color to table cells */
-    padding: 8px; /* Add 8px padding inside table cells */
-}
-
-.company-table th {
-    background-color: #f4f4f4; /* Set a light grey background color for table headers */
-}
