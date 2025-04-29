@@ -214,7 +214,7 @@ export default function PostForm({ handleFormSubmit }) {
                         return;
                     }
     
-                    await updateContextWithPost(postId, includeInContainer);
+                  //  await updateContextWithPost(postId, includeInContainer);
                     await fetchPosts();
                     setTimeout(() => {
                         console.log("✅ Fetching updated posts...");
@@ -240,7 +240,7 @@ export default function PostForm({ handleFormSubmit }) {
                         return;
                     }
     
-                    await updateContextWithPost(postId, includeInContainer);
+                   // await updateContextWithPost(postId, includeInContainer);
                     await fetchPosts();
                     setTimeout(() => {
                         console.log("✅ Fetching updated posts...");
@@ -258,7 +258,8 @@ export default function PostForm({ handleFormSubmit }) {
     if (!isFormVisible) {
         return null; // Prevents rendering the form if isFormVisible is false
     }
-   
+
+    /*
     const updateContextWithPost = async (postId, includeInContainer) => {
         console.log("📌 Received postId:", postId); // Log postId
         console.log("📌 Selected contexts:", selectedContexts);
@@ -303,6 +304,7 @@ export default function PostForm({ handleFormSubmit }) {
         }
     };
     
+    */
     const contextOptions = (contexts?.data || []).map(ctx => ({
         value: ctx._id,
         label: ctx.contextTitle
