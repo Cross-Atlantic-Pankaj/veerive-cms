@@ -2,6 +2,7 @@ import {Schema, model} from 'mongoose'
 
 const postSchema = new Schema ({
     postTitle: { type: String, required: true },
+    imageUrl: { type: String, required: false },
     date: { type: Date, required: true },       
     postType: { type: String, enum: ['News', 'Expert Opinion', 'Research Report', 'Infographic', 'Interview'], required: true },
     //postTypeId: { type: Schema.Types.ObjectId, ref: 'PostType', required: true},

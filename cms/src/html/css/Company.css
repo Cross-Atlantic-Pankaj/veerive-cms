@@ -1,125 +1,160 @@
-/* /* General container styling */
+/* Modern Company Page Styles */
 .company-page {
-    padding: 20px; /* Add 20px padding inside the container */
-    max-width: 800px; /* Limit the maximum width of the container to 800px */
-    margin: 0 auto; /* Center the container horizontally */
+    padding: 32px;
+    max-width: 900px;
+    margin: 0 auto;
+    font-family: 'Inter', Arial, sans-serif;
+    background: #f6f8fa;
 }
 
-/* Table styling */
 .company-table {
-    width: 100%; /* Set the table to take up 100% of the container width */
-    border-collapse: collapse; /* Collapse table borders into a single border */
-    margin-bottom: 20px; /* Add 20px margin below the table */
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.08);
+    margin-bottom: 2rem;
 }
 
 .company-table th, .company-table td {
-    padding: 10px; /* Add 10px padding inside table cells */
-    text-align: left; /* Align text to the left in table cells */
-    border-bottom: 1px solid #ddd; /* Add a 1px solid border at the bottom of table cells */
+    padding: 1rem 0.75rem;
+    text-align: left;
+    font-size: 1rem;
 }
 
 .company-table th {
-    background-color: #f2f2f2; /* Set a light grey background color for table headers */
+    background: #e0e7ef;
+    color: #3730a3;
+    font-weight: 800;
+    border-bottom: 2px solid #cbd5e1;
+    letter-spacing: 0.01em;
 }
 
-/* Button styling */
-.add-company-btn, .edit-btn, .remove-btn {
-    background-color: #4CAF50; /* Set the background color to green */
-    color: white; /* Set the text color to white */
-    padding: 10px 20px; /* Add 10px vertical padding and 20px horizontal padding */
-    border: none; /* Remove default border */
-    border-radius: 5px; /* Add rounded corners with a 5px radius */
-    cursor: pointer; /* Change the cursor to a pointer on hover */
-    margin-right: 10px; /* Add 10px margin to the right of buttons */
-    transition: background-color 0.3s ease; /* Smooth transition for background color change */
+.company-table tbody tr {
+    background: #fff;
+    transition: background 0.2s;
+}
+.company-table tbody tr:nth-child(even) {
+    background: #f4f7fa;
+}
+.company-table tbody tr:hover {
+    background: #e0e7ef;
 }
 
+.add-company-btn, .edit-btn, .remove-btn, .company-submit-btn {
+    background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    margin-right: 10px;
+}
 .add-company-btn {
-    margin-bottom: 10px; /* Add 10px margin below the 'add company' button */
+    margin-bottom: 1rem;
 }
-
-.add-company-btn:hover, .edit-btn:hover, .remove-btn:hover {
-    background-color: #45a049; /* Change background color to a darker green on hover */
+.add-company-btn:hover, .edit-btn:hover, .company-submit-btn:hover {
+    background: linear-gradient(90deg, #4338ca 0%, #2563eb 100%);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12);
+    transform: translateY(-2px) scale(1.03);
 }
-
 .remove-btn {
-    background-color: #f44336; /* Set the background color to red for remove button */
+    background: linear-gradient(90deg, #dc2626 0%, #f59e42 100%);
 }
-
 .remove-btn:hover {
-    background-color: #e53935; /* Change background color to a darker red on hover */
+    background: linear-gradient(90deg, #b91c1c 0%, #ea580c 100%);
+    transform: scale(1.05);
 }
 
-/* Form container styling */
 .company-form-container {
-    margin-top: 20px; /* Add 20px margin above the form container */
+    margin-top: 32px;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 6px 32px rgba(30, 41, 59, 0.10);
+    padding: 2.5rem 2rem 2rem 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-/* Form styling */
 .company-form {
-    display: flex; /* Use flexbox layout for the form */
-    flex-direction: column; /* Arrange children elements in a column */
-    gap: 10px; /* Add 10px gap between form elements */
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
 }
 
-.company-form input, .company-form select, .company-form textarea {
-    padding: 10px; /* Add 10px padding inside form controls */
-    border: 1px solid #ccc; /* Add a 1px solid border with a light grey color */
-    border-radius: 5px; /* Add rounded corners with a 5px radius */
-    font-size: 1rem; /* Set font size to 1rem */
+.company-form label {
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #3730a3;
 }
 
-.company-submit-btn {
-    background-color: #4CAF50; /* Set the background color to green for submit button */
-    color: white; /* Set the text color to white */
-    padding: 10px; /* Add 10px padding inside the submit button */
-    border: none; /* Remove default border */
-    border-radius: 5px; /* Add rounded corners with a 5px radius */
-    cursor: pointer; /* Change the cursor to a pointer on hover */
-    transition: background-color 0.3s ease; /* Smooth transition for background color change */
+.company-input, .company-select, .company-textarea {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1.5px solid #cbd5e1;
+    background: #f8fafc;
+    font-size: 1rem;
+    transition: border 0.2s;
+    margin-bottom: 0.5rem;
+}
+.company-input:focus, .company-select:focus, .company-textarea:focus {
+    border: 1.5px solid #6366f1;
+    outline: none;
 }
 
-.company-submit-btn:hover {
-    background-color: #45a049; /* Change background color to a darker green on hover */
+.company-textarea {
+    min-height: 100px;
+    resize: vertical;
 }
 
-/* Form error styling */
 .company-form input.error, .company-form select.error, .company-form textarea.error {
-    border-color: #f44336; /* Change border color to red for form controls with errors */
+    border-color: #f44336;
 }
 
 .company-list-container {
-    padding: 20px; /* Add 20px padding inside the company list container */
-}
-
-.add-company-btn {
-    margin-bottom: 10px; /* Add 10px margin below the 'add company' button */
+    padding: 20px;
 }
 
 .search-container {
-    margin-bottom: 20px; /* Add 20px margin below the search container */
-    display: flex; /* Use flexbox layout for the search container */
-    align-items: center; /* Align items vertically center within the container */
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
 }
 
 .search-input {
-    padding: 8px; /* Add 8px padding inside the search input */
-    margin-right: 10px; /* Add 10px margin to the right of the search input */
-    border: 1px solid #ccc; /* Add a 1px solid border with a light grey color */
-    border-radius: 4px; /* Add rounded corners with a 4px radius */
-    width: 200px; /* Set the width of the search input to 200px */
+    padding: 8px;
+    margin-right: 10px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 6px;
+    width: 220px;
+    font-size: 1rem;
+    background: #f8fafc;
+    color: #1e293b;
+    transition: border 0.2s;
+}
+.search-input:focus {
+    border: 1.5px solid #6366f1;
+    outline: none;
 }
 
 .search-btn {
-    padding: 8px 12px; /* Add 8px vertical padding and 12px horizontal padding */
-    border: none; /* Remove default border */
-    border-radius: 4px; /* Add rounded corners with a 4px radius */
-    background-color: #007bff; /* Set the background color to blue for the search button */
-    color: white; /* Set the text color to white */
-    cursor: pointer; /* Change the cursor to a pointer on hover */
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
 }
-
 .search-btn:hover {
-    background-color: #0056b3; /* Change background color to a darker blue on hover */
+    background: linear-gradient(90deg, #4338ca 0%, #2563eb 100%);
 }
 

@@ -10,7 +10,7 @@ const ContextPage = () => { // Define the functional component ContextPage
 
     return (
         <div className="contexts-container"> {/* Container div for the contexts page */}
-            <h2>Contexts Master</h2> {/* Heading for the contexts page */}
+            {/* <h2>Contexts Master</h2> Heading for the contexts page */}
             {!isFormVisible ? ( // Conditional rendering based on the visibility of the form
                 <>
                     <ContextList /> 

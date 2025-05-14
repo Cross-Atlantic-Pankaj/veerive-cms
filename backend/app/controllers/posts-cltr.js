@@ -1,4 +1,5 @@
 import Post from '../models/post-model.js'
+import Context from '../models/context-model.js'
 const postsCltr = {}
 postsCltr.date = async (req, res) => {
     try {
@@ -183,11 +184,18 @@ postsCltr.delete = async (req, res) => {
             return res.status(404).json({ error: "Post not found." });
         }
 
+        // Remove the post from all contexts that reference it
+        await Context.updateMany(
+            { 'posts.postId': id },
+            { $pull: { posts: { postId: id } } }
+        );
+
+        // Delete the post
         await Post.findByIdAndDelete(id);
 
         res.json({
             success: true,
-            message: "Post deleted successfully."
+            message: "Post deleted successfully and removed from all contexts."
         });
     } catch (err) {
         console.error("Error deleting post:", err);

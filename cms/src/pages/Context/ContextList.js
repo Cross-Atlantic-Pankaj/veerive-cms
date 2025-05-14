@@ -2,15 +2,18 @@ import React, { useContext, useState, useMemo, useEffect } from 'react'; // Impo
 import ContextContext from '../../context/ContextContext'; // Importing the context for managing global state
 import axios from '../../config/axios'; // Importing axios instance for making HTTP requests
 import '../../html/css/Context.css'; // Importing the CSS file for styling the component
-import { format} from 'date-fns';
+import { format } from 'date-fns';
+import { toZonedTime, format as formatTz } from 'date-fns-tz';
 import { toast } from 'react-toastify'; // ✅ Import toast
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
+import Papa from 'papaparse'; // For CSV generation
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 
 // Defining the ContextList functional component
 export default function ContextList() {
     // Destructuring necessary state and functions from ContextContext
-    const { contexts, contextsDispatch, handleAddClick, handleEditClick,searchQuery, setSearchQuery, sectors, subSectors, themes, signals, subSignals ,setIsLoading, fetchContexts} = useContext(ContextContext);
+    const { contexts, contextsDispatch, handleAddClick, handleEditClick,searchQuery, setSearchQuery, sectors, subSectors, themes, signals, subSignals ,setIsLoading, fetchContexts, isLoading } = useContext(ContextContext);
     const { page, setPage, totalPages } = useContext(ContextContext);  // ✅ Use global state
     const { allThemes } = useContext(ContextContext); // ✅ Use allThemes
     // Local state to manage the search query and sorting configuration
@@ -19,24 +22,47 @@ export default function ContextList() {
     // const [page, setPage] = useState(1);
     // const [totalPages, setTotalPages] = useState(1);  // ✅ Store totalPages in state
     const [contextsData, setContextsData] = useState([]); // ✅ New local state for rendering
+    const [downloadStartDate, setDownloadStartDate] = useState('');
+    const [downloadEndDate, setDownloadEndDate] = useState('');
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [postsMap, setPostsMap] = useState({}); // Store post ID to title mapping
+    const [allContexts, setAllContexts] = useState([]); // Store all contexts
 
-useEffect(() => {
-    // ✅ Update local state whenever contexts are updated
-    setContextsData(contexts.data || []);
-}, [contexts.data]);  // ✅ Ensures UI updates correctly
+    // Fetch all contexts when component mounts
+    useEffect(() => {
+        const fetchAllContexts = async () => {
+            try {
+                const response = await axios.get('/api/admin/contexts/all', {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (response.data.success) {
+                    setAllContexts(response.data.contexts || []);
+                }
+            } catch (err) {
+                console.error('Error fetching all contexts:', err);
+                toast.error('Failed to fetch contexts data');
+            }
+        };
+        fetchAllContexts();
+    }, []);
 
-useEffect(() => {
-    const savedPage = localStorage.getItem("contextPage");
-    if (savedPage) {
-        setPage(parseInt(savedPage)); // ✅ Restore last viewed page on reload
-    }
-}, []);
+    useEffect(() => {
+        // ✅ Update local state whenever contexts are updated
+        setContextsData(contexts.data || []);
+    }, [contexts.data]);  // ✅ Ensures UI updates correctly
 
-useEffect(() => {
-    if (page) {
-        localStorage.setItem("contextPage", page); // ✅ Store last visited page
-    }
-}, [page]);
+    useEffect(() => {
+        const savedPage = localStorage.getItem("contextPage");
+        if (savedPage) {
+            setPage(parseInt(savedPage)); // ✅ Restore last viewed page on reload
+        }
+    }, []);
+
+    useEffect(() => {
+        if (page) {
+            localStorage.setItem("contextPage", page); // ✅ Store last visited page
+        }
+    }, [page]);
 
     // // Fetch contexts from the API on component mount or when the context changes
 
@@ -266,99 +292,300 @@ useEffect(() => {
         setSortConfig({ key, direction }); // Update sort configuration
     };
 
+    // Fetch all posts to create ID to title mapping
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const response = await axios.get('/api/admin/posts/all', {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (response.data.success) {
+                    const posts = response.data.posts || [];
+                    const mapping = {};
+                    posts.forEach(post => {
+                        mapping[post._id] = post.postTitle;
+                    });
+                    setPostsMap(mapping);
+                }
+            } catch (err) {
+                console.error('Error fetching posts:', err);
+                toast.error('Failed to fetch posts data');
+            }
+        };
+        fetchPosts();
+    }, []);
+
+    // Helper to get context data with labels for CSV
+    const getContextRowForCSV = (context) => {
+        // Get post titles from the postsMap
+        const postTitles = (context.posts || [])
+            .map(p => postsMap[p.postId] || 'Unknown Post')
+            .join(', ');
+
+        return {
+            Date: context.date,
+            'Context Title': context.contextTitle,
+            'Display Order': context.displayOrder,
+            'Container Type': context.containerType,
+            Sectors: getSectorNames(context.sectors, sectors.data),
+            'Sub-Sectors': getSubSectorNames(context.subSectors, subSectors.data),
+            'Signal Categories': getSignalNames(context.signalCategories, signals.data),
+            Themes: getThemeNames(context.themes),
+            'Is Trending': context.isTrending ? 'Yes' : 'No',
+            'General Comment': context.generalComment || '',
+            'Posts': postTitles,
+        };
+    };
+
+    // Download handler
+    const handleDownloadCSV = async () => {
+        if (Object.keys(postsMap).length === 0) {
+            toast.error('Please wait while posts data is being loaded');
+            return;
+        }
+
+        setIsDownloading(true);
+        try {
+            let apiUrl = '/api/admin/contexts/all';
+            const params = [];
+            if (downloadStartDate) params.push(`startDate=${downloadStartDate}`);
+            if (downloadEndDate) params.push(`endDate=${downloadEndDate}`);
+            if (params.length > 0) apiUrl += '?' + params.join('&');
+
+            const response = await axios.get(apiUrl, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            const allContexts = response.data.contexts || response.data || [];
+
+            let filtered = allContexts;
+            if (downloadStartDate || downloadEndDate) {
+                filtered = allContexts.filter(ctx => {
+                    const ctxDate = new Date(ctx.date);
+                    const start = downloadStartDate ? new Date(downloadStartDate) : null;
+                    const end = downloadEndDate ? new Date(downloadEndDate) : null;
+                    return (!start || ctxDate >= start) && (!end || ctxDate <= end);
+                });
+            }
+
+            const csvRows = filtered.map(getContextRowForCSV);
+            const csv = Papa.unparse(csvRows);
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'contexts.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            toast.error('Failed to download CSV');
+            console.error(err);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    // Memoized sorted and filtered contexts
+    const sortedAndFilteredContexts = useMemo(() => {
+        let filtered = allContexts;
+
+        // Apply date range filter
+        if (downloadStartDate || downloadEndDate) {
+            filtered = filtered.filter(context => {
+                const ctxDate = new Date(context.date);
+                const start = downloadStartDate ? new Date(downloadStartDate) : null;
+                const end = downloadEndDate ? new Date(downloadEndDate) : null;
+                return (!start || ctxDate >= start) && (!end || ctxDate <= end);
+            });
+        }
+
+        // Apply search filter
+        if (searchQuery) {
+            filtered = filtered.filter(context => {
+                const formattedDate = format(new Date(context.date), 'yyyy-MM-dd');
+                return (
+                    (context.contextTitle && context.contextTitle.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                    (formattedDate && formattedDate.startsWith(searchQuery))
+                );
+            });
+        }
+
+        // Apply sorting
+        if (sortConfig !== null) {
+            filtered.sort((a, b) => {
+                let aValue, bValue;
+
+                switch (sortConfig.key) {
+                    case 'contextTitle':
+                        aValue = a.contextTitle;
+                        bValue = b.contextTitle;
+                        break;
+                    case 'sectors':
+                        aValue = getSectorNames(a.sectors, sectors.data);
+                        bValue = getSectorNames(b.sectors, sectors.data);
+                        break;
+                    case 'subSectors':
+                        aValue = getSubSectorNames(a.subSectors, subSectors.data);
+                        bValue = getSubSectorNames(b.subSectors, subSectors.data);
+                        break;
+                    case 'signalCategories':
+                        aValue = getSignalNames(a.signalCategories, signals.data);
+                        bValue = getSignalNames(b.signalCategories, signals.data);
+                        break;
+                    case 'themes':
+                        aValue = getThemeNames(a.themes);
+                        bValue = getThemeNames(b.themes);
+                        break;
+                    default:
+                        aValue = a[sortConfig.key];
+                        bValue = b[sortConfig.key];
+                        break;
+                }
+
+                if (aValue < bValue) {
+                    return sortConfig.direction === 'ascending' ? -1 : 1;
+                }
+                if (aValue > bValue) {
+                    return sortConfig.direction === 'ascending' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+
+        return filtered;
+    }, [allContexts, searchQuery, sortConfig, sectors.data, subSectors.data, signals.data, downloadStartDate, downloadEndDate]);
+
+    // Calculate pagination
+    const itemsPerPage = 10;
+    const totalFilteredItems = sortedAndFilteredContexts.length;
+    const totalFilteredPages = Math.ceil(totalFilteredItems / itemsPerPage);
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentPageData = sortedAndFilteredContexts.slice(startIndex, endIndex);
+
+    // Update pagination when filtered results change
+    useEffect(() => {
+        if (page > totalFilteredPages) {
+            setPage(1);
+        }
+    }, [totalFilteredPages, page]);
+
+    if (isLoading) return <LoadingSpinner />;
+
     // Render the component
     return (
         <div className="context-list-container">
-            {/* Button to add a new context */}
-            <button className="add-context-btn" onClick={handleAddClick}>Add Context</button>
-            <div className="search-container">
-                        <input
-                                type="text"
-                                placeholder="Search by Title or Date..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}  // ✅ Correctly updating searchQuery
-                                className="search-input"
-                            />
+            <div className="heading-beautiful">Contexts Master</div>
+            <div className="top-bar">
+                <div className="left-controls">
+                    <button className="add-context-btn" onClick={handleAddClick}>Add Context</button>
+                </div>
+                <div className="center-controls">
+                    <label>
+                        Start Date:
+                        <input type="date" value={downloadStartDate} onChange={e => setDownloadStartDate(e.target.value)} placeholder="dd-mm-yyyy" />
+                    </label>
+                    <label>
+                        End Date:
+                        <input type="date" value={downloadEndDate} onChange={e => setDownloadEndDate(e.target.value)} placeholder="dd-mm-yyyy" />
+                    </label>
+                    <button onClick={handleDownloadCSV} disabled={isDownloading} style={{ minWidth: '120px' }}>
+                        {isDownloading ? 'Downloading...' : 'Download CSV'}
+                    </button>
+                </div>
+                <div className="right-controls">
+                    <input
+                        type="text"
+                        placeholder="Search by Title or Date..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="search-input"
+                    />
+                    <button className="search-btn" onClick={handleSearch}>Search</button>
+                </div>
+            </div>
+            <table className="context-table">
+                <thead>
+                <tr>
+                    {/* Table headers with sorting functionality */}
+                    <th onClick={() => requestSort('date')}>
+                        Date {sortConfig.key === 'date' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
+                    </th>
 
-                        {/* <button className="search-btn" onClick={() => setPage(1)}>Search</button> */}
-                        <button className="search-btn" onClick={handleSearch}>Search</button>
-
-                    </div>
-
-                <table className="context-table">
-                    <thead>
-                    <tr>
-                        {/* Table headers with sorting functionality */}
-                        <th onClick={() => requestSort('date')}>
-                            Date {sortConfig.key === 'date' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
-                        </th>
-
-                        <th onClick={() => requestSort('contextTitle')}>
-                            Context Title {sortConfig.key === 'contextTitle' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
-                        </th>
-                        <th onClick={() => requestSort('displayOrder')}>
-                            Context Display Order {sortConfig.key === 'displayOrder' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
-                        </th>
-                        <th onClick={() => requestSort('containerType')}>
-                            Context Container Type {sortConfig.key === 'containerType' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
-                        </th>
-                        <th onClick={() => requestSort('sectors')}>
-                            Sectors {sortConfig.key === 'sectors' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
-                        </th>
-                        <th onClick={() => requestSort('subSectors')}>
-                            Sub-Sectors {sortConfig.key === 'subSectors' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
-                        </th>
-                        <th onClick={() => requestSort('signalCategories')}>
-                            Signal Categories {sortConfig.key === 'signalCategories' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
-                        </th>
-                        <th onClick={() => requestSort('themes')}>
-                            Themes {sortConfig.key === 'themes' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
-                        </th>
-                        <th>Is Trending</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {/* Table body with context data */}
-                    {filteredContexts.map(ele => (
-                        <tr key={ele._id}>
-                            <td>{ele.date}</td>
-                            <td>{ele.contextTitle}</td>
-                            <td>{ele.displayOrder}</td>
-                            <td>{ele.containerType}</td>
-                            <td>{getSectorNames(ele.sectors, sectors.data)}</td>
-                            <td>{getSubSectorNames(ele.subSectors, subSectors.data)}</td>
-                            <td>{getSignalNames(ele.signalCategories, signals.data)}</td>
-                            {/* <td>{getThemeNames(ele.themes, themes.data)}</td> */}
-                            <td>{getThemeNames(ele.themes)}</td>
-
-                            <td>{ele.isTrending ? 'Yes' : 'No'}</td>
-                            <td>
-                                {/* Buttons for editing and removing contexts */}
+                    <th onClick={() => requestSort('contextTitle')}>
+                        Context Title {sortConfig.key === 'contextTitle' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
+                    </th>
+                    <th onClick={() => requestSort('displayOrder')}>
+                        Context Display Order {sortConfig.key === 'displayOrder' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
+                    </th>
+                    <th onClick={() => requestSort('containerType')}>
+                        Context Container Type {sortConfig.key === 'containerType' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
+                    </th>
+                    <th onClick={() => requestSort('sectors')}>
+                        Sectors {sortConfig.key === 'sectors' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
+                    </th>
+                    <th onClick={() => requestSort('subSectors')}>
+                        Sub-Sectors {sortConfig.key === 'subSectors' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
+                    </th>
+                    <th onClick={() => requestSort('signalCategories')}>
+                        Signal Categories {sortConfig.key === 'signalCategories' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
+                    </th>
+                    <th onClick={() => requestSort('themes')}>
+                        Themes {sortConfig.key === 'themes' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
+                    </th>
+                    <th>Is Trending</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {/* Table body with context data */}
+                {currentPageData.map(ele => (
+                    <tr key={ele._id}>
+                        <td className="date-cell">{
+                            ele.date && (
+                                <>
+                                    <span className="date-main">{formatTz(toZonedTime(ele.date, 'Asia/Kolkata'), 'yyyy-MM-dd')}</span><br />
+                                    <span className="date-time">{formatTz(toZonedTime(ele.date, 'Asia/Kolkata'), 'HH:mm:ss')} IST</span>
+                                </>
+                            )
+                        }</td>
+                        <td>{ele.contextTitle}</td>
+                        <td>{ele.displayOrder}</td>
+                        <td>{ele.containerType}</td>
+                        <td>{getSectorNames(ele.sectors, sectors.data)}</td>
+                        <td>{getSubSectorNames(ele.subSectors, subSectors.data)}</td>
+                        <td>{getSignalNames(ele.signalCategories, signals.data)}</td>
+                        <td>{getThemeNames(ele.themes)}</td>
+                        <td>{ele.isTrending ? 'Yes' : 'No'}</td>
+                        <td>
+                            <div className="action-buttons">
                                 <button className="edit-btn" onClick={() => handleEditClick(ele._id)}>Edit</button>
                                 <button className="remove-btn" onClick={() => handleRemove(ele._id)}>Remove</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-            <div className="pagination">
-                    <button 
-                        onClick={handlePrevPage}  // ✅ Handle Previous Page
-                        disabled={page === 1}     // ✅ Disable on First Page
-                    >
-                        Previous
-                    </button>
+                            </div>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+        <div className="pagination">
+                <button 
+                    onClick={handlePrevPage}  // ✅ Handle Previous Page
+                    disabled={page === 1}     // ✅ Disable on First Page
+                >
+                    Previous
+                </button>
 
-                    <span> Page {page} of {totalPages} </span>  {/* ✅ Display Current Page & Total Pages */}
+                <span> Page {page} of {totalFilteredPages} </span>  {/* ✅ Display Current Page & Total Pages */}
 
-                    <button 
-                        onClick={handleNextPage}  // ✅ Handle Next Page
-                        disabled={page === totalPages}  // ✅ Disable on Last Page
-                    >
-                        Next
-                    </button>
-                </div>
-                </div>
+                <button 
+                    onClick={handleNextPage}  // ✅ Handle Next Page
+                    disabled={page === totalFilteredPages}  // ✅ Disable on Last Page
+                >
+                    Next
+                </button>
+            </div>
+            </div>
     );
 }

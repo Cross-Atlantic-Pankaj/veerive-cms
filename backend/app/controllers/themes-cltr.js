@@ -100,4 +100,21 @@ themesCltr.getAllThemes = async (req, res) => {
     }
 };
 
+// Get a single theme by ID
+themesCltr.getOne = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const theme = await Theme.findById(id);
+        
+        if (!theme) {
+            return res.status(404).json({ message: 'Theme not found' });
+        }
+        
+        res.json(theme);
+    } catch (err) {
+        console.error("Error fetching theme:", err);
+        res.status(500).json({ error: 'Something went wrong' });
+    }
+};
+
 export default themesCltr

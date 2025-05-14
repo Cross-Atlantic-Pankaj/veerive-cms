@@ -30,6 +30,7 @@ export default function PostForm({ handleFormSubmit }) {
     const [sourceUrls, setSourceUrls] = useState([]); // ✅ Store multiple URLs
     const [generalComment, setGeneralComment] = useState('');
     const [includeInContainer, setIncludeInContainer] = useState(false); // New state for includeInContainer field
+    const [imageUrl, setImageUrl] = useState('');
 
    const fetchAllContexts = async () => {
         try {
@@ -90,6 +91,7 @@ export default function PostForm({ handleFormSubmit }) {
                 setSourceUrls(post.sourceUrls || []);
                 setGeneralComment(post.generalComment || '');
                 setIncludeInContainer(post.includeInContainer || false);
+                setImageUrl(post.imageUrl || '');
             }
         } else {
             // ✅ Restore from localStorage if available
@@ -120,6 +122,7 @@ export default function PostForm({ handleFormSubmit }) {
                 setSourceUrls(savedData.sourceUrls || []);
                 setGeneralComment(savedData.generalComment || '');
                 setIncludeInContainer(savedData.includeInContainer || false);
+                setImageUrl(savedData.imageUrl || '');
             }
             localStorage.removeItem("postFormData"); // ✅ Ensure old data is not restored
         }
@@ -173,8 +176,21 @@ export default function PostForm({ handleFormSubmit }) {
             return;
         }
     
+        if (!imageUrl.trim()) {
+            toast.warn("⚠️ Image URL is required.");
+            return;
+        }
+    
+        // Validate URL format
+        const urlPattern = /^(https?:\/\/)[\w\-]+(\.[\w\-]+)+[/#?]?.*$/;
+        if (!urlPattern.test(imageUrl.trim())) {
+            toast.warn("⚠️ Please enter a valid image URL (starting with http:// or https://)");
+            return;
+        }
+    
         const formData = {
             postTitle,
+            imageUrl,
             date: new Date(date).toISOString(),
             postType,
             isTrending,
@@ -214,7 +230,7 @@ export default function PostForm({ handleFormSubmit }) {
                         return;
                     }
     
-                  //  await updateContextWithPost(postId, includeInContainer);
+                    await updateContextWithPost(postId, includeInContainer);
                     await fetchPosts();
                     setTimeout(() => {
                         console.log("✅ Fetching updated posts...");
@@ -240,7 +256,7 @@ export default function PostForm({ handleFormSubmit }) {
                         return;
                     }
     
-                   // await updateContextWithPost(postId, includeInContainer);
+                    await updateContextWithPost(postId, includeInContainer);
                     await fetchPosts();
                     setTimeout(() => {
                         console.log("✅ Fetching updated posts...");
@@ -254,14 +270,8 @@ export default function PostForm({ handleFormSubmit }) {
         }
     };
     
-    
-    if (!isFormVisible) {
-        return null; // Prevents rendering the form if isFormVisible is false
-    }
-
-    /*
     const updateContextWithPost = async (postId, includeInContainer) => {
-        console.log("📌 Received postId:", postId); // Log postId
+        console.log("📌 Received postId:", postId);
         console.log("📌 Selected contexts:", selectedContexts);
     
         if (!selectedContexts || selectedContexts.length === 0) {
@@ -276,35 +286,40 @@ export default function PostForm({ handleFormSubmit }) {
         }
     
         console.log('🔄 Updating multiple contexts with postId:', {
-            contexts: selectedContexts.map(ctx => ctx.value), // Get context IDs
+            contexts: selectedContexts.map(ctx => ctx.value),
             postId,
             includeInContainer
         });
     
         try {
-            // ✅ Send requests for each selected context
-                    await Promise.all(
-                    selectedContexts.map(async (context) => {
-            try {
-                const response = await axios.put(
-                    `/api/admin/contexts/${context.value}/postId`,
-                    { postId, includeInContainer },
-                    { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-                );
-                console.log(`✅ Context ${context.label} updated successfully:`, response.data);
-            } catch (error) {
-                console.error(`❌ Error updating context ${context.label}:`, error.response?.data || error.message);
-            }
-        })
-    );
-    toast.success("✅ All selected contexts updated with posts successfully!");
+            // Send requests for each selected context
+            await Promise.all(
+                selectedContexts.map(async (context) => {
+                    try {
+                        const response = await axios.put(
+                            `/api/admin/contexts/${context.value}/postId`,
+                            { postId, includeInContainer },
+                            { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                        );
+                        console.log(`✅ Context ${context.label} updated successfully:`, response.data);
+                    } catch (error) {
+                        console.error(`❌ Error updating context ${context.label}:`, error.response?.data || error.message);
+                        throw error; // Re-throw to be caught by Promise.all
+                    }
+                })
+            );
+            toast.success("✅ All selected contexts updated with posts successfully!");
         } catch (err) {
             console.error('❌ Error updating contexts with postId:', err.response?.data || err.message);
             toast.error('An error occurred while updating the contexts.');
+            throw err; // Re-throw to be caught by the calling function
         }
     };
     
-    */
+    if (!isFormVisible) {
+        return null; // Prevents rendering the form if isFormVisible is false
+    }
+
     const contextOptions = (contexts?.data || []).map(ctx => ({
         value: ctx._id,
         label: ctx.contextTitle
@@ -408,6 +423,37 @@ const MultiValue = ({ data, removeProps }) => (
     </div>
 );
 
+    // Add refresh functions for companies and sources
+    const refreshCompanies = async () => {
+        try {
+            const response = await axios.get('/api/admin/companies', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (response.data) {
+                companies.data = response.data;
+                toast.success('Companies refreshed successfully!');
+            }
+        } catch (err) {
+            console.error('Error refreshing companies:', err);
+            toast.error('Failed to refresh companies');
+        }
+    };
+
+    const refreshSources = async () => {
+        try {
+            const response = await axios.get('/api/admin/sources', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (response.data) {
+                sources.data = response.data;
+                toast.success('Sources refreshed successfully!');
+            }
+        } catch (err) {
+            console.error('Error refreshing sources:', err);
+            toast.error('Failed to refresh sources');
+        }
+    };
+
     return (
         <div className="post-form-container">
             <button type="button" className="submit-btn" onClick={handleHomeNav}>Post Home</button>
@@ -419,6 +465,16 @@ const MultiValue = ({ data, removeProps }) => (
                     placeholder="Post Title"
                     value={postTitle}
                     onChange={(e) => setPostTitle(e.target.value)}
+                    className="post-input"
+                    required
+                />
+                <label htmlFor="imageUrl"><b>Image URL</b></label>
+                <input
+                    id="imageUrl"
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    value={imageUrl}
+                    onChange={e => setImageUrl(e.target.value)}
                     className="post-input"
                     required
                 />
@@ -470,7 +526,34 @@ const MultiValue = ({ data, removeProps }) => (
                         placeholder="Select Context(s)"
                         className="post-select"
                     />
-
+                    {/* Show clickable links for selected contexts */}
+                    {selectedContexts.length > 0 && (
+                        <div style={{ marginBottom: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                            {selectedContexts.map(ctx => (
+                                <a
+                                    key={ctx.value}
+                                    href={`/admin/contexts?editId=${ctx.value}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)',
+                                        color: '#fff',
+                                        borderRadius: '6px',
+                                        padding: '0.3rem 0.9rem',
+                                        fontWeight: 600,
+                                        textDecoration: 'none',
+                                        fontSize: '0.98rem',
+                                        transition: 'background 0.2s',
+                                        display: 'inline-block',
+                                    }}
+                                    onMouseOver={e => e.currentTarget.style.background = 'linear-gradient(90deg, #4338ca 0%, #2563eb 100%)'}
+                                    onMouseOut={e => e.currentTarget.style.background = 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)'}
+                                >
+                                    {ctx.label}
+                                </a>
+                            ))}
+                        </div>
+                    )}
                 <label htmlFor="includeInContainer"><b>Include in Container?</b></label>
                 <input
                     id="includeInContainer"
@@ -519,7 +602,8 @@ const MultiValue = ({ data, removeProps }) => (
                     <option value="Neutral">Neutral</option>
                 </select>
                 <label htmlFor="primaryCompanies"><b>Primary Companies</b></label>
-                <Select
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Select
                         id="primaryCompanies"
                         value={primaryCompanyOptions.filter(option => primaryCompanies.includes(option.value))}
                         onChange={handlePrimaryCompaniesChange}
@@ -529,8 +613,37 @@ const MultiValue = ({ data, removeProps }) => (
                         placeholder="Search and select primary companies"
                         className="post-select"
                     />
+                    <button
+                        onClick={refreshCompanies}
+                        className="refresh-btn"
+                        style={{
+                            padding: '0.5rem',
+                            borderRadius: '6px',
+                            background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)',
+                            color: '#fff',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                        title="Refresh Companies"
+                    >
+                        ↻
+                    </button>
+                    <a
+                        href="/companies/add"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="add-new-btn"
+                        style={{ textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '6px', background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)', color: '#fff', fontWeight: 600 }}
+                    >
+                        Add New
+                    </a>
+                </div>
                 <label htmlFor="secondaryCompanies"><b>Secondary Companies</b></label>
-                <Select
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Select
                         id="secondaryCompanies"
                         value={secondaryCompanyOptions.filter(option => secondaryCompanies.includes(option.value))}
                         onChange={handleSecondaryCompaniesChange}
@@ -540,30 +653,75 @@ const MultiValue = ({ data, removeProps }) => (
                         placeholder="Search and select secondary companies"
                         className="post-select"
                     />
-
+                    <button
+                        onClick={refreshCompanies}
+                        className="refresh-btn"
+                        style={{
+                            padding: '0.5rem',
+                            borderRadius: '6px',
+                            background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)',
+                            color: '#fff',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                        title="Refresh Companies"
+                    >
+                        ↻
+                    </button>
+                    <a
+                        href="/companies/add"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="add-new-btn"
+                        style={{ textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '6px', background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)', color: '#fff', fontWeight: 600 }}
+                    >
+                        Add New
+                    </a>
+                </div>
                 <label htmlFor="source"><b>Source</b></label>
-                <Select
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Select
                         id="source"
                         value={sourceOptions.filter(option => source.includes(option.value))}
                         onChange={handleSourceChange}
                         options={sourceOptions}
-                        isMulti // ✅ Allows multiple selection
-                        isSearchable // ✅ Enables search functionality
+                        isMulti
+                        isSearchable
                         placeholder="Search and select sources"
                         className="post-select"
                     />
-                    {/* <label htmlFor="sourceUrls"><b>Source URLs</b></label>
-                    <CreatableSelect
-                        id="sourceUrls"
-                        value={sourceUrls.map(url => ({ value: url, label: url }))} // ✅ Show URLs inside input field
-                        onChange={(selectedOptions) => setSourceUrls(selectedOptions.map(opt => opt.value))} // ✅ Update state
-                        isMulti
-                        isSearchable
-                        placeholder="Enter URL and press Enter"
-                        className="post-select"
-                        onCreateOption={handleCreateUrl} // ✅ Handle Enter key for adding URLs
-                    /> */}
-<label htmlFor="sourceUrls"><b>Source URLs</b></label>
+                    <button
+                        onClick={refreshSources}
+                        className="refresh-btn"
+                        style={{
+                            padding: '0.5rem',
+                            borderRadius: '6px',
+                            background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)',
+                            color: '#fff',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                        title="Refresh Sources"
+                    >
+                        ↻
+                    </button>
+                    <a
+                        href="/sources/add"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="add-new-btn"
+                        style={{ textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '6px', background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)', color: '#fff', fontWeight: 600 }}
+                    >
+                        Add New
+                    </a>
+                </div>
+                <label htmlFor="sourceUrls"><b>Source URLs</b></label>
 
 <CreatableSelect
     id="sourceUrls"

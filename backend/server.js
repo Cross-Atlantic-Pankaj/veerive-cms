@@ -36,6 +36,9 @@ import subSignalsCltr from './app/controllers/subSignals-cltr.js'
 import sourcesCltr from './app/controllers/sources-cltr.js'
 import themesCltr from './app/controllers/themes-cltr.js'
 import storyOrdersCltr from './app/controllers/storyOrders-cltr.js'
+import { createClarificationGuidance, getAllClarificationGuidance } from './app/controllers/clarificationGuidanceController.js';
+import { createQueryRefiner, getAllQueryRefiner } from './app/controllers/queryRefinerController.js';
+import { createMarketData, getAllMarketData } from './app/controllers/marketDataController.js';
 
 dotenv.config()
 
@@ -183,10 +186,12 @@ app.delete('/api/admin/post-types/:id', authenticateUser, authorizeUser(['Admin'
 // Themes routes (Accessible by authenticated users)
 app.get('/api/themes', authenticateUser, themesCltr.list); // Paginated themes
 app.get('/api/themes/all', authenticateUser, themesCltr.getAllThemes); // All themes (no pagination)
+app.get('/api/themes/:id', authenticateUser, themesCltr.getOne); // Get single theme
 
 // Admin routes (Only accessible by Admins and Moderators)
 app.get('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.list); // Paginated themes
 app.get('/api/admin/themes/all', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.getAllThemes); // All themes (no pagination)
+app.get('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.getOne); // Get single theme
 
 //admin routes
 //app.get('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.list)
@@ -274,6 +279,18 @@ app.get('/api/admin/story-orders', authenticateUser, authorizeUser(['Admin', 'Mo
 app.post('/api/admin/story-orders', authenticateUser, authorizeUser(['Admin', 'Moderator']), storyOrdersCltr.create)
 app.put('/api/admin/story-orders/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), storyOrdersCltr.update)
 app.delete('/api/admin/story-orders/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), storyOrdersCltr.delete)
+
+// ClarificationGuidance routes
+app.post('/api/admin/clarification-guidance', authenticateUser, authorizeUser(['Admin', 'Moderator']), createClarificationGuidance);
+app.get('/api/admin/clarification-guidance', authenticateUser, authorizeUser(['Admin', 'Moderator']), getAllClarificationGuidance);
+
+// QueryRefiner routes
+app.post('/api/admin/query-refiner', authenticateUser, authorizeUser(['Admin', 'Moderator']), createQueryRefiner);
+app.get('/api/admin/query-refiner', authenticateUser, authorizeUser(['Admin', 'Moderator']), getAllQueryRefiner);
+
+// MarketData routes
+app.post('/api/admin/market-data', authenticateUser, authorizeUser(['Admin', 'Moderator']), createMarketData);
+app.get('/api/admin/market-data', authenticateUser, authorizeUser(['Admin', 'Moderator']), getAllMarketData);
 
 // Route to serve data deletion instructions
 app.get('/data-deletion.html', (req, res) => {

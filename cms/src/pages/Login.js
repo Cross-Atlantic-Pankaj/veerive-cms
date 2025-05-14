@@ -1,5 +1,4 @@
-
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import '../html/css/Login.css'; // Import the CSS file for styling
@@ -9,6 +8,17 @@ export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(''); // State to store error messages
+    const [remember, setRemember] = useState(false);
+
+    useEffect(() => {
+        const savedEmail = localStorage.getItem('rememberedEmail');
+        const savedPassword = localStorage.getItem('rememberedPassword');
+        if (savedEmail && savedPassword) {
+            setEmail(savedEmail);
+            setPassword(savedPassword);
+            setRemember(true);
+        }
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -20,6 +30,13 @@ export default function Login() {
         try {
             // Call the login function from AuthContext
             await handleLogin(formData);
+            if (remember) {
+                localStorage.setItem('rememberedEmail', email);
+                localStorage.setItem('rememberedPassword', password);
+            } else {
+                localStorage.removeItem('rememberedEmail');
+                localStorage.removeItem('rememberedPassword');
+            }
         } catch (err) {
             // Handle error and set error message
             if (err.response && err.response.data && err.response.data.error) {
@@ -49,6 +66,15 @@ export default function Login() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
+                    <div className="remember-me-container">
+                        <input
+                            type="checkbox"
+                            id="rememberMe"
+                            checked={remember}
+                            onChange={e => setRemember(e.target.checked)}
+                        />
+                        <label htmlFor="rememberMe">Remember Me</label>
+                    </div>
                     {error && <p className="login-error">{error}</p>} {/* Display error message */}
                     <button type="submit" className="login-button">Login</button>
                 </form>
