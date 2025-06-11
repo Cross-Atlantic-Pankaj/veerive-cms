@@ -118,12 +118,24 @@ export default function ThemeForm({ handleFormSubmit }) {
     };
 
     const handleHomeNav = () => {
+        // Clear edit state
+        themesDispatch({ type: 'SET_EDIT_ID', payload: null });
+        // Hide the form
         setIsFormVisible(false);
+        // Navigate to themes list
+        navigate('/themes');
     };
 
     return (
         <div className="theme-form-container">
-            <button type="button" className="submit-btn" onClick={handleHomeNav}>Theme Home</button>
+            <button 
+                type="button" 
+                className="submit-btn" 
+                onClick={handleHomeNav}
+                style={{ marginBottom: '20px' }}
+            >
+                Theme Home
+            </button>
 
             <form onSubmit={handleSubmit} className="theme-form">
                 <div className="form-group">
