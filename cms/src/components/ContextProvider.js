@@ -1,4 +1,3 @@
-
 import React, { useReducer, useEffect, useContext, useState } from 'react';
 import axios from '../config/axios';
 import ContextContext from '../context/ContextContext';
@@ -154,9 +153,32 @@ useEffect(() => {
     };
 
     const handleEditClick = (id) => {
-        localStorage.setItem('editContextId', id);  // ✅ Store editId in local storage
+        console.log('Edit button clicked for context ID:', id);
+        console.log('Current contexts data:', contexts.data);
+        localStorage.setItem('editContextId', id);
         contextsDispatch({ type: 'SET_EDIT_ID', payload: id });
         setIsFormVisible(true);
+        // Fetch the specific context to ensure we have the latest data
+        const fetchContext = async () => {
+            try {
+                const response = await axios.get(`/api/admin/contexts/${id}`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                });
+                if (response.data.success) {
+                    contextsDispatch({ 
+                        type: 'SET_CONTEXTS', 
+                        payload: { 
+                            contexts: [response.data.context], 
+                            totalPages: 1,
+                            page: 1
+                        } 
+                    });
+                }
+            } catch (err) {
+                console.error('Error fetching context:', err);
+            }
+        };
+        fetchContext();
     };
     
     const handleFormSubmit = (message) => {

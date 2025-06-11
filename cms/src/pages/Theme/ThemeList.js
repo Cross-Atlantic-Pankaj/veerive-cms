@@ -4,6 +4,7 @@ import axios from '../../config/axios';
 import '../../html/css/Theme.css';
 import ThemeForm from './ThemeForm';
 import { useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -126,6 +127,70 @@ export default function ThemeList() {
         setSortConfig({ key, direction });
     };
 
+    const downloadCSV = () => {
+        try {
+            // Prepare headers
+            const headers = [
+                'Theme Title',
+                'Is Trending',
+                'Sectors',
+                'Sub-Sectors',
+                'General Comment',
+                'Theme Description',
+                'Trending Score',
+                'Impact Score',
+                'Predictive Momentum Score',
+                'Overall Score',
+                'Trending Score Image',
+                'Impact Score Image',
+                'Predictive Momentum Score Image'
+            ];
+
+            // Prepare data rows
+            const csvData = filteredThemes.map(theme => [
+                theme.themeTitle || '',
+                theme.isTrending ? 'Yes' : 'No',
+                getSectorNames(theme.sectors, sectors.data),
+                getSubSectorNames(theme.subSectors, subSectors.data),
+                theme.generalComment || '',
+                theme.themeDescription || '',
+                theme.trendingScore || '0',
+                theme.impactScore || '0',
+                theme.predictiveMomentumScore || '0',
+                theme.overallScore || '0',
+                theme.trendingScoreImage || '',
+                theme.impactScoreImage || '',
+                theme.predictiveMomentumScoreImage || ''
+            ]);
+
+            // Create CSV content
+            const csvContent = [
+                headers.join(','),
+                ...csvData.map(row => row.map(cell => {
+                    // Escape commas and quotes in cell values
+                    const escapedCell = String(cell).replace(/"/g, '""');
+                    return `"${escapedCell}"`;
+                }).join(','))
+            ].join('\n');
+
+            // Create and trigger download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `themes_export_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            toast.success('✅ CSV file downloaded successfully!');
+        } catch (error) {
+            console.error('Error generating CSV:', error);
+            toast.error('❌ Failed to generate CSV file');
+        }
+    };
+
     console.log("Current state:", { isFormVisible, editId: themes.editId, themesCount: themes.data.length });
 
     if (isFormVisible) {
@@ -162,6 +227,22 @@ export default function ThemeList() {
                     ) : (
                         <span>&#x21bb; Refresh</span>
                     )}
+                </button>
+                <button
+                    className="download-csv-btn"
+                    style={{
+                        marginLeft: 8,
+                        padding: '4px 10px',
+                        borderRadius: 16,
+                        background: '#4CAF50',
+                        color: 'white',
+                        border: 'none',
+                        cursor: 'pointer'
+                    }}
+                    onClick={downloadCSV}
+                    title="Download themes as CSV"
+                >
+                    📥 Download CSV
                 </button>
             </div>
             <div className="search-container">
@@ -235,3 +316,14 @@ export default function ThemeList() {
         </div>
     );
 }
+
+// Add these styles to your CSS file
+const styles = `
+.download-csv-btn:hover {
+    background: #45a049 !important;
+}
+
+.download-csv-btn:active {
+    background: #3d8b40 !important;
+}
+`;

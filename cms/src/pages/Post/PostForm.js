@@ -32,6 +32,22 @@ export default function PostForm({ handleFormSubmit }) {
     const [includeInContainer, setIncludeInContainer] = useState(false); // New state for includeInContainer field
     const [imageUrl, setImageUrl] = useState('');
 
+    // Add validation for V0 code snippets
+    const validateV0Code = (code) => {
+        // V0 code snippet pattern: starts with V0 followed by alphanumeric characters
+        const v0Pattern = /^V0[a-zA-Z0-9]+$/;
+        return v0Pattern.test(code);
+    };
+
+    const handleImageCodeChange = (e) => {
+        const code = e.target.value.trim();
+        if (code === '' || validateV0Code(code)) {
+            setImageUrl(code);
+        } else {
+            toast.warn("⚠️ Please enter a valid V0 code snippet (e.g., V0abc123)");
+        }
+    };
+
    const fetchAllContexts = async () => {
         try {
             const response = await axios.get("/api/admin/contexts/all", {
@@ -468,16 +484,31 @@ const MultiValue = ({ data, removeProps }) => (
                     className="post-input"
                     required
                 />
-                <label htmlFor="imageUrl"><b>Image URL</b></label>
-                <input
-                    id="imageUrl"
-                    type="url"
-                    placeholder="https://example.com/image.jpg"
-                    value={imageUrl}
-                    onChange={e => setImageUrl(e.target.value)}
-                    className="post-input"
-                    required
-                />
+                <label htmlFor="imageUrl"><b>Image V0 Code</b></label>
+                <div className="image-input-container">
+                    <input
+                        id="imageUrl"
+                        type="text"
+                        placeholder="Enter V0 code (e.g., V0abc123)"
+                        value={imageUrl}
+                        onChange={handleImageCodeChange}
+                        className="post-input"
+                        required
+                    />
+                    {imageUrl && validateV0Code(imageUrl) && (
+                        <div className="image-preview">
+                            <img 
+                                src={`/api/images/${imageUrl}`} 
+                                alt="Preview" 
+                                style={{ maxWidth: '100px', maxHeight: '100px', marginTop: '10px' }}
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    toast.error("⚠️ Invalid V0 code or image not found");
+                                }}
+                            />
+                        </div>
+                    )}
+                </div>
                 <label htmlFor="date"><b>Date</b></label>
                 <input
                     id="date"
@@ -747,3 +778,27 @@ const MultiValue = ({ data, removeProps }) => (
         </div>
     );
 }
+
+// Add these styles to your CSS file
+const styles = `
+.image-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.image-preview {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.image-preview img {
+    object-fit: contain;
+    border-radius: 4px;
+}
+`;
