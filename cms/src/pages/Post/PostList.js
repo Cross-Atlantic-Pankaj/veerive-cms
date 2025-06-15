@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useLocation } from 'react-router-dom';
 import { saveAs } from 'file-saver';
+import AuthContext from '../../context/AuthContext';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -17,6 +18,8 @@ export default function PostList() {
     const { posts, postsDispatch, handleAddClick, handleEditClick } = useContext(PostContext);
     const { contexts, isLoading } = useContext(ContextContext);
     const masterData = useContext(MasterDataContext);
+    const { state } = useContext(AuthContext);
+    const userRole = state.user?.role;
 
     const [searchQuery, setSearchQuery] = useState("");
     const [sortConfig, setSortConfig] = useState({ key: "date", direction: "descending" });
@@ -414,8 +417,8 @@ export default function PostList() {
                                 <td>{post.postType}</td>
                                 <td>{post.isTrending ? 'Yes' : 'No'}</td>
                                 <td>
-                                    <button className="edit-btn" onClick={() => handleEditClick(post._id)}>Edit</button>
-                                    <button className="remove-btn" onClick={() => handleRemove(post._id)}>Remove</button>
+                                    <button className="edit-btn" onClick={() => handleEditClick(post._id)} disabled={userRole === 'User'}>Edit</button>
+                                    <button className="remove-btn" onClick={() => handleRemove(post._id)} disabled={userRole === 'User'}>Remove</button>
                                 </td>
                                 <td>
                                     <button className="show-contexts-btn" onClick={handleShowAllContexts}>

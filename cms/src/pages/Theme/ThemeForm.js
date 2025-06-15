@@ -139,7 +139,7 @@ export default function ThemeForm({ handleFormSubmit }) {
 
             <form onSubmit={handleSubmit} className="theme-form">
                 <div className="form-group">
-                    <label htmlFor="themeTitle"><b>Theme Title</b></label>
+                    <label htmlFor="themeTitle"><b>Theme Title</b> <span style={{color: 'red'}}>*</span></label>
                     <input
                         id="themeTitle"
                         type="text"
@@ -153,7 +153,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="themeDescription"><b>Theme Description</b></label>
+                    <label htmlFor="themeDescription"><b>Theme Description</b> <span style={{color: 'red'}}>*</span></label>
                     <ReactQuill
                         id="themeDescription"
                         value={themeDescription}
@@ -248,18 +248,18 @@ export default function ThemeForm({ handleFormSubmit }) {
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="sectors"><b>Select Sectors</b></label>
+                    <label htmlFor="sectors"><b>Sectors</b> <span style={{color: 'red'}}>*</span></label>
                     <select
                         id="sectors"
-                        multiple
+                        name="sectors"
                         value={selectedSectors}
                         onChange={handleSectorChange}
                         className="theme-select"
+                        multiple
+                        required
                     >
-                        {sectorsData.data.map((sector) => (
-                            <option key={sector._id} value={sector._id}>
-                                {sector.sectorName}
-                            </option>
+                        {sectorsData.data && sectorsData.data.map(sector => (
+                            <option key={sector._id} value={sector._id}>{sector.sectorName}</option>
                         ))}
                     </select>
                 </div>

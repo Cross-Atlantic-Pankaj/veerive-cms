@@ -1,9 +1,12 @@
-import { useContext } from 'react';
+import React, { useContext } from 'react';
 import RegionContext from '../../context/RegionContext';
 import axios from '../../config/axios';
+import AuthContext from '../../context/AuthContext';
 
 export default function RegionList() {
     const { regions, regionsDispatch, handleEditClick } = useContext(RegionContext);
+    const { state } = useContext(AuthContext);
+    const userRole = state.user?.role;
 
     const handleRemove = async (id) => {
         const userInput = window.confirm('Are you sure you want to remove this region?');
@@ -36,8 +39,8 @@ export default function RegionList() {
                             <td>{ele.regionName}</td>
                             <td>{ele.generalComment}</td>
                             <td>
-                                <button className="edit-btn" onClick={() => handleEditClick(ele._id)}>Edit</button>
-                                <button className="remove-btn" onClick={() => handleRemove(ele._id)}>Remove</button>
+                                <button className="edit-btn" onClick={() => handleEditClick(ele._id)} disabled={userRole === 'User'}>Edit</button>
+                                <button className="remove-btn" onClick={() => handleRemove(ele._id)} disabled={userRole === 'User'}>Remove</button>
                             </td>
                         </tr>
                     ))}

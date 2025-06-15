@@ -39,6 +39,9 @@ import storyOrdersCltr from './app/controllers/storyOrders-cltr.js'
 import { createClarificationGuidance, getAllClarificationGuidance } from './app/controllers/clarificationGuidanceController.js';
 import { createQueryRefiner, getAllQueryRefiner } from './app/controllers/queryRefinerController.js';
 import { createMarketData, getAllMarketData } from './app/controllers/marketDataController.js';
+import User from './app/models/user-model.js';
+import bcryptjs from 'bcryptjs';
+import ensureSuperAdmin from './utils/superAdmin.js';
 
 dotenv.config()
 
@@ -130,7 +133,7 @@ app.put('/api/users/update-password', authenticateUser, checkSchema(updatePasswo
 app.put('/api/users/update-email', authenticateUser, checkSchema(updateEmailSchema), usersCltr.updateEmail);
 
 app.get('/api/users/account', authenticateUser,checkPasswordExpiry, usersCltr.account);
-app.get('/api/users/list', authenticateUser, authorizeUser(['Admin', 'Moderator']), usersCltr.list);
+app.get('/api/users/list', authenticateUser, usersCltr.list);
 app.delete('/api/users/:id', authenticateUser, authorizeUser(['Admin']), usersCltr.destroy);
 app.put('/api/users/change-role/:id', authenticateUser, authorizeUser(['Admin']), usersCltr.changeRole);
 
@@ -151,35 +154,35 @@ app.put('/api/profiles/:id', authenticateUser, profilesCltr.update)
 // context routes
 app.get('/api/contexts', authenticateUser, contextsCltr.list)
 //admin routes
-app.get('/api/admin/contexts', authenticateUser, authorizeUser(['Admin', 'Moderator']), contextsCltr.list)
-app.get('/api/admin/contexts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), contextsCltr.show)
-app.get('/api/admin/posts/:postId/contexts', authenticateUser, authorizeUser(['Admin', 'Moderator']), contextsCltr.postContext)
-app.post('/api/admin/contexts', authenticateUser, authorizeUser(['Admin', 'Moderator']), contextsCltr.create)
-app.put('/api/admin/contexts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), contextsCltr.update)
-app.put('/api/admin/contexts/:contextId/postId', authenticateUser, authorizeUser(['Admin', 'Moderator']), contextsCltr.updatePostId) // for updating postId in context when a post is saved
-app.delete('/api/admin/contexts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), contextsCltr.delete)
+app.get('/api/admin/contexts', authenticateUser, contextsCltr.list)
+app.get('/api/admin/contexts/:id', authenticateUser, contextsCltr.show)
+app.get('/api/admin/posts/:postId/contexts', authenticateUser, contextsCltr.postContext)
+app.post('/api/admin/contexts', authenticateUser, contextsCltr.create)
+app.put('/api/admin/contexts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), contextsCltr.update)
+app.put('/api/admin/contexts/:contextId/postId', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), contextsCltr.updatePostId) // for updating postId in context when a post is saved
+app.delete('/api/admin/contexts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), contextsCltr.delete)
 // ✅ Route for fetching all posts (for Context Form)
-app.get('/api/admin/posts/all', authenticateUser, authorizeUser(['Admin', 'Moderator']), postsCltr.getAllPosts);
+app.get('/api/admin/posts/all', authenticateUser, postsCltr.getAllPosts);
 
 // ✅ Route for fetching all contexts (for Post Form)
-app.get('/api/admin/contexts/all', authenticateUser, authorizeUser(['Admin', 'Moderator']), contextsCltr.getAllContexts);
+app.get('/api/admin/contexts/all', authenticateUser, contextsCltr.getAllContexts);
 
 // post routes
 app.get('/api/posts', authenticateUser, postsCltr.list)
 //admin routes
-app.get('/api/admin/posts', authenticateUser, authorizeUser(['Admin', 'Moderator']), postsCltr.list)
-app.get('/api/admin/posts/date', authenticateUser, authorizeUser(['Admin', 'Moderator']), postsCltr.date)
-app.post('/api/admin/posts', authenticateUser, authorizeUser(['Admin', 'Moderator']), postsCltr.create)
-app.put('/api/admin/posts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), postsCltr.update)
-app.delete('/api/admin/posts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), postsCltr.delete)
+app.get('/api/admin/posts', authenticateUser, postsCltr.list)
+app.get('/api/admin/posts/date', authenticateUser, postsCltr.date)
+app.post('/api/admin/posts', authenticateUser, postsCltr.create)
+app.put('/api/admin/posts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), postsCltr.update)
+app.delete('/api/admin/posts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), postsCltr.delete)
 
 // post-type routes
 app.get('/api/post-types', authenticateUser, postTypesCltr.list)
 //admin routes
-app.get('/api/admin/post-types', authenticateUser, authorizeUser(['Admin', 'Moderator']), postTypesCltr.list)
-app.post('/api/admin/post-types', authenticateUser, authorizeUser(['Admin', 'Moderator']), postTypesCltr.create)
-app.put('/api/admin/post-types/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), postTypesCltr.update)
-app.delete('/api/admin/post-types/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), postTypesCltr.delete)
+app.get('/api/admin/post-types', authenticateUser, postTypesCltr.list)
+app.post('/api/admin/post-types', authenticateUser, postTypesCltr.create)
+app.put('/api/admin/post-types/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), postTypesCltr.update)
+app.delete('/api/admin/post-types/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), postTypesCltr.delete)
 
 //themes routes
 //app.get('/api/themes', authenticateUser, themesCltr.list)
@@ -188,115 +191,118 @@ app.get('/api/themes', authenticateUser, themesCltr.list); // Paginated themes
 app.get('/api/themes/all', authenticateUser, themesCltr.getAllThemes); // All themes (no pagination)
 app.get('/api/themes/:id', authenticateUser, themesCltr.getOne); // Get single theme
 
-// Admin routes (Only accessible by Admins and Moderators)
-app.get('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.list); // Paginated themes
-app.get('/api/admin/themes/all', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.getAllThemes); // All themes (no pagination)
-app.get('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.getOne); // Get single theme
+// Admin routes (GET only, open to all authenticated users)
+app.get('/api/admin/themes', authenticateUser, themesCltr.list); // Paginated themes
+app.get('/api/admin/themes/all', authenticateUser, themesCltr.getAllThemes); // All themes (no pagination)
+app.get('/api/admin/themes/:id', authenticateUser, themesCltr.getOne); // Get single theme
 
 //admin routes
 //app.get('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.list)
-app.post('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.create)
-app.put('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.update)
-app.delete('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.delete)
+app.post('/api/admin/themes', authenticateUser, themesCltr.create)
+app.put('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), themesCltr.update)
+app.delete('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), themesCltr.delete)
 
 //company routes
 app.get('/api/companies', authenticateUser, companiesCltr.list)
 
 //admin routes
-app.get('/api/admin/companies', authenticateUser, authorizeUser(['Admin', 'Moderator']), companiesCltr.list)
-app.post('/api/admin/companies', authenticateUser, authorizeUser(['Admin', 'Moderator']), companiesCltr.create)
-app.put('/api/admin/companies/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), companiesCltr.update)
-app.delete('/api/admin/companies/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), companiesCltr.delete)
+app.get('/api/admin/companies', authenticateUser, companiesCltr.list)
+app.post('/api/admin/companies', authenticateUser, companiesCltr.create)
+app.put('/api/admin/companies/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), companiesCltr.update)
+app.delete('/api/admin/companies/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), companiesCltr.delete)
 
 // region routes
 app.get('/api/regions', authenticateUser, regionsCltr.list)
 
 //admin routes
-app.get('/api/admin/regions', authenticateUser, authorizeUser(['Admin', 'Moderator']), regionsCltr.list)
-app.post('/api/admin/regions', authenticateUser, authorizeUser(['Admin', 'Moderator']), regionsCltr.create)
-app.put('/api/admin/regions/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), regionsCltr.update)
-app.delete('/api/admin/regions/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), regionsCltr.delete)
+app.get('/api/admin/regions', authenticateUser, regionsCltr.list)
+app.post('/api/admin/regions', authenticateUser, regionsCltr.create)
+app.put('/api/admin/regions/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), regionsCltr.update)
+app.delete('/api/admin/regions/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), regionsCltr.delete)
 
 // country routes
 app.get('/api/countries', authenticateUser, countriesCltr.list)
 
 //admin routes
-app.get('/api/admin/countries', authenticateUser, authorizeUser(['Admin', 'Moderator']), countriesCltr.list)
-app.post('/api/admin/countries', authenticateUser, authorizeUser(['Admin', 'Moderator']), countriesCltr.create)
-app.put('/api/admin/countries/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), countriesCltr.update)
-app.delete('/api/admin/countries/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), countriesCltr.delete)
+app.get('/api/admin/countries', authenticateUser, countriesCltr.list)
+app.post('/api/admin/countries', authenticateUser, countriesCltr.create)
+app.put('/api/admin/countries/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), countriesCltr.update)
+app.delete('/api/admin/countries/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), countriesCltr.delete)
 
 // sector routes
 app.get('/api/sectors', authenticateUser, sectorsCltr.list)
 
 //admin routes
-app.get('/api/admin/sectors', authenticateUser, authorizeUser(['Admin', 'Moderator']), sectorsCltr.list)
-app.post('/api/admin/sectors', authenticateUser, authorizeUser(['Admin', 'Moderator']), sectorsCltr.create)
-app.put('/api/admin/sectors/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), sectorsCltr.update)
-app.delete('/api/admin/sectors/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), sectorsCltr.delete)
+app.get('/api/admin/sectors', authenticateUser, sectorsCltr.list)
+app.post('/api/admin/sectors', authenticateUser, sectorsCltr.create)
+app.put('/api/admin/sectors/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), sectorsCltr.update)
+app.delete('/api/admin/sectors/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), sectorsCltr.delete)
 
 // sub-sector routes
 app.get('/api/sub-sectors', authenticateUser, subSectorsCltr.list)
 
 //admin routes
-app.get('/api/admin/sub-sectors', authenticateUser, authorizeUser(['Admin', 'Moderator']), subSectorsCltr.list)
-app.post('/api/admin/sub-sectors', authenticateUser, authorizeUser(['Admin', 'Moderator']), subSectorsCltr.create)
-app.put('/api/admin/sub-sectors/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), subSectorsCltr.update)
-app.delete('/api/admin/sub-sectors/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), subSectorsCltr.delete)
+app.get('/api/admin/sub-sectors', authenticateUser, subSectorsCltr.list)
+app.post('/api/admin/sub-sectors', authenticateUser, subSectorsCltr.create)
+app.put('/api/admin/sub-sectors/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), subSectorsCltr.update)
+app.delete('/api/admin/sub-sectors/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), subSectorsCltr.delete)
 
 // source routes
 app.get('/api/sources', authenticateUser, sourcesCltr.list)
 
 //admin routes
-app.get('/api/admin/sources', authenticateUser, authorizeUser(['Admin', 'Moderator']), sourcesCltr.list)
-app.post('/api/admin/sources', authenticateUser, authorizeUser(['Admin', 'Moderator']), sourcesCltr.create)
-app.put('/api/admin/sources/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), sourcesCltr.update)
-app.delete('/api/admin/sources/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), sourcesCltr.delete)
+app.get('/api/admin/sources', authenticateUser, sourcesCltr.list)
+app.post('/api/admin/sources', authenticateUser, sourcesCltr.create)
+app.put('/api/admin/sources/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), sourcesCltr.update)
+app.delete('/api/admin/sources/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), sourcesCltr.delete)
 
 // signal routes
 app.get('/api/signals', authenticateUser, signalsCltr.list)
 
 //admin routes
-app.get('/api/admin/signals', authenticateUser, authorizeUser(['Admin', 'Moderator']), signalsCltr.list)
-app.post('/api/admin/signals', authenticateUser, authorizeUser(['Admin', 'Moderator']), signalsCltr.create)
-app.put('/api/admin/signals/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), signalsCltr.update)
-app.delete('/api/admin/signals/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), signalsCltr.delete)
+app.get('/api/admin/signals', authenticateUser, signalsCltr.list)
+app.post('/api/admin/signals', authenticateUser, signalsCltr.create)
+app.put('/api/admin/signals/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), signalsCltr.update)
+app.delete('/api/admin/signals/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), signalsCltr.delete)
 
 // sub-signal routes
 app.get('/api/sub-signals', authenticateUser, subSignalsCltr.list)
 
 //admin routes
-app.get('/api/admin/sub-signals', authenticateUser, authorizeUser(['Admin', 'Moderator']), subSignalsCltr.list)
-app.post('/api/admin/sub-signals', authenticateUser, authorizeUser(['Admin', 'Moderator']), subSignalsCltr.create)
-app.put('/api/admin/sub-signals/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), subSignalsCltr.update)
-app.delete('/api/admin/sub-signals/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), subSignalsCltr.delete)
+app.get('/api/admin/sub-signals', authenticateUser, subSignalsCltr.list)
+app.post('/api/admin/sub-signals', authenticateUser, subSignalsCltr.create)
+app.put('/api/admin/sub-signals/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), subSignalsCltr.update)
+app.delete('/api/admin/sub-signals/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), subSignalsCltr.delete)
 
 // source routes
 app.get('/api/story-orders', authenticateUser, storyOrdersCltr.list)
 
 //admin routes
-app.get('/api/admin/story-orders', authenticateUser, authorizeUser(['Admin', 'Moderator']), storyOrdersCltr.list)
-app.post('/api/admin/story-orders', authenticateUser, authorizeUser(['Admin', 'Moderator']), storyOrdersCltr.create)
-app.put('/api/admin/story-orders/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), storyOrdersCltr.update)
-app.delete('/api/admin/story-orders/:id', authenticateUser, authorizeUser(['Admin', 'Moderator']), storyOrdersCltr.delete)
+app.get('/api/admin/story-orders', authenticateUser, storyOrdersCltr.list)
+app.post('/api/admin/story-orders', authenticateUser, storyOrdersCltr.create)
+app.put('/api/admin/story-orders/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), storyOrdersCltr.update)
+app.delete('/api/admin/story-orders/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), storyOrdersCltr.delete)
 
 // ClarificationGuidance routes
-app.post('/api/admin/clarification-guidance', authenticateUser, authorizeUser(['Admin', 'Moderator']), createClarificationGuidance);
-app.get('/api/admin/clarification-guidance', authenticateUser, authorizeUser(['Admin', 'Moderator']), getAllClarificationGuidance);
+app.post('/api/admin/clarification-guidance', authenticateUser, createClarificationGuidance);
+app.get('/api/admin/clarification-guidance', authenticateUser, getAllClarificationGuidance);
 
 // QueryRefiner routes
-app.post('/api/admin/query-refiner', authenticateUser, authorizeUser(['Admin', 'Moderator']), createQueryRefiner);
-app.get('/api/admin/query-refiner', authenticateUser, authorizeUser(['Admin', 'Moderator']), getAllQueryRefiner);
+app.post('/api/admin/query-refiner', authenticateUser, createQueryRefiner);
+app.get('/api/admin/query-refiner', authenticateUser, getAllQueryRefiner);
 
 // MarketData routes
-app.post('/api/admin/market-data', authenticateUser, authorizeUser(['Admin', 'Moderator']), createMarketData);
-app.get('/api/admin/market-data', authenticateUser, authorizeUser(['Admin', 'Moderator']), getAllMarketData);
+app.post('/api/admin/market-data', authenticateUser, createMarketData);
+app.get('/api/admin/market-data', authenticateUser, getAllMarketData);
 
 // Route to serve data deletion instructions
 app.get('/data-deletion.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'data-deletion.html'));
 });
 
+app.get('/api/admin/contexts/edit-data', authenticateUser, contextsCltr.getEditContextData);
+
+configDB().then(ensureSuperAdmin);
 
 const port = process.env.PORT || 3050
 

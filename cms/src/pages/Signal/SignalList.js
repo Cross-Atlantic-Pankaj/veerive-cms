@@ -1,10 +1,13 @@
 // pages/Signal/SignalList.js
-import { useContext } from 'react';
+import React, { useContext } from 'react';
 import SignalContext from '../../context/SignalContext';
 import axios from '../../config/axios';
+import AuthContext from '../../context/AuthContext';
 
 export default function SignalList() {
     const { signals, signalsDispatch, handleEditClick } = useContext(SignalContext);
+    const { state } = useContext(AuthContext);
+    const userRole = state.user?.role;
 
     const handleRemove = async (id) => {
         const userInput = window.confirm('Are you sure you want to remove this signal?');
@@ -34,8 +37,8 @@ export default function SignalList() {
                             <td>{signal.signalName}</td>
                             <td>{signal.generalComment}</td>
                             <td>
-                                <button className="edit-btn" onClick={() => handleEditClick(signal._id)}>Edit</button>
-                                <button className="remove-btn" onClick={() => handleRemove(signal._id)}>Remove</button>
+                                <button className="edit-btn" onClick={() => handleEditClick(signal._id)} disabled={userRole === 'User'}>Edit</button>
+                                <button className="remove-btn" onClick={() => handleRemove(signal._id)} disabled={userRole === 'User'}>Remove</button>
                             </td>
                         </tr>
                     ))}

@@ -451,7 +451,7 @@ useEffect(() => {
                         <h2 className="form-section-title">Basic Information</h2>
                         <div className="field-group">
                             <div style={{ flex: 1 }}>
-                                <label htmlFor="contextTitle">Context Title</label>
+                                <label htmlFor="contextTitle">Context Title <span style={{color: 'red'}}>*</span></label>
                                 <input
                                     id="contextTitle"
                                     type="text"
@@ -463,7 +463,7 @@ useEffect(() => {
                                 />
                             </div>
                             <div style={{ flex: 1 }}>
-                                <label htmlFor="date">Date</label>
+                                <label htmlFor="date">Date <span style={{color: 'red'}}>*</span></label>
                                 <input
                                     id="date"
                                     type="date"
@@ -477,7 +477,7 @@ useEffect(() => {
 
                         <div className="field-group">
                             <div style={{ flex: 1 }}>
-                                <label htmlFor="containerType">Container Type</label>
+                                <label htmlFor="containerType">Container Type <span style={{color: 'red'}}>*</span></label>
                                 <Select
                                     id="containerType"
                                     options={containerTypeOptions}
@@ -520,7 +520,7 @@ useEffect(() => {
                         <h2 className="form-section-title">Categories & Themes</h2>
                         <div className="field-group">
                             <div style={{ flex: 1 }}>
-                                <label htmlFor="sectors">Sectors</label>
+                                <label htmlFor="sectors">Sectors <span style={{color: 'red'}}>*</span></label>
                                 <Select
                                     id="sectors"
                                     isMulti
@@ -551,7 +551,7 @@ useEffect(() => {
 
                         <div className="field-group">
                             <div style={{ flex: 1 }}>
-                                <label htmlFor="signalCategories">Signal Categories</label>
+                                <label htmlFor="signalCategories">Signal Categories <span style={{color: 'red'}}>*</span></label>
                                 <Select
                                     id="signalCategories"
                                     isMulti

@@ -104,6 +104,7 @@ export default function CountryForm() {
             </button>
             <form onSubmit={handleSubmit} className="country-form">
                 <h2>{countries.editId ? 'Edit Country' : 'Add Country'}</h2>
+                <label htmlFor="countryName">Country Name <span style={{color: 'red'}}>*</span></label>
                 <input
                     type="text"
                     placeholder="Enter country name"
@@ -114,6 +115,7 @@ export default function CountryForm() {
                     disabled={isLoading}
                     required
                 />
+                <label htmlFor="regionId">Region <span style={{color: 'red'}}>*</span></label>
                 <select
                     name="regionId"
                     value={regionId}

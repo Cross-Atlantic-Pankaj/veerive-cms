@@ -1,10 +1,13 @@
 import React, { useContext, useState } from 'react';
 import SourceContext from '../../context/SourceContext';
+import AuthContext from '../../context/AuthContext';
 import '../../html/css/Source.css'; // Ensure this CSS file is created
 import axios from '../../config/axios';
 
 export default function SourceList() {
     const { sources, sourcesDispatch, handleEditClick } = useContext(SourceContext);
+    const { state } = useContext(AuthContext);
+    const userRole = state.user?.role;
     const [sortConfig, setSortConfig] = useState({ key: 'sourceName', direction: 'ascending' });
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -83,8 +86,8 @@ export default function SourceList() {
                             <td>{source.sourceType}</td>
                             <td>{source.generalComment}</td>
                             <td>
-                                <button className="edit-btn" onClick={() => handleEditClick(source._id)}>Edit</button>
-                                <button className="remove-btn" onClick={() => handleDelete(source._id)}>Remove</button>
+                                <button className="edit-btn" onClick={() => handleEditClick(source._id)} disabled={userRole === 'User'}>Edit</button>
+                                <button className="remove-btn" onClick={() => handleDelete(source._id)} disabled={userRole === 'User'}>Remove</button>
                             </td>
                         </tr>
                     ))}

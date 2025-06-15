@@ -115,7 +115,7 @@ export default function CompanyForm() {
             <button type="button" className="submit-btn" onClick={handleHomeNav}>Company Home</button>
             {/* Button to navigate back to company home */}
             <form onSubmit={handleSubmit} className="company-form">
-                <label htmlFor="companyName"><b>Company Name</b></label>
+                <label htmlFor="companyName"><b>Company Name</b> <span style={{color: 'red'}}>*</span></label>
                 <input
                     id="companyName"
                     type="text"
@@ -138,7 +138,7 @@ export default function CompanyForm() {
                     className="company-input"
                 />
                 {/* Input field for parent company name */}
-                <label htmlFor="website"><b>Company Website</b></label>
+                <label htmlFor="website"><b>Company Website</b> <span style={{color: 'red'}}>*</span></label>
                 <input
                     id="website"
                     type="text"
@@ -150,7 +150,7 @@ export default function CompanyForm() {
                     required
                 />
                 {/* Input field for company website */}
-                <label htmlFor="country"><b>Country</b></label>
+                <label htmlFor="country"><b>Country</b> <span style={{color: 'red'}}>*</span></label>
                 <select
                     id="country"
                     name="country"
@@ -166,7 +166,7 @@ export default function CompanyForm() {
                     ))}
                     {/* Options for each country */}
                 </select>
-                <label htmlFor="sectors"><b>Sectors</b></label>
+                <label htmlFor="sectors"><b>Sectors</b> <span style={{color: 'red'}}>*</span></label>
                 <select
                     id="sectors"
                     name="sectors"
@@ -174,6 +174,7 @@ export default function CompanyForm() {
                     onChange={handleSectorChange}
                     className="company-select"
                     multiple
+                    required
                 >
                     {sectorsData.data && sectorsData.data.map(sector => (
                         <option key={sector._id} value={sector._id}>{sector.sectorName}</option>

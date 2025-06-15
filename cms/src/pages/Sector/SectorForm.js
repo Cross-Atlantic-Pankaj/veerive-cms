@@ -54,6 +54,7 @@ export default function SectorForm({ handleFormSubmit }) {
             <button type="button" className="submit-btn" onClick={handleHomeNav}>Sector Home</button>
             <form onSubmit={handleSubmit} className="sector-form">
                 <h2>{sectors.editId ? 'Edit Sector' : 'Add Sector'}</h2>
+                <label htmlFor="sectorName">Sector Name <span style={{color: 'red'}}>*</span></label>
                 <input
                     type="text"
                     placeholder="Enter sector name"
@@ -61,6 +62,7 @@ export default function SectorForm({ handleFormSubmit }) {
                     value={sectorName}
                     onChange={(e) => setSectorName(e.target.value)}
                     className="sector-input"
+                    required
                 />
                 <textarea
                     placeholder="Enter comment"
