@@ -52,6 +52,7 @@ export default function SignalForm({ handleFormSubmit }) {
             <button type="button" className="submit-btn" onClick={handleHomeNav}>Signal Home</button>
             <form onSubmit={handleSubmit} className="signal-form">
                 <h2>{signals.editId ? 'Edit Signal' : 'Add Signal'}</h2>
+                <label htmlFor="signalName">Signal Name <span style={{color: 'red'}}>*</span></label>
                 <input
                     type="text"
                     placeholder="Enter signal name"
@@ -59,6 +60,7 @@ export default function SignalForm({ handleFormSubmit }) {
                     value={signalName}
                     onChange={(e) => setSignalName(e.target.value)}
                     className="signal-input"
+                    required
                 />
                 <textarea
                     placeholder="Enter comment"

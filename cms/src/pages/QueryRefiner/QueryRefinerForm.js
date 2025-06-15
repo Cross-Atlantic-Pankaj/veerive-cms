@@ -33,20 +33,20 @@ export default function QueryRefinerForm() {
     <div className="company-form-container">
       <h2>Add Query Refiner</h2>
       <form onSubmit={handleSubmit} className="company-form">
-        <label>Title</label>
+        <label>Title <span style={{color: 'red'}}>*</span></label>
         <input className="company-input" value={title} onChange={e => setTitle(e.target.value)} required />
-        <label>Module Description</label>
+        <label>Module Description <span style={{color: 'red'}}>*</span></label>
         <textarea className="company-textarea" value={moduleDescription} onChange={e => setModuleDescription(e.target.value)} required />
-        <label>Prompt Guidance</label>
+        <label>Prompt Guidance <span style={{color: 'red'}}>*</span></label>
         <textarea className="company-textarea" value={promptGuidance} onChange={e => setPromptGuidance(e.target.value)} required />
-        <label>Sector</label>
+        <label>Sector <span style={{color: 'red'}}>*</span></label>
         <select className="company-select" value={sector} onChange={e => setSector(e.target.value)} required>
           <option value="">Select Sector</option>
           {sectors.data && sectors.data.map(sec => (
             <option key={sec._id} value={sec._id}>{sec.sectorName}</option>
           ))}
         </select>
-        <label>Sub-Sector</label>
+        <label>Sub-Sector <span style={{color: 'red'}}>*</span></label>
         <select className="company-select" value={subSector} onChange={e => setSubSector(e.target.value)} required>
           <option value="">Select Sub-Sector</option>
           {subSectors.data && subSectors.data.filter(ss => ss.sectorId === sector).map(ss => (

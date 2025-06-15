@@ -54,6 +54,7 @@ export default function RegionForm() {
             <button type="button" className="submit-btn" onClick={handleHomeNav}>Region Home</button>
             <form onSubmit={handleSubmit} className="region-form">
                 <h2>{regions.editId ? 'Edit Region' : 'Add Region'}</h2>
+                <label htmlFor="regionName">Region Name <span style={{color: 'red'}}>*</span></label>
                 <input
                     type="text"
                     placeholder="Enter region name"
@@ -61,6 +62,7 @@ export default function RegionForm() {
                     value={regionName}
                     onChange={(e) => setRegionName(e.target.value)}
                     className="region-input"
+                    required
                 />
                 <textarea
                     placeholder="Enter comment"

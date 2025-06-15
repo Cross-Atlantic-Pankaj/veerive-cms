@@ -60,6 +60,7 @@ export default function SubSectorForm({ handleFormSubmit }) {
             <button type="button" className="submit-btn" onClick={handleHomeNav}>Sub-Sector Home</button>
             <form onSubmit={handleSubmit} className="sub-sector-form">
                 <h2>{subSectors.editId ? 'Edit Sub-Sector' : 'Add Sub-Sector'}</h2>
+                <label htmlFor="subSectorName">Sub-Sector Name <span style={{color: 'red'}}>*</span></label>
                 <input
                     type="text"
                     placeholder="Enter sub-sector name"
@@ -67,12 +68,15 @@ export default function SubSectorForm({ handleFormSubmit }) {
                     value={subSectorName}
                     onChange={(e) => setSubSectorName(e.target.value)}
                     className="sub-sector-input"
+                    required
                 />
+                <label htmlFor="sectorId">Sector <span style={{color: 'red'}}>*</span></label>
                 <select
                     name="sectorId"
                     value={sectorId}
                     onChange={(e) => setSectorId(e.target.value)}
                     className="sub-sector-select"
+                    required
                 >
                     <option value="">Select Sector</option>
                     {sectors.data.map((sector) => (

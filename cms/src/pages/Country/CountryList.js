@@ -4,10 +4,13 @@ import RegionContext from '../../context/RegionContext';
 import axios from '../../config/axios';
 import '../../html/css/Country.css';
 import { toast } from 'react-toastify';
+import AuthContext from '../../context/AuthContext';
 
 export default function CountryList() {
     const { countries, countriesDispatch, handleEditClick } = useContext(CountryContext);
     const { regions } = useContext(RegionContext);
+    const { state } = useContext(AuthContext);
+    const userRole = state.user?.role;
     const [isLoading, setIsLoading] = useState(true);
 
     const [sortConfig, setSortConfig] = useState({ key: 'countryName', direction: 'ascending' });
@@ -131,14 +134,14 @@ export default function CountryList() {
                                     <button 
                                         className="edit-btn" 
                                         onClick={() => handleEditClick(country._id)}
-                                        disabled={isLoading}
+                                        disabled={userRole === 'User'}
                                     >
                                         Edit
                                     </button>
                                     <button 
                                         className="remove-btn" 
                                         onClick={() => handleRemove(country._id)}
-                                        disabled={isLoading}
+                                        disabled={userRole === 'User'}
                                     >
                                         Remove
                                     </button>

@@ -5,6 +5,7 @@ import '../../html/css/Theme.css';
 import ThemeForm from './ThemeForm';
 import { useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import AuthContext from '../../context/AuthContext';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -26,6 +27,9 @@ export default function ThemeList() {
         setIsFormVisible,
         handleFormSubmit
     } = useContext(ThemeContext);
+
+    const { state } = useContext(AuthContext);
+    const userRole = state.user?.role;
 
     const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState({ key: 'themeTitle', direction: 'ascending' });
@@ -279,8 +283,12 @@ export default function ThemeList() {
                             <td>{getSubSectorNames(ele.subSectors, subSectors.data)}</td>
                             <td>{ele.generalComment || 'N/A'}</td>
                             <td>
-                                <button className="edit-btn" onClick={() => handleEditClick(ele._id)}>Edit</button>
-                                <button className="remove-btn" onClick={() => handleRemove(ele._id)}>Remove</button>
+                                <button className="edit-btn" onClick={() => handleEditClick(ele._id)} disabled={userRole === 'User'}>
+                                    Edit
+                                </button>
+                                <button className="remove-btn" onClick={() => handleRemove(ele._id)} disabled={userRole === 'User'}>
+                                    Remove
+                                </button>
                             </td>
                         </tr>
                     ))}

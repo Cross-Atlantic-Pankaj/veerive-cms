@@ -67,6 +67,7 @@ export default function SubSignalForm({ handleFormSubmit }) {
             <button type="button" className="submit-btn" onClick={handleHomeNav}>Sub-Signal Home</button>
             <form onSubmit={handleSubmit} className="subsignal-form">
                 <h2>{subSignals.editId ? 'Edit SubSignal' : 'Add SubSignal'}</h2>
+                <label htmlFor="subSignalName">Sub-Signal Name <span style={{color: 'red'}}>*</span></label>
                 <input
                     type="text"
                     placeholder="Enter sub-signal name"
@@ -74,12 +75,15 @@ export default function SubSignalForm({ handleFormSubmit }) {
                     value={subSignalName}
                     onChange={(e) => setSubSignalName(e.target.value)}
                     className="subsignal-input"
+                    required
                 />
+                <label htmlFor="signalId">Signal <span style={{color: 'red'}}>*</span></label>
                 <select
                     name="signalId"
                     value={signalId}
                     onChange={(e) => setSignalId(e.target.value)}
                     className="subsignal-select"
+                    required
                 >
                     <option value="">Select Signal</option>
                     {signals.map((signal) => (

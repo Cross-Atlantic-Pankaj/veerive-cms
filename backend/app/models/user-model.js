@@ -34,7 +34,7 @@ const userSchema = new Schema(
   {
     email: { type: String, required: true, unique: true },
     password: { type: String }, // Optional for OAuth users
-    role: { type: String, enum: ['Admin', 'Moderator', 'User'], default: 'User' },
+    role: { type: String, enum: ['SuperAdmin', 'Admin', 'Moderator', 'User'], default: 'User' },
     name: { type: String }, // Optional name field
     provider: { type: String, enum: ['local', 'google', 'facebook', 'linkedin', 'twitter'], default: 'local' }, // Track the provider
     resetToken: { type: String, default: null }, // For password reset

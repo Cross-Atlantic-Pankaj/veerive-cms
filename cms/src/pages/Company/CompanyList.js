@@ -2,10 +2,14 @@ import React, { useContext, useState } from 'react'; // Import React and hooks f
 import CompanyContext from '../../context/CompanyContext'; // Import CompanyContext for managing company-related state
 import axios from '../../config/axios'; // Import axios instance for making HTTP requests
 import '../../html/css/Company.css'; // Import CSS for styling the CompanyList component
+import AuthContext from '../../context/AuthContext';
+import Papa from 'papaparse';
 
 export default function CompanyList() {
     // Use CompanyContext to access context values and dispatch actions
-    const { companies, companiesDispatch, handleAddClick, handleEditClick, countries, sectors, subSectors } = useContext(CompanyContext);
+    const { companies, companiesDispatch, handleAddClick, handleEditClick, countries, sectors, subSectors, state } = useContext(CompanyContext);
+    const { state: authState } = useContext(AuthContext);
+    const userRole = authState.user?.role;
 
     // State variables for search query, sorting column, and sorting order
     const [searchQuery, setSearchQuery] = useState('');
@@ -90,6 +94,34 @@ export default function CompanyList() {
         // You can perform additional logic on search if needed
     };
 
+    const handleDownloadCSV = () => {
+        const csvData = companies.data.map(company => ({
+            ...company,
+            sectors: (company.sectors || []).map(id => {
+                const sector = sectors.data.find(s => s._id === id);
+                return sector ? sector.sectorName : id;
+            }).join(', '),
+            subSectors: (company.subSectors || []).map(id => {
+                const subSector = subSectors.data.find(s => s._id === id);
+                return subSector ? subSector.subSectorName : id;
+            }).join(', '),
+            country: (() => {
+                const country = countries.data.find(c => c._id === company.country);
+                return country ? country.countryName : company.country;
+            })(),
+        }));
+        const csv = Papa.unparse(csvData);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'companies.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div className="company-list-container"> {/* Container for the company list */}
             <button className="add-company-btn" onClick={handleAddClick}>Add Company</button> {/* Button to add a new company */}
@@ -102,6 +134,9 @@ export default function CompanyList() {
                     className="search-input"
                 />
                 <button className="search-btn" onClick={handleSearch}>Search</button> {/* Button to trigger search */}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+                <button onClick={handleDownloadCSV} className="download-btn">Download CSV</button>
             </div>
             <div className="table-responsive"> 
             <table className="company-table"> {/* Table to display the list of companies */}
@@ -128,8 +163,8 @@ export default function CompanyList() {
                             <td>{getSubSectorNames(ele.subSectors, subSectors.data)}</td> {/* Display sub-sector names */}
                             <td>{ele.generalComment || 'N/A'}</td> {/* Display general comment or 'N/A' if not available */}
                             <td>
-                                <button className="edit-btn" onClick={() => handleEditClick(ele._id)}>Edit</button> {/* Button to edit company */}
-                                <button className="remove-btn" onClick={() => handleRemove(ele._id)}>Remove</button> {/* Button to remove company */}
+                                <button className="edit-btn" onClick={() => handleEditClick(ele._id)} disabled={userRole === 'User'}>Edit</button> {/* Button to edit company */}
+                                <button className="remove-btn" onClick={() => handleRemove(ele._id)} disabled={userRole === 'User'}>Remove</button> {/* Button to remove company */}
                             </td>
                         </tr>
                     ))}

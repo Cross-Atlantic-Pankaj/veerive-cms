@@ -1,6 +1,5 @@
 import User from "../models/user-model.js";
 import { validationResult } from "express-validator";
-import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
@@ -59,19 +58,14 @@ usersCltr.register = async (req, res) => {
             assignedRole = 'Moderator';
         }
 
-        // Create and save the user
+        // Create and save the user (plain text password)
         const user = new User({
             email,
-            password,
+            password, // store as plain text
             role: assignedRole,
             name,
-            provider: 'local',
-            lastPasswordUpdate: Date.now(), // Initialize last password update date
+            lastPasswordUpdate: Date.now(),
         });
-
-        const salt = await bcryptjs.genSalt();
-        const hash = await bcryptjs.hash(user.password, salt);
-        user.password = hash;
 
         await user.save();
 
@@ -90,71 +84,6 @@ usersCltr.register = async (req, res) => {
     }
 };
 
-// test for 2 minutes
-// usersCltr.login = async (req, res) => {
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-//         return res.status(400).json({ errors: errors.array() });
-//     }
-
-//     const { email, password } = req.body;
-
-//     try {
-//         const user = await User.findOne({ email, provider: 'local' });
-//         if (!user) {
-//             return res.status(404).json({ error: 'Invalid email or password' });
-//         }
-
-//         const isValid = await bcryptjs.compare(password, user.password);
-//         if (!isValid) {
-//             return res.status(404).json({ error: 'Invalid email or password' });
-//         }
-
-//         // Calculate minutes since last password update
-//         const minutesSinceLastUpdate = Math.floor((Date.now() - new Date(user.lastPasswordUpdate)) / (1000 * 60));
-
-//         // Reminder window: Send email if password is nearing expiry
-//         if (minutesSinceLastUpdate > 1 && minutesSinceLastUpdate <= 2) { // Adjust as needed
-//             try {
-//                 const mailOptions = {
-//                     // from: process.env.EMAIL_USER,
-//                     // to: user.email,
-//                     from: 'paich147@gmail.com', // Hardcoded sender email
-//                         to: user.email,
-//                     subject: 'Password Expiry Reminder',
-//                     text: 'Your password is about to expire. Please update it to avoid disruptions.',
-//                 };
-//                 await transporter.sendMail(mailOptions);
-//                 console.log('Password expiry reminder email sent.');
-//             } catch (emailErr) {
-//                 console.error('Failed to send reminder email:', emailErr);
-//             }
-//         }
-
-//         // Password expired: Return error
-//         if (minutesSinceLastUpdate > 2) {
-//             return res.status(403).json({ error: 'Password expired. Please update your password to continue.' });
-//         }
-
-//         // Generate token if login is successful
-//         const tokenData = { userId: user._id, role: user.role };
-//         const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: '2m' }); // Adjust as needed for testing
-
-//         return res.status(200).json({
-//             message: 'Login successful',
-//             token,
-//             user: {
-//                 id: user._id,
-//                 email: user.email,
-//                 role: user.role,
-//             },
-//         });
-//     } catch (err) {
-//         console.error('Error during login:', err);
-//         return res.status(500).json({ error: 'Internal server error' });
-//     }
-// };
-
 usersCltr.login = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -164,43 +93,20 @@ usersCltr.login = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const user = await User.findOne({ email, provider: 'local' });
+        // Remove provider check
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ error: 'Invalid email or password' });
         }
 
-        const isValid = await bcryptjs.compare(password, user.password);
-        if (!isValid) {
+        // Plain-text password check
+        if (password !== user.password) {
             return res.status(404).json({ error: 'Invalid email or password' });
-        }
-
-        // Calculate days since last password update
-        const daysSinceLastUpdate = Math.floor((Date.now() - new Date(user.lastPasswordUpdate)) / (1000 * 60 * 60 * 24));
-
-        // Reminder window: Send email if password is nearing expiry (last 5 days)
-        if (daysSinceLastUpdate >= 25 && daysSinceLastUpdate < 30) {
-            try {
-                const mailOptions = {
-                    from: 'info@veerive.com', // Hardcoded sender email
-                    to: user.email,
-                    subject: 'Password Expiry Reminder',
-                    text: 'Your password will expire soon. Please update it within the next 5 days to avoid disruptions.',
-                };
-                await transporter.sendMail(mailOptions);
-                console.log('Password expiry reminder email sent.');
-            } catch (emailErr) {
-                console.error('Failed to send reminder email:', emailErr);
-            }
-        }
-
-        // Password expired: Return error
-        if (daysSinceLastUpdate >= 30) {
-            return res.status(403).json({ error: 'Password expired. Please update your password to continue.' });
         }
 
         // Generate token if login is successful
         const tokenData = { userId: user._id, role: user.role };
-        const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: '30d' }); // Token valid for 30 days
+        const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: '30d' });
 
         return res.status(200).json({
             message: 'Login successful',
@@ -363,24 +269,18 @@ usersCltr.updateEmail = async (req, res) => {
 
 usersCltr.list = async (req, res) => {
     console.log('Accessing user list with req.user:', req.user); // Debugging log
-
     try {
         let query = {};
-
-        if (req.user.role === 'Admin') {
-            // Admin can view Moderators and Users
-            query = { role: { $in: ['Moderator', 'User'] } };
-        } else if (req.user.role === 'Moderator') {
-            // Moderator can view only Users
-            query = { role: 'User' };
+        if (req.user.role === 'SuperAdmin') {
+            query = {};
+        } else if (req.user.role === 'Admin') {
+            query = { role: { $ne: 'SuperAdmin' } };
+        } else if (req.user.role === 'Moderator' || req.user.role === 'User') {
+            query = {};
         } else {
-            // Other roles should not access the list
             return res.status(403).json({ errors: 'You do not have access to this page' });
         }
-
-        // Exclude sensitive fields like resetToken and resetTokenExpiration
         const users = await User.find(query).select('-password -resetToken -resetTokenExpiration');
-        
         res.status(200).json(users);
     } catch (err) {
         console.error('Error fetching users list:', err);
@@ -404,6 +304,19 @@ usersCltr.account = async (req, res) => {
 usersCltr.destroy = async (req, res) => {
     try {
         const id = req.params.id;
+
+        // Allow SuperAdmin to delete any user except themselves
+        if (req.user.role === 'SuperAdmin') {
+            if (id === req.user.userId) {
+                return res.status(400).json({ error: 'You cannot delete your own account.' });
+            }
+            const user = await User.findById(id);
+            if (!user) {
+                return res.status(404).json({ error: 'User not found.' });
+            }
+            await user.deleteOne();
+            return res.status(200).json({ message: 'User deleted successfully.' });
+        }
 
         // Ensure the logged-in user is Admin
         if (req.user.role !== 'Admin') {
@@ -445,8 +358,8 @@ usersCltr.changeRole = async (req, res) => {
         }
 
         // Validate the role
-        if (!['Moderator', 'User'].includes(role)) {
-            return res.status(400).json({ error: 'Invalid role provided. Only Moderator or User roles are allowed.' });
+        if (!['Moderator', 'User', 'Admin'].includes(role)) {
+            return res.status(400).json({ error: 'Invalid role provided. Only Moderator, User, or Admin roles are allowed.' });
         }
 
         // Retrieve the target user
@@ -455,8 +368,13 @@ usersCltr.changeRole = async (req, res) => {
             return res.status(404).json({ error: 'User not found.' });
         }
 
-        // Prevent assigning Admin role to another user
-        if (targetUser.role === 'Admin') {
+        // Prevent changing the role of SuperAdmin
+        if (targetUser.role === 'SuperAdmin' || targetUser.email === 'info@veerive.com') {
+            return res.status(400).json({ error: 'Cannot change the role of a SuperAdmin.' });
+        }
+
+        // If the requester is not SuperAdmin, prevent changing Admin roles
+        if (req.user.role !== 'SuperAdmin' && targetUser.role === 'Admin') {
             return res.status(400).json({ error: 'Cannot change the role of an Admin.' });
         }
 

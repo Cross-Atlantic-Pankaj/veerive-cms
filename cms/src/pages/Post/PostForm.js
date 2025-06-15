@@ -474,11 +474,12 @@ const MultiValue = ({ data, removeProps }) => (
         <div className="post-form-container">
             <button type="button" className="submit-btn" onClick={handleHomeNav}>Post Home</button>
             <form onSubmit={handleSubmit} className="post-form">
-                <label htmlFor="postTitle"><b>Post Title</b></label>
+                <label htmlFor="postTitle">Post Title <span style={{color: 'red'}}>*</span></label>
                 <input
                     id="postTitle"
                     type="text"
                     placeholder="Post Title"
+                    name="postTitle"
                     value={postTitle}
                     onChange={(e) => setPostTitle(e.target.value)}
                     className="post-input"
@@ -509,20 +510,24 @@ const MultiValue = ({ data, removeProps }) => (
                         </div>
                     )}
                 </div>
-                <label htmlFor="date"><b>Date</b></label>
+                <label htmlFor="date">Date <span style={{color: 'red'}}>*</span></label>
                 <input
                     id="date"
                     type="date"
+                    name="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     className="post-input"
+                    required
                 />
-                <label htmlFor="postType"><b>Post Type</b></label>
+                <label htmlFor="postType">Post Type <span style={{color: 'red'}}>*</span></label>
                 <select
                     id="postType"
+                    name="postType"
                     value={postType}
                     onChange={(e) => setPostType(e.target.value)}
                     className="post-select"
+                    required
                 >
                     <option value="">Select Post Type</option>
                     <option value="News">News</option>
@@ -547,15 +552,16 @@ const MultiValue = ({ data, removeProps }) => (
                     onChange={(e) => setHomePageShow(e.target.checked)}
                     className="post-checkbox"
                 />
-              <label htmlFor="Contexts"><b>Contexts</b></label>
+              <label htmlFor="Contexts">Contexts <span style={{color: 'red'}}>*</span></label>
                     <Select
                         id="contexts"
+                        name="contexts"
                         value={selectedContexts}
-                        onChange={handleSelectChange} // ✅ Calls handleSelectChange
-                        options={contextOptions} // ✅ Uses contextOptions here
+                        onChange={handleSelectChange}
+                        options={contextOptions}
                         isMulti
-                        placeholder="Select Context(s)"
                         className="post-select"
+                        required
                     />
                     {/* Show clickable links for selected contexts */}
                     {selectedContexts.length > 0 && (
@@ -593,24 +599,24 @@ const MultiValue = ({ data, removeProps }) => (
                     onChange={(e) => setIncludeInContainer(e.target.checked)}
                     className="post-checkbox"
                 />
-                <label htmlFor="countries"><b>Countries</b></label>
+                <label htmlFor="countries">Countries <span style={{color: 'red'}}>*</span></label>
                 <Select
-                        id="countries"
-                        value={countryOptions.filter(option => selectedCountries.includes(option.value))} // Set selected values
-                        onChange={handleCountriesChange} // Handle selection
-                        options={countryOptions} // Options from API
-                        isMulti // Enable multiple selection
-                        isSearchable // Enable search functionality
-                        placeholder="Search and select countries"
-                        className="post-select"
-                    />
-                <label htmlFor="summary"><b>Summary</b></label>
+                    id="countries"
+                    name="countries"
+                    value={selectedCountries}
+                    onChange={handleCountriesChange}
+                    options={countryOptions}
+                    isMulti
+                    className="post-select"
+                    required
+                />
+                <label htmlFor="summary">Summary <span style={{color: 'red'}}>*</span></label>
                 <ReactQuill
-                        id="summary"
-                        value={summary}
-                        onChange={handleSummaryChange}
-                        className="post-quill"
-                    />
+                    id="summary"
+                    value={summary}
+                    onChange={handleSummaryChange}
+                    className="post-quill-editor"
+                />
 
                 <label htmlFor="completeContent"><b>Complete Content</b></label>
                 <textarea
@@ -712,17 +718,17 @@ const MultiValue = ({ data, removeProps }) => (
                         Add New
                     </a>
                 </div>
-                <label htmlFor="source"><b>Source</b></label>
+                <label htmlFor="source">Source <span style={{color: 'red'}}>*</span></label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Select
                         id="source"
-                        value={sourceOptions.filter(option => source.includes(option.value))}
+                        name="source"
+                        value={source}
                         onChange={handleSourceChange}
                         options={sourceOptions}
                         isMulti
-                        isSearchable
-                        placeholder="Search and select sources"
                         className="post-select"
+                        required
                     />
                     <button
                         onClick={refreshSources}
@@ -752,10 +758,11 @@ const MultiValue = ({ data, removeProps }) => (
                         Add New
                     </a>
                 </div>
-                <label htmlFor="sourceUrls"><b>Source URLs</b></label>
+                <label htmlFor="sourceUrls">Source URLs <span style={{color: 'red'}}>*</span></label>
 
 <CreatableSelect
     id="sourceUrls"
+    name="sourceUrls"
     value={sourceUrls.map(url => ({ value: url, label: url }))}
     onChange={(selectedOptions) => setSourceUrls(selectedOptions.map(opt => opt.value))}
     isMulti
@@ -764,6 +771,7 @@ const MultiValue = ({ data, removeProps }) => (
     className="post-select"
     onCreateOption={handleCreateUrl}
     components={{ MultiValue }} // ✅ Use the custom MultiValue component
+    required
 />
                 <label htmlFor="generalComment"><b>General Comment</b></label>
                 <textarea

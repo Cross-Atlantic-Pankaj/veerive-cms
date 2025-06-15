@@ -3,10 +3,14 @@ import SubSignalContext from '../../context/SubSignalContext';
 import SignalContext from '../../context/SignalContext';
 import axios from '../../config/axios';
 import '../../html/css/SubSignal.css'; // Ensure this CSS file is created
+import AuthContext from '../../context/AuthContext';
 
 export default function SubSignalList() {
     const { subSignals, subSignalsDispatch, handleEditClick } = useContext(SubSignalContext);
     const { signals } = useContext(SignalContext);
+    const { state } = useContext(SubSignalContext);
+    const { state: authState } = useContext(AuthContext);
+    const userRole = authState.user?.role;
 
     const [sortConfig, setSortConfig] = useState({ key: 'subSignalName', direction: 'ascending' });
 
@@ -91,8 +95,8 @@ export default function SubSignalList() {
                             <td>{findSignalName(subSignal.signalId)}</td>
                             <td>{subSignal.generalComment}</td>
                             <td>
-                                <button className="edit-btn" onClick={() => handleEditClick(subSignal._id)}>Edit</button>
-                                <button className="remove-btn" onClick={() => handleRemove(subSignal._id)}>Remove</button>
+                                <button className="edit-btn" onClick={() => handleEditClick(subSignal._id)} disabled={userRole === 'User'}>Edit</button>
+                                <button className="remove-btn" onClick={() => handleRemove(subSignal._id)} disabled={userRole === 'User'}>Remove</button>
                             </td>
                         </tr>
                     ))}

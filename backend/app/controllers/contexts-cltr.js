@@ -1,4 +1,11 @@
 import Context from '../models/context-model.js'
+import { Sector, SubSector } from '../models/sector-model.js';
+import { Signal, SubSignal } from '../models/signal-model.js';
+import Theme from '../models/theme-model.js';
+import Company from '../models/company-model.js';
+import Source from '../models/source-model.js';
+import { Country, Region } from '../models/geography-model.js';
+import PostType from '../models/postType-model.js';
 
 
 const contextsCltr = {}
@@ -209,5 +216,57 @@ contextsCltr.delete = async (req, res) => {
         res.status(500).json({error: 'something went wrong'})
     }
 }
+
+// Modular API to fetch all master data for context editing
+contextsCltr.getEditContextData = async (req, res) => {
+    try {
+        // Fetch all master data in parallel
+        const [
+            sectors,
+            subSectors,
+            signals,
+            subSignals,
+            themes,
+            companies,
+            sources,
+            countries,
+            regions,
+            postTypes
+        ] = await Promise.all([
+            Sector.find({}),
+            SubSector.find({}),
+            Signal.find({}),
+            SubSignal.find({}),
+            Theme.find({}),
+            Company.find({}),
+            Source.find({}),
+            Country.find({}),
+            Region.find({}),
+            PostType.find({})
+        ]);
+
+        // User management: restrict data if needed (currently all users can view all master data)
+        // If you want to restrict, filter here based on req.user.role
+
+        res.json({
+            success: true,
+            data: {
+                sectors,
+                subSectors,
+                signals,
+                subSignals,
+                themes,
+                companies,
+                sources,
+                countries,
+                regions,
+                postTypes
+            }
+        });
+    } catch (err) {
+        console.error('Error fetching edit context data:', err);
+        res.status(500).json({ error: 'Server Error' });
+    }
+};
 
 export default contextsCltr

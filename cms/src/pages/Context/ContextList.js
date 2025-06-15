@@ -8,6 +8,7 @@ import { toast } from 'react-toastify'; // ✅ Import toast
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 import Papa from 'papaparse'; // For CSV generation
 import LoadingSpinner from '../../components/LoadingSpinner';
+import AuthContext from '../../context/AuthContext';
 
 
 // Defining the ContextList functional component
@@ -16,6 +17,8 @@ export default function ContextList() {
     const { contexts, contextsDispatch, handleAddClick, handleEditClick,searchQuery, setSearchQuery, sectors, subSectors, themes, signals, subSignals ,setIsLoading, fetchContexts, isLoading } = useContext(ContextContext);
     const { page, setPage, totalPages } = useContext(ContextContext);  // ✅ Use global state
     const { allThemes } = useContext(ContextContext); // ✅ Use allThemes
+    const { state } = useContext(AuthContext);
+    const userRole = state.user?.role;
     // Local state to manage the search query and sorting configuration
     // const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState({ key: 'contextTitle', direction: 'ascending' });
@@ -561,8 +564,8 @@ export default function ContextList() {
                         <td>{ele.isTrending ? 'Yes' : 'No'}</td>
                         <td>
                             <div className="action-buttons">
-                                <button className="edit-btn" onClick={() => handleEditClick(ele._id)}>Edit</button>
-                                <button className="remove-btn" onClick={() => handleRemove(ele._id)}>Remove</button>
+                                <button className="edit-btn" onClick={() => handleEditClick(ele._id)} disabled={userRole === 'User'}>Edit</button>
+                                <button className="remove-btn" onClick={() => handleRemove(ele._id)} disabled={userRole === 'User'}>Remove</button>
                             </div>
                         </td>
                     </tr>

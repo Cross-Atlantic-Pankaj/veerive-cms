@@ -59,6 +59,7 @@ const [generalComment, setGeneralComment] = useState('');
         <div className="source-form-container">
             <button type="button" className="submit-btn" onClick={handleHomeNav}>Source Home</button>
             <form onSubmit={handleSubmit} className="source-form">
+                <label htmlFor="sourceName">Source Name <span style={{color: 'red'}}>*</span></label>
                 <input
                     type="text"
                     name="sourceName"
@@ -68,6 +69,7 @@ const [generalComment, setGeneralComment] = useState('');
                     className="source-input"
                     required
                 />
+                <label htmlFor="sourceType">Source Type <span style={{color: 'red'}}>*</span></label>
                 <select
                     name="sourceType"
                     value={sourceType}

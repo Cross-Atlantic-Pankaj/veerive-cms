@@ -39,25 +39,25 @@ export default function MarketDataForm() {
     <div className="company-form-container">
       <h2>Add Market Data</h2>
       <form onSubmit={handleSubmit} className="company-form">
-        <label>Title</label>
+        <label>Title <span style={{color: 'red'}}>*</span></label>
         <input className="company-input" value={title} onChange={e => setTitle(e.target.value)} required />
-        <label>Data Description</label>
+        <label>Data Description <span style={{color: 'red'}}>*</span></label>
         <textarea className="company-textarea" value={dataDescription} onChange={e => setDataDescription(e.target.value)} required />
-        <label>Sector</label>
+        <label>Sector <span style={{color: 'red'}}>*</span></label>
         <select className="company-select" value={sector} onChange={e => setSector(e.target.value)} required>
           <option value="">Select Sector</option>
           {sectors.data && sectors.data.map(sec => (
             <option key={sec._id} value={sec._id}>{sec.sectorName}</option>
           ))}
         </select>
-        <label>Sub-Sector</label>
+        <label>Sub-Sector <span style={{color: 'red'}}>*</span></label>
         <select className="company-select" value={subSector} onChange={e => setSubSector(e.target.value)} required>
           <option value="">Select Sub-Sector</option>
           {subSectors.data && subSectors.data.filter(ss => ss.sectorId === sector).map(ss => (
             <option key={ss._id} value={ss._id}>{ss.subSectorName}</option>
           ))}
         </select>
-        <label>Source Name</label>
+        <label>Source Name <span style={{color: 'red'}}>*</span></label>
         <select
           className="company-select"
           value={sourceName}
@@ -69,7 +69,7 @@ export default function MarketDataForm() {
             <option key={src._id} value={src.sourceName}>{src.sourceName}</option>
           ))}
         </select>
-        <label>URL</label>
+        <label>URL <span style={{color: 'red'}}>*</span></label>
         <input className="company-input" value={url} onChange={e => setUrl(e.target.value)} required />
         <label>CSV Upload (URL or file path)</label>
         <input className="company-input" value={csvUpload} onChange={e => setCsvUpload(e.target.value)} />

@@ -3,10 +3,14 @@ import SubSectorContext from '../../context/SubSectorContext';
 import SectorContext from '../../context/SectorContext';
 import axios from '../../config/axios';
 import '../../html/css/SubSector.css'; // Ensure this CSS file is created
+import AuthContext from '../../context/AuthContext';
+import Papa from 'papaparse';
 
 export default function SubSectorList() {
     const { subSectors, subSectorsDispatch, handleEditClick } = useContext(SubSectorContext);
     const { sectors } = useContext(SectorContext);
+    const { state } = useContext(AuthContext);
+    const userRole = state.user?.role;
 
     const [sortConfig, setSortConfig] = useState({ key: 'subSectorName', direction: 'ascending' });
     const [searchTerm, setSearchTerm] = useState('');
@@ -82,6 +86,26 @@ export default function SubSectorList() {
         });
     }, [sortedSubSectors, searchTerm]);
 
+    const handleDownloadCSV = () => {
+        const csvData = subSectors.data.map(subSector => ({
+            ...subSector,
+            sector: (() => {
+                const sector = sectors.data.find(s => s._id === subSector.sectorId);
+                return sector ? sector.sectorName : subSector.sectorId;
+            })(),
+        }));
+        const csv = Papa.unparse(csvData);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'subsectors.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div className="sub-sector-list-container">
             <div className="search-container">
@@ -92,6 +116,9 @@ export default function SubSectorList() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
             />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+                <button onClick={handleDownloadCSV} className="download-btn">Download CSV</button>
             </div>
             <table className="sub-sector-table">
                 <thead>
@@ -113,8 +140,8 @@ export default function SubSectorList() {
                             <td>{findSectorName(subSector.sectorId)}</td>
                             <td>{subSector.generalComment}</td>
                             <td>
-                                <button className="edit-btn" onClick={() => handleEditClick(subSector._id)}>Edit</button>
-                                <button className="remove-btn" onClick={() => handleRemove(subSector._id)}>Remove</button>
+                                <button className="edit-btn" onClick={() => handleEditClick(subSector._id)} disabled={userRole === 'User'}>Edit</button>
+                                <button className="remove-btn" onClick={() => handleRemove(subSector._id)} disabled={userRole === 'User'}>Remove</button>
                             </td>
                         </tr>
                     ))}
