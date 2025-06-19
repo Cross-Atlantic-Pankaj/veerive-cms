@@ -97,13 +97,43 @@ export default function PostForm({ handleFormSubmit }) {
                 setPostType(post.postType);
                 setIsTrending(post.isTrending);
                 setHomePageShow(post.homePageShow);
-                setSelectedCountries(post.countries || []);
+                setSelectedCountries(
+                    post.countries && Array.isArray(post.countries)
+                        ? post.countries.map(country => {
+                            // If country is already in the correct format
+                            if (country.value && country.label) {
+                                return country;
+                            }
+                            // If country is just an ID, find the corresponding country data
+                            const countryData = countries.data?.find(c => c._id === country) || {};
+                            return {
+                                value: countryData._id || country,
+                                label: countryData.countryName || country
+                            };
+                        })
+                        : []
+                );
                 setSummary(post.summary || '');
                 setCompleteContent(post.completeContent || '');
                 setSentiment(post.sentiment || '');
                 setPrimaryCompanies(post.primaryCompanies || []);
                 setSecondaryCompanies(post.secondaryCompanies || []);
-                setSource(post.source || []);
+                setSource(
+                    post.source && Array.isArray(post.source)
+                        ? post.source.map(src => {
+                            // If source is already in the correct format
+                            if (src.value && src.label) {
+                                return src;
+                            }
+                            // If source is just an ID, find the corresponding source data
+                            const sourceData = sources.data?.find(s => s._id === src) || {};
+                            return {
+                                value: sourceData._id || src,
+                                label: sourceData.sourceName || src
+                            };
+                        })
+                        : []
+                );
                 setSourceUrls(post.sourceUrls || []);
                 setGeneralComment(post.generalComment || '');
                 setIncludeInContainer(post.includeInContainer || false);
@@ -128,13 +158,41 @@ export default function PostForm({ handleFormSubmit }) {
                 setPostType(savedData.postType);
                 setIsTrending(savedData.isTrending);
                 setHomePageShow(savedData.homePageShow);
-                setSelectedCountries(savedData.countries || []);
+                setSelectedCountries(
+                    savedData.countries && Array.isArray(savedData.countries)
+                        ? savedData.countries.map(country => {
+                            // If country is already in the correct format
+                            if (country.value && country.label) {
+                                return country;
+                            }
+                            // If country is just an ID, find the corresponding country data
+                            const countryData = countries.data?.find(c => c._id === country) || {};
+                            return {
+                                value: countryData._id || country,
+                                label: countryData.countryName || country
+                            };
+                        })
+                        : []
+                );
                 setSummary(savedData.summary || '');
                 setCompleteContent(savedData.completeContent || '');
                 setSentiment(savedData.sentiment || '');
                 setPrimaryCompanies(savedData.primaryCompanies || []);
                 setSecondaryCompanies(savedData.secondaryCompanies || []);
-                setSource(savedData.source || []);
+                setSource(
+                    savedData.source && Array.isArray(savedData.source)
+                        ? savedData.source.map(src => {
+                            if (src.value && src.label) {
+                                return src;
+                            }
+                            const sourceData = sources.data?.find(s => s._id === src) || {};
+                            return {
+                                value: sourceData._id || src,
+                                label: sourceData.sourceName || src
+                            };
+                        })
+                        : []
+                );
                 setSourceUrls(savedData.sourceUrls || []);
                 setGeneralComment(savedData.generalComment || '');
                 setIncludeInContainer(savedData.includeInContainer || false);
@@ -214,13 +272,13 @@ export default function PostForm({ handleFormSubmit }) {
             contexts: selectedContexts.length > 0
                 ? selectedContexts.map(ctx => ({ _id: ctx.value, contextTitle: ctx.label }))
                 : [],
-            countries: selectedCountries,
+            countries: selectedCountries.map(country => country.value),
             summary,
             completeContent,
             sentiment,
             primaryCompanies,
             secondaryCompanies,
-            source,
+            source: source.map(src => src.value),
             sourceUrls, // ✅ Send an array of URLs instead of a single URL
             generalComment
         };
@@ -358,7 +416,7 @@ export default function PostForm({ handleFormSubmit }) {
     };
     
     const handleCountriesChange = (selectedOptions) => {
-        setSelectedCountries(selectedOptions ? selectedOptions.map(option => option.value) : []);
+        setSelectedCountries(selectedOptions || []);
     };
     
     // Create options for react-select from countries data
@@ -385,7 +443,7 @@ export default function PostForm({ handleFormSubmit }) {
     })) || [];
 
     const handleSourceChange = (selectedOptions) => {
-        setSource(selectedOptions ? selectedOptions.map(option => option.value) : []);
+        setSource(selectedOptions || []);
     };
     
     const sourceOptions = sources.data?.map(src => ({

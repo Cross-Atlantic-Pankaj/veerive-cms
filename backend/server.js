@@ -42,6 +42,7 @@ import { createMarketData, getAllMarketData } from './app/controllers/marketData
 import User from './app/models/user-model.js';
 import bcryptjs from 'bcryptjs';
 import ensureSuperAdmin from './utils/superAdmin.js';
+import { bulkUploadClarificationGuidance, bulkUploadQueryRefiner, bulkUploadMarketData } from './app/controllers/bulkUploadController.js';
 
 dotenv.config()
 
@@ -294,6 +295,11 @@ app.get('/api/admin/query-refiner', authenticateUser, getAllQueryRefiner);
 // MarketData routes
 app.post('/api/admin/market-data', authenticateUser, createMarketData);
 app.get('/api/admin/market-data', authenticateUser, getAllMarketData);
+
+// Bulk upload routes
+app.post('/api/admin/clarification-guidance/bulk', authenticateUser, authorizeUser(['admin']), bulkUploadClarificationGuidance);
+app.post('/api/admin/query-refiner/bulk', authenticateUser, authorizeUser(['admin']), bulkUploadQueryRefiner);
+app.post('/api/admin/market-data/bulk', authenticateUser, authorizeUser(['admin']), bulkUploadMarketData);
 
 // Route to serve data deletion instructions
 app.get('/data-deletion.html', (req, res) => {

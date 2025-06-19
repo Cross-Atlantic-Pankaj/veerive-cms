@@ -1,5 +1,44 @@
-/* Modern Company Page Styles */
-.company-page {
+/* Main Layout */
+.app-container {
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+.content-container {
+    padding: 20px;
+    margin-top: 64px; /* Height of the header */
+    max-width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Page Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.page-header h2 {
+    font-size: 24px;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* Form Styles */
+.company-form-container {
+    width: 100%;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
     padding: 32px;
     max-width: 900px;
     margin: 0 auto;
@@ -7,154 +46,268 @@
     background: #f6f8fa;
 }
 
-.company-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    background: #fff;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.08);
-    margin-bottom: 2rem;
-}
-
-.company-table th, .company-table td {
-    padding: 1rem 0.75rem;
-    text-align: left;
-    font-size: 1rem;
-}
-
-.company-table th {
-    background: #e0e7ef;
-    color: #3730a3;
-    font-weight: 800;
-    border-bottom: 2px solid #cbd5e1;
-    letter-spacing: 0.01em;
-}
-
-.company-table tbody tr {
-    background: #fff;
-    transition: background 0.2s;
-}
-.company-table tbody tr:nth-child(even) {
-    background: #f4f7fa;
-}
-.company-table tbody tr:hover {
-    background: #e0e7ef;
-}
-
-.add-company-btn, .edit-btn, .remove-btn, .company-submit-btn {
-    background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 0.7rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
-    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
-    margin-right: 10px;
-}
-.add-company-btn {
-    margin-bottom: 1rem;
-}
-.add-company-btn:hover, .edit-btn:hover, .company-submit-btn:hover {
-    background: linear-gradient(90deg, #4338ca 0%, #2563eb 100%);
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12);
-    transform: translateY(-2px) scale(1.03);
-}
-.remove-btn {
-    background: linear-gradient(90deg, #dc2626 0%, #f59e42 100%);
-}
-.remove-btn:hover {
-    background: linear-gradient(90deg, #b91c1c 0%, #ea580c 100%);
-    transform: scale(1.05);
-}
-
-.company-form-container {
-    margin-top: 32px;
-    background: #fff;
-    border-radius: 18px;
-    box-shadow: 0 6px 32px rgba(30, 41, 59, 0.10);
-    padding: 2.5rem 2rem 2rem 2rem;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
+.company-form-container h2 {
+    font-size: 24px;
+    color: #1a1a1a;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .company-form {
     display: flex;
     flex-direction: column;
-    gap: 1.2rem;
+    gap: 24px;
+    max-width: 100%;
+}
+
+.company-form > div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .company-form label {
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: #3730a3;
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
 }
 
-.company-input, .company-select, .company-textarea {
-    padding: 12px;
-    border-radius: 8px;
-    border: 1.5px solid #cbd5e1;
-    background: #f8fafc;
-    font-size: 1rem;
-    transition: border 0.2s;
-    margin-bottom: 0.5rem;
+.company-form label span {
+    color: #dc2626;
+    margin-left: 4px;
 }
-.company-input:focus, .company-select:focus, .company-textarea:focus {
-    border: 1.5px solid #6366f1;
+
+.company-input,
+.company-textarea,
+.company-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #1f2937;
+    background-color: white;
+    transition: all 0.2s ease;
+}
+
+.company-input:focus,
+.company-textarea:focus,
+.company-select:focus {
     outline: none;
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.company-input::placeholder,
+.company-textarea::placeholder {
+    color: #9ca3af;
 }
 
 .company-textarea {
-    min-height: 100px;
+    min-height: 120px;
     resize: vertical;
 }
 
-.company-form input.error, .company-form select.error, .company-form textarea.error {
-    border-color: #f44336;
+.company-select {
+    cursor: pointer;
+    padding-right: 32px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 8px center;
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
 }
 
-.company-list-container {
-    padding: 20px;
+.company-select:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
 }
 
-.search-container {
-    margin-bottom: 20px;
+.company-submit-btn {
+    background: #4F46E5;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+    font-size: 16px;
+    width: auto;
+    align-self: flex-start;
+}
+
+.company-submit-btn:hover {
+    background: #4338CA;
+}
+
+.company-submit-btn:disabled {
+    background: #9CA3AF;
+    cursor: not-allowed;
+}
+
+/* Buttons */
+.primary-button {
+    background: #4F46E5;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    height: 36px;
     display: flex;
     align-items: center;
 }
 
-.search-input {
-    padding: 8px;
-    margin-right: 10px;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 6px;
-    width: 220px;
-    font-size: 1rem;
-    background: #f8fafc;
-    color: #1e293b;
-    transition: border 0.2s;
-}
-.search-input:focus {
-    border: 1.5px solid #6366f1;
-    outline: none;
+.primary-button:hover {
+    background: #4338CA;
 }
 
-.search-btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
+.action-button {
+    background: #3B82F6;
     color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: none;
+    font-size: 14px;
     cursor: pointer;
-    font-size: 1rem;
-    transition: background 0.2s;
+    transition: background-color 0.2s;
 }
-.search-btn:hover {
-    background: linear-gradient(90deg, #4338ca 0%, #2563eb 100%);
+
+.action-button:hover {
+    background: #2563EB;
+}
+
+/* Table Styles */
+.table-wrapper {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: #f8f9fa;
+    color: #4B5563;
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.data-table td {
+    padding: 12px 16px;
+    color: #1F2937;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.data-table tr:hover {
+    background-color: #F9FAFB;
+}
+
+.empty-message {
+    text-align: center;
+    color: #6B7280;
+    padding: 32px !important;
+    font-style: italic;
+}
+
+/* Loading State */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+}
+
+.loading-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3B82F6;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* CSV Upload Styles */
+.csv-upload-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.csv-upload-button {
+    background: #4F46E5;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.csv-upload-button:hover {
+    background: #4338CA;
+}
+
+.csv-template-link {
+    color: #4F46E5;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.csv-template-link:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        min-width: 800px;
+    }
+
+    .company-form-container {
+        margin: 10px;
+        padding: 16px;
+    }
+
+    .content-container {
+        padding: 10px;
+    }
 }
 

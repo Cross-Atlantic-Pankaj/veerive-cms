@@ -9,27 +9,35 @@ import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 import Papa from 'papaparse'; // For CSV generation
 import LoadingSpinner from '../../components/LoadingSpinner';
 import AuthContext from '../../context/AuthContext';
+import { useLocation, useNavigate } from 'react-router-dom';
 
+function useQuery() {
+    return new URLSearchParams(useLocation().search);
+}
 
 // Defining the ContextList functional component
 export default function ContextList() {
     // Destructuring necessary state and functions from ContextContext
-    const { contexts, contextsDispatch, handleAddClick, handleEditClick,searchQuery, setSearchQuery, sectors, subSectors, themes, signals, subSignals ,setIsLoading, fetchContexts, isLoading } = useContext(ContextContext);
+    const { contexts, contextsDispatch, handleAddClick, handleEditClick, searchQuery, setSearchQuery, sectors, subSectors, themes, signals, subSignals, setIsLoading, fetchContexts, isLoading } = useContext(ContextContext);
     const { page, setPage, totalPages } = useContext(ContextContext);  // ✅ Use global state
     const { allThemes } = useContext(ContextContext); // ✅ Use allThemes
     const { state } = useContext(AuthContext);
     const userRole = state.user?.role;
     // Local state to manage the search query and sorting configuration
-    // const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState({ key: 'contextTitle', direction: 'ascending' });
-    // const [page, setPage] = useState(1);
-    // const [totalPages, setTotalPages] = useState(1);  // ✅ Store totalPages in state
     const [contextsData, setContextsData] = useState([]); // ✅ New local state for rendering
     const [downloadStartDate, setDownloadStartDate] = useState('');
     const [downloadEndDate, setDownloadEndDate] = useState('');
     const [isDownloading, setIsDownloading] = useState(false);
     const [postsMap, setPostsMap] = useState({}); // Store post ID to title mapping
     const [allContexts, setAllContexts] = useState([]); // Store all contexts
+    const location = useLocation();
+    const query = useQuery();
+    const navigate = useNavigate();
+    const [displayedContexts, setDisplayedContexts] = useState([]);
+
+    // Get the filter parameter from URL
+    const filterContextIds = query.get('filterContexts')?.split(',').filter(Boolean) || [];
 
     // Fetch all contexts when component mounts
     useEffect(() => {
@@ -221,53 +229,26 @@ export default function ContextList() {
     
     // Handle the removal of a context
     const handleRemove = async (id) => {
-        const userInput = window.confirm('Are you sure you want to remove this context?'); // Ask for confirmation
-        if (userInput) {
-            try {
-                // Perform HTTP DELETE request to remove the context
-                const response = await axios.delete(`/api/admin/contexts/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-                // Dispatch action to remove context from global state
-                contextsDispatch({ type: 'REMOVE_CONTEXT', payload: response.data._id });
-                toast.success('context removed successfully')
-            } catch (err) {
-                alert(err.message); // Display error message if the request fails
-                toast.error(err.message)
+        if (!window.confirm('Are you sure you want to delete this context?')) return;
+
+        try {
+            const response = await axios.delete(`/api/admin/contexts/${id}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+
+            if (response.status === 200) {
+                contextsDispatch({ type: 'REMOVE_CONTEXT', payload: id });
+                toast.success('Context removed successfully!');
             }
+        } catch (error) {
+            toast.error('Failed to delete context. Please try again.');
         }
     };
 
     // Placeholder for additional logic if needed during search
     
-    const handleSearch = async () => {
-        if (!searchQuery.trim()) {
-            setPage(1);
-            fetchContexts(); // ✅ Reset to full list when input is cleared
-            return;
-        }
-    
-        try {
-            const response = await axios.get(`/api/admin/contexts/all?search=${encodeURIComponent(searchQuery)}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            });
-    
-            console.log("✅ Search Results:", response.data);
-    
-            if (response.data.success) {
-                contextsDispatch({ 
-                    type: "SET_CONTEXTS", 
-                    payload: { 
-                        contexts: response.data.contexts, 
-                        totalPages: 1, // ✅ No pagination for search results
-                        page: 1 
-                    }
-                });
-            } else {
-                contextsDispatch({ type: "SET_CONTEXTS", payload: { contexts: [], totalPages: 1, page: 1 } });
-            }
-        } catch (error) {
-            console.error("❌ Search API Error:", error);
-            toast.error("❌ Search API Error: Please try again.");
-        }
+    const handleSearch = (e) => {
+        setSearchQuery(e.target.value);
     };
 
     const handleNextPage = () => {
@@ -475,6 +456,28 @@ export default function ContextList() {
         }
     }, [totalFilteredPages, page]);
 
+    useEffect(() => {
+        if (contexts?.data) {
+            let filtered = [...contexts.data];
+            
+            // First apply context ID filter if present
+            if (filterContextIds.length > 0) {
+                console.log('Filtering contexts with IDs:', filterContextIds);
+                filtered = filtered.filter(context => filterContextIds.includes(context._id));
+                console.log('Filtered contexts:', filtered);
+            }
+
+            // Then apply search filter if present
+            if (searchQuery.trim()) {
+                filtered = filtered.filter(context =>
+                    context.contextTitle.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+            }
+
+            setDisplayedContexts(filtered);
+        }
+    }, [contexts?.data, filterContextIds, searchQuery]);
+
     if (isLoading) return <LoadingSpinner />;
 
     // Render the component
@@ -483,7 +486,7 @@ export default function ContextList() {
             <div className="heading-beautiful">Contexts Master</div>
             <div className="top-bar">
                 <div className="left-controls">
-                    <button className="add-context-btn" onClick={handleAddClick}>Add Context</button>
+                    <button className="add-context-btn" onClick={handleAddClick} disabled={userRole === 'User'}>Add Context</button>
                 </div>
                 <div className="center-controls">
                     <label>
@@ -503,7 +506,7 @@ export default function ContextList() {
                         type="text"
                         placeholder="Search by Title or Date..."
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={handleSearch}
                         className="search-input"
                     />
                     <button className="search-btn" onClick={handleSearch}>Search</button>
@@ -544,32 +547,42 @@ export default function ContextList() {
             </thead>
             <tbody>
                 {/* Table body with context data */}
-                {currentPageData.map(ele => (
-                    <tr key={ele._id}>
-                        <td className="date-cell">{
-                            ele.date && (
-                                <>
-                                    <span className="date-main">{formatTz(toZonedTime(ele.date, 'Asia/Kolkata'), 'yyyy-MM-dd')}</span><br />
-                                    <span className="date-time">{formatTz(toZonedTime(ele.date, 'Asia/Kolkata'), 'HH:mm:ss')} IST</span>
-                                </>
-                            )
-                        }</td>
-                        <td>{ele.contextTitle}</td>
-                        <td>{ele.displayOrder}</td>
-                        <td>{ele.containerType}</td>
-                        <td>{getSectorNames(ele.sectors, sectors.data)}</td>
-                        <td>{getSubSectorNames(ele.subSectors, subSectors.data)}</td>
-                        <td>{getSignalNames(ele.signalCategories, signals.data)}</td>
-                        <td>{getThemeNames(ele.themes)}</td>
-                        <td>{ele.isTrending ? 'Yes' : 'No'}</td>
-                        <td>
-                            <div className="action-buttons">
-                                <button className="edit-btn" onClick={() => handleEditClick(ele._id)} disabled={userRole === 'User'}>Edit</button>
-                                <button className="remove-btn" onClick={() => handleRemove(ele._id)} disabled={userRole === 'User'}>Remove</button>
-                            </div>
+                {displayedContexts.length > 0 ? (
+                    displayedContexts.map((ele) => (
+                        <tr key={ele._id}>
+                            <td className="date-cell">{
+                                ele.date && (
+                                    <>
+                                        <span className="date-main">{formatTz(toZonedTime(ele.date, 'Asia/Kolkata'), 'yyyy-MM-dd')}</span><br />
+                                        <span className="date-time">{formatTz(toZonedTime(ele.date, 'Asia/Kolkata'), 'HH:mm:ss')} IST</span>
+                                    </>
+                                )
+                            }</td>
+                            <td>{ele.contextTitle}</td>
+                            <td>{ele.displayOrder}</td>
+                            <td>{ele.containerType}</td>
+                            <td>{getSectorNames(ele.sectors, sectors.data)}</td>
+                            <td>{getSubSectorNames(ele.subSectors, subSectors.data)}</td>
+                            <td>{getSignalNames(ele.signalCategories, signals.data)}</td>
+                            <td>{getThemeNames(ele.themes)}</td>
+                            <td>{ele.isTrending ? 'Yes' : 'No'}</td>
+                            <td>
+                                <div className="action-buttons">
+                                    <button className="edit-btn" onClick={() => handleEditClick(ele._id)} disabled={userRole === 'User'}>Edit</button>
+                                    <button className="remove-btn" onClick={() => handleRemove(ele._id)} disabled={userRole === 'User'}>Remove</button>
+                                </div>
+                            </td>
+                        </tr>
+                    ))
+                ) : (
+                    <tr>
+                        <td colSpan="3" style={{ textAlign: 'center' }}>
+                            {filterContextIds.length > 0 
+                                ? 'No matching contexts found for this filter'
+                                : 'No contexts found'}
                         </td>
                     </tr>
-                ))}
+                )}
             </tbody>
         </table>
         <div className="pagination">

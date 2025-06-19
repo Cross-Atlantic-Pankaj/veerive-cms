@@ -1,0 +1,126 @@
+/* QueryRefiner Form Styles */
+.content-container {
+    padding: 20px;
+    margin-top: 64px;
+    max-width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.company-form-container {
+    width: 100%;
+    background: #f6f8fa;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin: 0 auto;
+    padding: 32px;
+    max-width: 900px;
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+.company-form-container h2 {
+    font-size: 24px;
+    color: #1a1a1a;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.company-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.company-form > div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.company-form label {
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
+}
+
+.company-form label span {
+    color: #dc2626;
+    margin-left: 4px;
+}
+
+.company-input,
+.company-textarea,
+.company-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #1f2937;
+    background-color: white;
+    transition: all 0.2s ease;
+}
+
+.company-input:focus,
+.company-textarea:focus,
+.company-select:focus {
+    outline: none;
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.company-select {
+    cursor: pointer;
+    padding-right: 32px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 8px center;
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
+}
+
+.company-select:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+}
+
+.company-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.company-submit-btn {
+    background: #4F46E5;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+    font-size: 16px;
+    width: auto;
+    align-self: flex-start;
+}
+
+.company-submit-btn:hover {
+    background: #4338CA;
+}
+
+.company-submit-btn:disabled {
+    background: #9CA3AF;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .content-container {
+        padding: 10px;
+        max-width: 95%;
+    }
+    
+    .company-form-container {
+        padding: 16px;
+    }
+} 

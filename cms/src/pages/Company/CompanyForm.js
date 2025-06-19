@@ -12,8 +12,8 @@ export default function CompanyForm() {
     const [parentName, setParentName] = useState(''); // State for parent company name
     const [website, setWebsite] = useState(''); // State for company website
     const [country, setCountry] = useState(''); // State for selected country
-    const [selectedSectors, setSelectedSectors] = useState([]); // State for selected sector IDs
-    const [selectedSubSectors, setSelectedSubSectors] = useState([]); // State for selected sub-sector IDs
+    const [sector, setSector] = useState(''); // Changed from selectedSectors array to single sector
+    const [subSector, setSubSector] = useState(''); // Changed from selectedSubSectors array to single subSector
     const [generalComment, setGeneralComment] = useState(''); // State for general comment
     const [filteredSubSectors, setFilteredSubSectors] = useState([]); // State for filtered sub-sectors based on selected sectors
 
@@ -28,13 +28,15 @@ export default function CompanyForm() {
                 setParentName(company.parentName);
                 setWebsite(company.website);
                 setCountry(company.country);
-                setSelectedSectors(company.sectors || []);
-                setSelectedSubSectors(company.subSectors || []);
+                setSector(company.sectors?.[0] || ''); // Take first sector if exists
+                setSubSector(company.subSectors?.[0] || ''); // Take first subSector if exists
                 setGeneralComment(company.generalComment);
     
-                // Filter sub-sectors based on selected sectors for edit
-                if (subSectorsData.data && company.sectors) {
-                    const filtered = subSectorsData.data.filter(subSector => company.sectors.includes(subSector.sectorId));
+                // Filter sub-sectors based on selected sector
+                if (subSectorsData.data && company.sectors?.[0]) {
+                    const filtered = subSectorsData.data.filter(subSector => 
+                        subSector.sectorId === company.sectors[0]
+                    );
                     setFilteredSubSectors(filtered);
                 }
             }
@@ -44,8 +46,8 @@ export default function CompanyForm() {
             setParentName('');
             setWebsite('');
             setCountry('');
-            setSelectedSectors([]);
-            setSelectedSubSectors([]);
+            setSector('');
+            setSubSector('');
             setGeneralComment('');
             setFilteredSubSectors([]);
         }
@@ -59,8 +61,8 @@ export default function CompanyForm() {
             parentName,
             website,
             country,
-            sectors: selectedSectors, // Array of sector IDs
-            subSectors: selectedSubSectors, // Array of sub-sector IDs
+            sectors: sector ? [sector] : [], // Convert single sector to array
+            subSectors: subSector ? [subSector] : [], // Convert single subSector to array
             generalComment
         };
     
@@ -84,25 +86,23 @@ export default function CompanyForm() {
     };
 
     const handleSectorChange = (e) => {
-        // Handles sector selection changes
-        const selectedOptions = Array.from(e.target.selectedOptions, option => option.value); // Get selected sector IDs
-        setSelectedSectors(selectedOptions);
+        const selectedSector = e.target.value;
+        setSector(selectedSector);
+        setSubSector(''); // Reset subsector when sector changes
     
-        // Filter sub-sectors based on selected sectors
-        if (subSectorsData.data) {
-            const filtered = subSectorsData.data.filter(subSector => selectedOptions.includes(subSector.sectorId));
+        // Filter sub-sectors based on selected sector
+        if (subSectorsData.data && selectedSector) {
+            const filtered = subSectorsData.data.filter(subSector => 
+                subSector.sectorId === selectedSector
+            );
             setFilteredSubSectors(filtered);
+        } else {
+            setFilteredSubSectors([]);
         }
     };
     
-    const handleSubSectorChange = (e) => {
-        // Handles sub-sector selection changes
-        const selectedOptions = Array.from(e.target.selectedOptions, option => option.value); // Get selected sub-sector IDs
-        setSelectedSubSectors(selectedOptions);
-    };
-    
     console.log('filtered subsec', filteredSubSectors); // Log filtered sub-sectors for debugging
-    console.log('sele sub sec', selectedSubSectors); // Log selected sub-sectors for debugging
+    console.log('sele sub sec', subSector); // Log selected sub-sectors for debugging
     
     const handleHomeNav = () => {
         // Hides the form when navigating back to home
@@ -170,12 +170,12 @@ export default function CompanyForm() {
                 <select
                     id="sectors"
                     name="sectors"
-                    value={selectedSectors}
+                    value={sector}
                     onChange={handleSectorChange}
                     className="company-select"
-                    multiple
                     required
                 >
+                    <option value="">Select Sector</option>
                     {sectorsData.data && sectorsData.data.map(sector => (
                         <option key={sector._id} value={sector._id}>{sector.sectorName}</option>
                     ))}
@@ -185,11 +185,12 @@ export default function CompanyForm() {
                 <select
                     id="subSectors"
                     name="subSectors"
-                    value={selectedSubSectors}
-                    onChange={handleSubSectorChange}
+                    value={subSector}
+                    onChange={(e) => setSubSector(e.target.value)}
                     className="company-select"
-                    multiple
+                    disabled={!sector}
                 >
+                    <option value="">Select Sub-Sector</option>
                     {filteredSubSectors.map(subSector => (
                         <option key={subSector._id} value={subSector._id}>{subSector.subSectorName}</option>
                     ))}

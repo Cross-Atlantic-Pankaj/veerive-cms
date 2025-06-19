@@ -29,14 +29,22 @@ export default function ThemeForm({ handleFormSubmit }) {
 
     useEffect(() => {
         if (themes.editId) {
-            const theme = themes.data.find((ele) => ele._id === themes.editId);
+            // First try to find in themes.data
+            let theme = themes.data.find((ele) => ele._id === themes.editId);
+            
+            // If not found in data, try to find in allThemes
+            if (!theme && themes.allThemes) {
+                theme = themes.allThemes.find((ele) => ele._id === themes.editId);
+            }
+
             if (theme) {
-                setThemeTitle(theme.themeTitle);
-                setIsTrending(theme.isTrending);
+                console.log("Found theme to edit:", theme);
+                setThemeTitle(theme.themeTitle || '');
+                setIsTrending(theme.isTrending || false);
                 setSelectedSectors(theme.sectors || []);
                 setSelectedSubSectors(theme.subSectors || []);
-                setGeneralComment(theme.generalComment);
-                setThemeDescription(theme.themeDescription || ''); // Set themeDescription
+                setGeneralComment(theme.generalComment || '');
+                setThemeDescription(theme.themeDescription || '');
                 setTrendingScore(theme.trendingScore || 0);
                 setImpactScore(theme.impactScore || 0);
                 setPredictiveMomentumScore(theme.predictiveMomentumScore || 0);
@@ -46,17 +54,22 @@ export default function ThemeForm({ handleFormSubmit }) {
 
                 // Filter sub-sectors based on selected sectors for edit
                 if (subSectorsData.data && theme.sectors) {
-                    const filtered = subSectorsData.data.filter(subSector => theme.sectors.includes(subSector.sectorId));
+                    const filtered = subSectorsData.data.filter(subSector => 
+                        theme.sectors.includes(subSector.sectorId)
+                    );
                     setFilteredSubSectors(filtered);
                 }
+            } else {
+                console.error("Theme not found with ID:", themes.editId);
             }
         } else {
+            // Reset form for new theme
             setThemeTitle('');
             setIsTrending(false);
             setSelectedSectors([]);
             setSelectedSubSectors([]);
             setGeneralComment('');
-            setThemeDescription(''); // Reset themeDescription
+            setThemeDescription('');
             setFilteredSubSectors([]);
             setTrendingScore(0);
             setImpactScore(0);
@@ -65,7 +78,7 @@ export default function ThemeForm({ handleFormSubmit }) {
             setImpactScoreImage('');
             setPredictiveMomentumScoreImage('');
         }
-    }, [themes.editId, themes.data, subSectorsData.data]);
+    }, [themes.editId, themes.data, themes.allThemes, subSectorsData.data]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

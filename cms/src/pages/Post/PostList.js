@@ -370,9 +370,45 @@ export default function PostList() {
         }
     };
 
-    // Handler to open the Context List page in a new window
-    const handleShowAllContexts = () => {
-        window.open('/contexts', '_blank');
+    const handleShowPostContexts = (postContexts) => {
+        console.log('Raw post contexts:', postContexts); // Debug log
+
+        if (!postContexts || !Array.isArray(postContexts) || postContexts.length === 0) {
+            toast.info("No contexts associated with this post");
+            return;
+        }
+
+        // Extract context IDs, handling all possible formats
+        const contextIds = postContexts.map(ctx => {
+            console.log('Processing context:', ctx); // Debug log
+            if (!ctx) return null;
+            
+            // If it's a string (direct ID)
+            if (typeof ctx === 'string') return ctx;
+            
+            // If it's an object with _id
+            if (ctx._id) return ctx._id;
+            
+            // If it's an object with id
+            if (ctx.id) return ctx.id;
+            
+            // If it's an object with value (from select)
+            if (ctx.value) return ctx.value;
+            
+            // If none of the above, log and return null
+            console.log('Unhandled context format:', ctx);
+            return null;
+        }).filter(Boolean); // Remove any null/undefined values
+
+        console.log('Filtered context IDs:', contextIds); // Debug log
+
+        if (contextIds.length === 0) {
+            toast.info("No valid context IDs found");
+            return;
+        }
+
+        // Navigate to contexts page with the filter
+        window.open(`/contexts?filterContexts=${contextIds.join(',')}`, '_blank');
     };
 
     return (
@@ -404,7 +440,7 @@ export default function PostList() {
                         <th onClick={() => requestSort("postType")}>Post Type</th>
                         <th onClick={() => requestSort("isTrending")}>Is Trending</th>
                         <th>Actions</th>
-                        <th>Show All Contexts</th>
+                        <th>Show Contexts</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -421,8 +457,24 @@ export default function PostList() {
                                     <button className="remove-btn" onClick={() => handleRemove(post._id)} disabled={userRole === 'User'}>Remove</button>
                                 </td>
                                 <td>
-                                    <button className="show-contexts-btn" onClick={handleShowAllContexts}>
-                                        Show All Contexts
+                                    <button 
+                                        className="show-contexts-btn" 
+                                        onClick={() => {
+                                            console.log('Post data:', post); // Debug log
+                                            handleShowPostContexts(post.contexts);
+                                        }}
+                                        style={{
+                                            background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '6px 12px',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer',
+                                            fontSize: '0.9rem',
+                                            fontWeight: '500'
+                                        }}
+                                    >
+                                        Show Post Contexts
                                     </button>
                                 </td>
                             </tr>
