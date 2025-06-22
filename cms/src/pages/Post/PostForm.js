@@ -10,10 +10,68 @@ import { toast } from 'react-toastify'; // ✅ Import toast
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 import CreatableSelect from 'react-select/creatable';
 import ContextContext from '../../context/ContextContext';
+import TileTemplateContext from '../../context/TileTemplateContext';
+import JsxParser from 'react-jsx-parser';
+import Tile from '../../components/Tile';
+
+const customSelectStyles = {
+    option: (provided, state) => ({
+      ...provided,
+      padding: '10px 15px',
+      display: 'flex',
+      alignItems: 'center',
+      height: '70px', // Give each option a fixed height
+      backgroundColor: state.isFocused ? '#e9ecef' : 'white',
+      color: state.isFocused ? '#212529' : '#495057',
+      cursor: 'pointer',
+    }),
+    menu: (provided) => ({
+      ...provided,
+      zIndex: 9999,
+    }),
+    control: (provided) => ({
+        ...provided,
+        minHeight: '45px',
+    })
+  };
+
+const formatOptionLabel = ({ label, jsxCode }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%' }}>
+      <div style={{
+          minWidth: '50px',
+          height: '50px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          border: '1px solid #dee2e6',
+          borderRadius: '4px',
+          overflow: 'hidden', // Contain the preview
+        }}>
+        <div style={{
+            transform: 'scale(0.6)', // Scale down the preview to fit
+            transformOrigin: 'center center',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+        }}>
+            <JsxParser
+              jsx={jsxCode}
+              components={{ Tile }}
+              onError={(error) => console.error('JSX Parser Error:', error)}
+            />
+        </div>
+      </div>
+      <span>{label}</span>
+    </div>
+  );
 
 export default function PostForm({ handleFormSubmit }) {
     const { posts, postsDispatch,fetchPosts,  countries, companies, sources, setIsFormVisible, isFormVisible } = useContext(PostContext);
     const { contexts, contextsDispatch } = useContext(ContextContext);
+    const { tileTemplates } = useContext(TileTemplateContext);
     const [postTitle, setPostTitle] = useState('');
     const [date, setDate] = useState('');
     const [postType, setPostType] = useState('');
@@ -30,25 +88,9 @@ export default function PostForm({ handleFormSubmit }) {
     const [sourceUrls, setSourceUrls] = useState([]); // ✅ Store multiple URLs
     const [generalComment, setGeneralComment] = useState('');
     const [includeInContainer, setIncludeInContainer] = useState(false); // New state for includeInContainer field
-    const [imageUrl, setImageUrl] = useState('');
+    const [tileTemplateId, setTileTemplateId] = useState(null);
 
-    // Add validation for V0 code snippets
-    const validateV0Code = (code) => {
-        // V0 code snippet pattern: starts with V0 followed by alphanumeric characters
-        const v0Pattern = /^V0[a-zA-Z0-9]+$/;
-        return v0Pattern.test(code);
-    };
-
-    const handleImageCodeChange = (e) => {
-        const code = e.target.value.trim();
-        if (code === '' || validateV0Code(code)) {
-            setImageUrl(code);
-        } else {
-            toast.warn("⚠️ Please enter a valid V0 code snippet (e.g., V0abc123)");
-        }
-    };
-
-   const fetchAllContexts = async () => {
+    const fetchAllContexts = async () => {
         try {
             const response = await axios.get("/api/admin/contexts/all", {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -137,7 +179,14 @@ export default function PostForm({ handleFormSubmit }) {
                 setSourceUrls(post.sourceUrls || []);
                 setGeneralComment(post.generalComment || '');
                 setIncludeInContainer(post.includeInContainer || false);
-                setImageUrl(post.imageUrl || '');
+                if (post.tileTemplateId) {
+                    const template = tileTemplates.find(t => t._id === post.tileTemplateId);
+                    if (template) {
+                        setTileTemplateId({ value: template._id, label: template.name, jsxCode: template.jsxCode });
+                    }
+                } else {
+                    setTileTemplateId(null);
+                }
             }
         } else {
             // ✅ Restore from localStorage if available
@@ -196,11 +245,18 @@ export default function PostForm({ handleFormSubmit }) {
                 setSourceUrls(savedData.sourceUrls || []);
                 setGeneralComment(savedData.generalComment || '');
                 setIncludeInContainer(savedData.includeInContainer || false);
-                setImageUrl(savedData.imageUrl || '');
+                if (savedData.tileTemplateId) {
+                    const template = tileTemplates.find(t => t._id === savedData.tileTemplateId.value);
+                    if (template) {
+                        setTileTemplateId({ value: template._id, label: template.name, jsxCode: template.jsxCode });
+                    }
+                } else {
+                    setTileTemplateId(null);
+                }
             }
             localStorage.removeItem("postFormData"); // ✅ Ensure old data is not restored
         }
-    }, [posts.editId, posts.data, contexts]); // ✅ Only update when posts.editId or posts.data changes
+    }, [posts.editId, posts.data, contexts, tileTemplates]); // ✅ Only update when posts.editId or posts.data changes
     
 
     // ✅ Ensure form does not disappear after reload
@@ -250,37 +306,24 @@ export default function PostForm({ handleFormSubmit }) {
             return;
         }
     
-        if (!imageUrl.trim()) {
-            toast.warn("⚠️ Image URL is required.");
-            return;
-        }
-    
-        // Validate URL format
-        const urlPattern = /^(https?:\/\/)[\w\-]+(\.[\w\-]+)+[/#?]?.*$/;
-        if (!urlPattern.test(imageUrl.trim())) {
-            toast.warn("⚠️ Please enter a valid image URL (starting with http:// or https://)");
-            return;
-        }
-    
         const formData = {
             postTitle,
-            imageUrl,
-            date: new Date(date).toISOString(),
+            date,
             postType,
             isTrending,
             homePageShow,
-            contexts: selectedContexts.length > 0
-                ? selectedContexts.map(ctx => ({ _id: ctx.value, contextTitle: ctx.label }))
-                : [],
-            countries: selectedCountries.map(country => country.value),
+            contexts: selectedContexts.map(c => c.value),
+            countries: selectedCountries.map(c => c.value),
             summary,
             completeContent,
             sentiment,
-            primaryCompanies,
-            secondaryCompanies,
-            source: source.map(src => src.value),
-            sourceUrls, // ✅ Send an array of URLs instead of a single URL
-            generalComment
+            primaryCompanies: primaryCompanies.map(c => c.value),
+            secondaryCompanies: secondaryCompanies.map(c => c.value),
+            source: source.map(s => s.value),
+            sourceUrls,
+            generalComment,
+            includeInContainer,
+            tileTemplateId: tileTemplateId ? tileTemplateId.value : null,
         };
     
         try {
@@ -528,6 +571,26 @@ const MultiValue = ({ data, removeProps }) => (
         }
     };
 
+    const resetForm = () => {
+        setPostTitle('');
+        setDate('');
+        setPostType('');
+        setIsTrending(false);
+        setHomePageShow(false);
+        setSelectedContexts([]);
+        setSelectedCountries([]);
+        setSummary('');
+        setCompleteContent('');
+        setSentiment('');
+        setPrimaryCompanies([]);
+        setSecondaryCompanies([]);
+        setSource([]);
+        setSourceUrls([]);
+        setGeneralComment('');
+        setIncludeInContainer(false); // Reset includeInContainer
+        setTileTemplateId(null);
+    }
+
     return (
         <div className="post-form-container">
             <button type="button" className="submit-btn" onClick={handleHomeNav}>Post Home</button>
@@ -543,31 +606,6 @@ const MultiValue = ({ data, removeProps }) => (
                     className="post-input"
                     required
                 />
-                <label htmlFor="imageUrl"><b>Image V0 Code</b></label>
-                <div className="image-input-container">
-                    <input
-                        id="imageUrl"
-                        type="text"
-                        placeholder="Enter V0 code (e.g., V0abc123)"
-                        value={imageUrl}
-                        onChange={handleImageCodeChange}
-                        className="post-input"
-                        required
-                    />
-                    {imageUrl && validateV0Code(imageUrl) && (
-                        <div className="image-preview">
-                            <img 
-                                src={`/api/images/${imageUrl}`} 
-                                alt="Preview" 
-                                style={{ maxWidth: '100px', maxHeight: '100px', marginTop: '10px' }}
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    toast.error("⚠️ Invalid V0 code or image not found");
-                                }}
-                            />
-                        </div>
-                    )}
-                </div>
                 <label htmlFor="date">Date <span style={{color: 'red'}}>*</span></label>
                 <input
                     id="date"
@@ -839,6 +877,18 @@ const MultiValue = ({ data, removeProps }) => (
                     onChange={(e) => setGeneralComment(e.target.value)}
                     className="post-textarea"
                 />
+                <div className="form-group">
+                    <label>Tile Template</label>
+                    <Select
+                        value={tileTemplateId}
+                        onChange={setTileTemplateId}
+                        options={tileTemplates.map(template => ({ value: template._id, label: template.name, jsxCode: template.jsxCode }))}
+                        formatOptionLabel={formatOptionLabel}
+                        styles={customSelectStyles}
+                        isClearable
+                        placeholder="Select a Tile Template"
+                    />
+                </div>
                 <button type="submit" className="submit-btn">Save Post</button>
             </form>
         </div>

@@ -16,6 +16,7 @@ import { ThemeProvider } from './components/ThemeProvider';
 import { SourceProvider } from './components/SourceProvider';
 import { ContextProvider } from './components/ContextProvider';
 import { PostProvider } from './components/PostProvider';
+import { TileTemplateProvider } from './components/TileTemplateProvider';
 import { MasterDataProvider } from './context/MasterDataContext';
 import Login from './pages/Login';
 import HeaderComponent from './pages/HeaderComponent';
@@ -30,6 +31,8 @@ import SourcePage from './pages/Source/SourcePage';
 import ThemePage from './pages/Theme/ThemePage';
 import ContextPage from './pages/Context/ContextPage';
 import PostPage from './pages/Post/PostPage';
+import TileTemplatePage from './pages/TileTemplate/TileTemplatePage';
+import TileTemplateFormPage from './pages/TileTemplate/TileTemplateFormPage';
 import ContainerPage from './pages/Container/ContainerPage';
 import PrivateRoute from './components/PrivateRoute'
 import StoryOrder from './pages/StoryOrder/StoryOrder';
@@ -77,142 +80,159 @@ function App() {
                       <ThemeProvider>
                         <ContextProvider>
                           <PostProvider>
-                            <div>
-                              {state.isLoggedIn && <HeaderComponent />}
-                              
-                              <Routes>
-                                <Route path="/" element={<Login />} />
-                                <Route path="/login" element={<Login />} />
-                                <Route path="/forgot-password" element={<ForgotPassword />} />
-                                <Route path="/reset-password" element={<ResetPassword />} />
-                                <Route
-                                    path="/admin-home"
-                                    element={
-                                        <PrivateRoute>
-                                            <AdminHomePage />
-                                        </PrivateRoute>
-                                    }
-                                />
-
-                                <Route path="/user-details" element={
-                                  <PrivateRoute>
-                                    <UserListPage />
-                                  </PrivateRoute>
-                                } />
-
-                                <Route path="/themes" element={
-                                  <PrivateRoute>
-                                  <ThemePage />
-                                  </PrivateRoute>
-                                  } />
-                                <Route path="/admin/themes" element={
-                                  <PrivateRoute>
-                                  <ThemePage />
-                                  </PrivateRoute>
-                                  } />
-                                <Route path="/companies" element={
-                                  <PrivateRoute>
-                                  <CompanyPage />
-                                  </PrivateRoute>
-                                  } />
-                                <Route path="/sources" element={
-                                  <PrivateRoute>
-                                  <SourcePage />
-                                  </PrivateRoute>
-                                  } />
-                                <Route path="/signals" element={
-                                  <PrivateRoute>
-                                  <SignalPage />
-                                  </PrivateRoute>
-                                  } />
-                                <Route path="/sub-signals" element={
-                                  <PrivateRoute>
-                                  <SubSignalPage />
-                                  </PrivateRoute>
-                                  } />
-                                <Route path="/sectors" element={
-                                  <PrivateRoute>
-                                  <SectorPage />
-                                  </PrivateRoute>
-                                  } />
-                                <Route path="/sub-sectors" element={
-                                  <PrivateRoute>
-                                  <SubSectorPage />
-                                  </PrivateRoute>
-                                  } />
-                                <Route path="/regions" element={
-                                  <PrivateRoute>
-                                  <RegionPage />
-                                  </PrivateRoute>
-                                  } />
-                                <Route path="/countries" element={
-                                  <PrivateRoute>
-                                  <CountryPage />
-                                  </PrivateRoute>
-                                  } />
-                                <Route path="/contexts" element={
-                                  <PrivateRoute>
-                                  <ContextPage />
-                                  </PrivateRoute>
-                                  } />
-                                <Route path="/posts" element={
-                                  <PrivateRoute>
-                                  <PostPage />
-                                  </PrivateRoute>
-                                  } />
-                                <Route path="/admin/posts" element={
-                                  <PrivateRoute>
-                                  <PostPage />
-                                  </PrivateRoute>
-                                  } />
-                              <Route path="/container-module" element={
-                                  <PrivateRoute>
-                                  <ContainerPage />
-                                  </PrivateRoute>
-                                  } />
-
-                              <Route path="/story-order" element={
-                                  <PrivateRoute>
-                                  <StoryOrder />
-                                  </PrivateRoute>
-                                  } />
+                            <TileTemplateProvider>
+                              <div>
+                                {state.isLoggedIn && <HeaderComponent />}
                                 
-                                <Route path="/story-view" element={
-                                  <PrivateRoute>
-                                  <StoryView />
-                                  </PrivateRoute>
+                                <Routes>
+                                  <Route path="/" element={<Login />} />
+                                  <Route path="/login" element={<Login />} />
+                                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                                  <Route path="/reset-password" element={<ResetPassword />} />
+                                  <Route
+                                      path="/admin-home"
+                                      element={
+                                          <PrivateRoute>
+                                              <AdminHomePage />
+                                          </PrivateRoute>
+                                      }
+                                  />
+
+                                  <Route path="/user-details" element={
+                                    <PrivateRoute>
+                                      <UserListPage />
+                                    </PrivateRoute>
                                   } />
 
-                                  <Route path="/settings" element={
-                                  <PrivateRoute>
-                                  <SettingsPage />
-                                  </PrivateRoute>
-                                  } />
-                                <Route path="/admin/contexts" element={
-                                  <PrivateRoute>
-                                    <ContextForm />
-                                  </PrivateRoute>
-                                } />
-                                <Route path="/companies/add" element={
-                                  <PrivateRoute>
-                                    <CompanyForm />
-                                  </PrivateRoute>
-                                } />
-                                <Route path="/sources/add" element={
-                                  <PrivateRoute>
-                                    <SourceForm />
-                                  </PrivateRoute>
-                                } />
-                                <Route path="/clarification-guidance" element={<PrivateRoute><ClarificationGuidanceList /></PrivateRoute>} />
-                                <Route path="/clarification-guidance/add" element={<PrivateRoute><ClarificationGuidanceForm /></PrivateRoute>} />
-                                <Route path="/query-refiner" element={<PrivateRoute><QueryRefinerList /></PrivateRoute>} />
-                                <Route path="/query-refiner/add" element={<PrivateRoute><QueryRefinerForm /></PrivateRoute>} />
-                                <Route path="/market-data" element={<PrivateRoute><MarketDataList /></PrivateRoute>} />
-                                <Route path="/market-data/add" element={<PrivateRoute><MarketDataForm /></PrivateRoute>} />
-                              </Routes>
+                                  <Route path="/themes" element={
+                                    <PrivateRoute>
+                                    <ThemePage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/admin/themes" element={
+                                    <PrivateRoute>
+                                    <ThemePage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/tile-templates" element={
+                                    <PrivateRoute>
+                                    <TileTemplatePage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/tile-templates/new" element={
+                                    <PrivateRoute>
+                                    <TileTemplateFormPage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/tile-templates/edit/:id" element={
+                                    <PrivateRoute>
+                                    <TileTemplateFormPage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/companies" element={
+                                    <PrivateRoute>
+                                    <CompanyPage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/sources" element={
+                                    <PrivateRoute>
+                                    <SourcePage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/signals" element={
+                                    <PrivateRoute>
+                                    <SignalPage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/sub-signals" element={
+                                    <PrivateRoute>
+                                    <SubSignalPage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/sectors" element={
+                                    <PrivateRoute>
+                                    <SectorPage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/sub-sectors" element={
+                                    <PrivateRoute>
+                                    <SubSectorPage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/regions" element={
+                                    <PrivateRoute>
+                                    <RegionPage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/countries" element={
+                                    <PrivateRoute>
+                                    <CountryPage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/contexts" element={
+                                    <PrivateRoute>
+                                    <ContextPage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/posts" element={
+                                    <PrivateRoute>
+                                    <PostPage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/admin/posts" element={
+                                    <PrivateRoute>
+                                    <PostPage />
+                                    </PrivateRoute>
+                                    } />
+                                <Route path="/container-module" element={
+                                    <PrivateRoute>
+                                    <ContainerPage />
+                                    </PrivateRoute>
+                                    } />
 
-                              <ToastContainer />
-                            </div>
+                                <Route path="/story-order" element={
+                                    <PrivateRoute>
+                                    <StoryOrder />
+                                    </PrivateRoute>
+                                    } />
+                                
+                                  <Route path="/story-view" element={
+                                    <PrivateRoute>
+                                    <StoryView />
+                                    </PrivateRoute>
+                                    } />
+
+                                    <Route path="/settings" element={
+                                    <PrivateRoute>
+                                    <SettingsPage />
+                                    </PrivateRoute>
+                                    } />
+                                  <Route path="/admin/contexts" element={
+                                    <PrivateRoute>
+                                      <ContextForm />
+                                    </PrivateRoute>
+                                  } />
+                                  <Route path="/companies/add" element={
+                                    <PrivateRoute>
+                                      <CompanyForm />
+                                    </PrivateRoute>
+                                  } />
+                                  <Route path="/sources/add" element={
+                                    <PrivateRoute>
+                                      <SourceForm />
+                                    </PrivateRoute>
+                                  } />
+                                  <Route path="/clarification-guidance" element={<PrivateRoute><ClarificationGuidanceList /></PrivateRoute>} />
+                                  <Route path="/clarification-guidance/add" element={<PrivateRoute><ClarificationGuidanceForm /></PrivateRoute>} />
+                                  <Route path="/query-refiner" element={<PrivateRoute><QueryRefinerList /></PrivateRoute>} />
+                                  <Route path="/query-refiner/add" element={<PrivateRoute><QueryRefinerForm /></PrivateRoute>} />
+                                  <Route path="/market-data" element={<PrivateRoute><MarketDataList /></PrivateRoute>} />
+                                  <Route path="/market-data/add" element={<PrivateRoute><MarketDataForm /></PrivateRoute>} />
+                                </Routes>
+
+                                <ToastContainer />
+                              </div>
+                            </TileTemplateProvider>
                           </PostProvider>
                         </ContextProvider>
                       </ThemeProvider>

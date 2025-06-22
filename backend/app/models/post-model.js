@@ -21,6 +21,8 @@ const postSchema = new Schema ({
     source: [{ type: Schema.Types.ObjectId, ref: 'Source', required: true }], // ✅ Now an array
     sourceUrls: [{ type: String, required: true }], // ✅ Now an array
 
+    tileTemplateId: { type: Schema.Types.ObjectId, ref: 'TileTemplate', required: false },
+
     generalComment: { type: String, required: false },
 
     seoData: {

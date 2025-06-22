@@ -179,6 +179,7 @@ const HeaderComponent = () => {
                     <MenuItem onClick={() => handleMenuItemClick('/sub-sectors')}>Sub-Sector</MenuItem>
                     <MenuItem onClick={() => handleMenuItemClick('/regions')}>Region</MenuItem>
                     <MenuItem onClick={() => handleMenuItemClick('/countries')}>Country</MenuItem>
+                    <MenuItem onClick={() => handleMenuItemClick('/tile-templates')}>Tile Templates</MenuItem>
                     <MenuItem onClick={() => handleMenuItemClick('/clarification-guidance')}>Clarification Guidance</MenuItem>
                     <MenuItem onClick={() => handleMenuItemClick('/query-refiner')}>Query Refiner</MenuItem>
                     <MenuItem onClick={() => handleMenuItemClick('/market-data')}>Market Data</MenuItem>

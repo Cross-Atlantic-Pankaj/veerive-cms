@@ -43,6 +43,7 @@ import User from './app/models/user-model.js';
 import bcryptjs from 'bcryptjs';
 import ensureSuperAdmin from './utils/superAdmin.js';
 import { bulkUploadClarificationGuidance, bulkUploadQueryRefiner, bulkUploadMarketData } from './app/controllers/bulkUploadController.js';
+import tileTemplatesCltr from './app/controllers/tileTemplates-cltr.js'
 
 dotenv.config()
 
@@ -199,9 +200,16 @@ app.get('/api/admin/themes/:id', authenticateUser, themesCltr.getOne); // Get si
 
 //admin routes
 //app.get('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.list)
-app.post('/api/admin/themes', authenticateUser, themesCltr.create)
-app.put('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), themesCltr.update)
-app.delete('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), themesCltr.delete)
+app.post('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'SuperAdmin']), themesCltr.create)
+app.put('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'SuperAdmin']), themesCltr.update)
+app.delete('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'SuperAdmin']), themesCltr.delete)
+
+// Tile Templates routes (Admin only)
+app.get('/api/admin/tile-templates', authenticateUser, authorizeUser(['Admin', 'SuperAdmin']), tileTemplatesCltr.list);
+app.post('/api/admin/tile-templates', authenticateUser, authorizeUser(['Admin', 'SuperAdmin']), tileTemplatesCltr.create);
+app.get('/api/admin/tile-templates/:id', authenticateUser, authorizeUser(['Admin', 'SuperAdmin']), tileTemplatesCltr.show);
+app.put('/api/admin/tile-templates/:id', authenticateUser, authorizeUser(['Admin', 'SuperAdmin']), tileTemplatesCltr.update);
+app.delete('/api/admin/tile-templates/:id', authenticateUser, authorizeUser(['Admin', 'SuperAdmin']), tileTemplatesCltr.destroy);
 
 //company routes
 app.get('/api/companies', authenticateUser, companiesCltr.list)
