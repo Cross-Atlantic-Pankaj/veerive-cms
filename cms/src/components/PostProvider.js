@@ -1,4 +1,3 @@
-
 import React, { useReducer, useState, useEffect, useContext } from 'react';
 import axios from '../config/axios';
 import PostContext from '../context/PostContext';
@@ -129,20 +128,42 @@ export const PostProvider = ({ children }) => {
     };
 
     // ✅ Handle Form Submission
-    const handleFormSubmit = async (message, editedPostId = null) => {
-        setSuccessMessage(message);
-
-        if (editedPostId) {
-            localStorage.setItem("editId", editedPostId);
-            localStorage.setItem("isFormVisible", "true");
-        } else {
-            localStorage.removeItem("editId");
-            localStorage.removeItem("isFormVisible");
+    const handleFormSubmit = async (formData, editId = null) => {
+        try {
+            let response;
+            if (editId) {
+                // Update existing post
+                response = await axios.put(`/api/admin/posts/${editId}`, formData, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (response.data.success) {
+                    postsDispatch({ type: 'UPDATE_POST', payload: response.data.updatedPost });
+                    setSuccessMessage('Post updated successfully!');
+                }
+            } else {
+                // Create new post
+                response = await axios.post('/api/admin/posts', formData, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (response.data.success) {
+                    postsDispatch({ type: 'ADD_POST', payload: response.data.post });
+                    setSuccessMessage('Post added successfully!');
+                }
+            }
+            
             setIsFormVisible(false);
-        }
+            localStorage.removeItem("isFormVisible");
+            localStorage.removeItem("editId");
 
-        await fetchPosts(page);
-        setTimeout(() => setSuccessMessage(''), 3000);
+            await fetchPosts(page); // Refresh the list
+            setTimeout(() => setSuccessMessage(''), 3000);
+
+        } catch (err) {
+            console.error("❌ Error submitting form:", err.response?.data || err);
+            const errorMsg = err.response?.data?.message || "An unknown error occurred.";
+            setSuccessMessage(`Error: ${errorMsg}`); // Show specific error
+            setTimeout(() => setSuccessMessage(''), 5000); // Let error stay longer
+        }
     };
 
     // ✅ Restore Form State on Reload

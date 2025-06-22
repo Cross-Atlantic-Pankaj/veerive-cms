@@ -117,7 +117,7 @@ postsCltr.create = async (req, res) => {
         const formattedPost = {
             ...req.body,
             summary: cleanSummary,
-            contexts: req.body.contexts.map(ctx => ctx._id) // ✅ Store only context IDs
+            tileTemplateId: req.body.tileTemplateId || null // ✅ Handle tileTemplateId
         };
 
         let post = new Post(formattedPost);
@@ -130,7 +130,11 @@ postsCltr.create = async (req, res) => {
 
     } catch (err) {
         console.error("❌ Error creating post:", err);
-        res.status(500).json({ error: "Something went wrong" });
+        res.status(500).json({ 
+            error: "Something went wrong",
+            message: err.message,
+            errors: err.errors
+        });
     }
 };
 
@@ -157,7 +161,13 @@ postsCltr.update = async (req, res) => {
             return res.status(404).json({ error: "Post not found." });
         }
 
-        const updatedPost = await Post.findByIdAndUpdate(id, { ...body, summary: cleanSummary }, { new: true });
+        const updatedData = { 
+            ...body, 
+            summary: cleanSummary,
+            tileTemplateId: body.tileTemplateId || null // ✅ Handle tileTemplateId on update
+        };
+
+        const updatedPost = await Post.findByIdAndUpdate(id, updatedData, { new: true });
 
         res.json({
             success: true,
@@ -167,7 +177,11 @@ postsCltr.update = async (req, res) => {
 
     } catch (err) {
         console.error("❌ Error updating post:", err);
-        res.status(500).json({ error: "Server Error" });
+        res.status(500).json({ 
+            error: "Server Error",
+            message: err.message,
+            errors: err.errors
+        });
     }
 };
 

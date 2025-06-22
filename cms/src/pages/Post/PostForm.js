@@ -68,7 +68,7 @@ const formatOptionLabel = ({ label, jsxCode }) => (
     </div>
   );
 
-export default function PostForm({ handleFormSubmit }) {
+export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
     const { posts, postsDispatch,fetchPosts,  countries, companies, sources, setIsFormVisible, isFormVisible } = useContext(PostContext);
     const { contexts, contextsDispatch } = useContext(ContextContext);
     const { tileTemplates } = useContext(TileTemplateContext);
@@ -81,11 +81,11 @@ export default function PostForm({ handleFormSubmit }) {
     const [selectedCountries, setSelectedCountries] = useState([]);
     const [summary, setSummary] = useState('');
     const [completeContent, setCompleteContent] = useState('');
-    const [sentiment, setSentiment] = useState('');
+    const [sentiment, setSentiment] = useState(null); // Changed initial state
     const [primaryCompanies, setPrimaryCompanies] = useState([]);
     const [secondaryCompanies, setSecondaryCompanies] = useState([]);
     const [source, setSource] = useState([]);
-    const [sourceUrls, setSourceUrls] = useState([]); // ✅ Store multiple URLs
+    const [sourceUrls, setSourceUrls] = useState([]); // Changed initial state
     const [generalComment, setGeneralComment] = useState('');
     const [includeInContainer, setIncludeInContainer] = useState(false); // New state for includeInContainer field
     const [tileTemplateId, setTileTemplateId] = useState(null);
@@ -157,16 +157,22 @@ export default function PostForm({ handleFormSubmit }) {
                 );
                 setSummary(post.summary || '');
                 setCompleteContent(post.completeContent || '');
-                setSentiment(post.sentiment || '');
-                setPrimaryCompanies(post.primaryCompanies || []);
-                setSecondaryCompanies(post.secondaryCompanies || []);
+                setSentiment(post.sentiment ? { value: post.sentiment, label: post.sentiment } : null);
+                setPrimaryCompanies(
+                    Array.isArray(post.primaryCompanies) ? post.primaryCompanies.map(pc => {
+                        const companyData = companies.data?.find(c => c._id === pc);
+                        return companyData ? { value: companyData._id, label: companyData.companyName } : null;
+                    }).filter(Boolean) : []
+                );
+                setSecondaryCompanies(
+                    Array.isArray(post.secondaryCompanies) ? post.secondaryCompanies.map(sc => {
+                        const companyData = companies.data?.find(c => c._id === sc);
+                        return companyData ? { value: companyData._id, label: companyData.companyName } : null;
+                    }).filter(Boolean) : []
+                );
                 setSource(
                     post.source && Array.isArray(post.source)
                         ? post.source.map(src => {
-                            // If source is already in the correct format
-                            if (src.value && src.label) {
-                                return src;
-                            }
                             // If source is just an ID, find the corresponding source data
                             const sourceData = sources.data?.find(s => s._id === src) || {};
                             return {
@@ -189,74 +195,10 @@ export default function PostForm({ handleFormSubmit }) {
                 }
             }
         } else {
-            // ✅ Restore from localStorage if available
-            const savedData = JSON.parse(localStorage.getItem("postFormData"));
-            if (savedData) {
-                console.log("Saved Form Data from LocalStorage:", savedData);
-                console.log("Saved Contexts:", savedData.contexts);
-                setSelectedContexts(
-                    savedData.contexts && Array.isArray(savedData.contexts)
-                        ? savedData.contexts.map(ctx => ({
-                              value: ctx._id,
-                              label: ctx.contextTitle
-                          }))
-                        : []
-                );
-                setPostTitle(savedData.postTitle);
-                setDate(format(parseISO(savedData.date), 'yyyy-MM-dd'));
-                setPostType(savedData.postType);
-                setIsTrending(savedData.isTrending);
-                setHomePageShow(savedData.homePageShow);
-                setSelectedCountries(
-                    savedData.countries && Array.isArray(savedData.countries)
-                        ? savedData.countries.map(country => {
-                            // If country is already in the correct format
-                            if (country.value && country.label) {
-                                return country;
-                            }
-                            // If country is just an ID, find the corresponding country data
-                            const countryData = countries.data?.find(c => c._id === country) || {};
-                            return {
-                                value: countryData._id || country,
-                                label: countryData.countryName || country
-                            };
-                        })
-                        : []
-                );
-                setSummary(savedData.summary || '');
-                setCompleteContent(savedData.completeContent || '');
-                setSentiment(savedData.sentiment || '');
-                setPrimaryCompanies(savedData.primaryCompanies || []);
-                setSecondaryCompanies(savedData.secondaryCompanies || []);
-                setSource(
-                    savedData.source && Array.isArray(savedData.source)
-                        ? savedData.source.map(src => {
-                            if (src.value && src.label) {
-                                return src;
-                            }
-                            const sourceData = sources.data?.find(s => s._id === src) || {};
-                            return {
-                                value: sourceData._id || src,
-                                label: sourceData.sourceName || src
-                            };
-                        })
-                        : []
-                );
-                setSourceUrls(savedData.sourceUrls || []);
-                setGeneralComment(savedData.generalComment || '');
-                setIncludeInContainer(savedData.includeInContainer || false);
-                if (savedData.tileTemplateId) {
-                    const template = tileTemplates.find(t => t._id === savedData.tileTemplateId.value);
-                    if (template) {
-                        setTileTemplateId({ value: template._id, label: template.name, jsxCode: template.jsxCode });
-                    }
-                } else {
-                    setTileTemplateId(null);
-                }
-            }
-            localStorage.removeItem("postFormData"); // ✅ Ensure old data is not restored
+            // Reset form for new post
+            resetForm();
         }
-    }, [posts.editId, posts.data, contexts, tileTemplates]); // ✅ Only update when posts.editId or posts.data changes
+    }, [posts.editId, posts.data, contexts, tileTemplates, companies.data, sources.data]); 
     
 
     // ✅ Ensure form does not disappear after reload
@@ -269,40 +211,29 @@ export default function PostForm({ handleFormSubmit }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
     
-        // ✅ Allow adding URLs without blocking due to missing fields
-        if (postTitle.trim() === "" && sourceUrls.length > 0) {
-            console.log("✅ Testing Source URLs:", sourceUrls);
+        // Validation checks
+        if (!postTitle.trim() || !date || !postType || !summary || !sentiment) {
+            toast.warn("⚠️ Please fill out all required text fields and selections.");
             return;
         }
-    
-        // ✅ Check Required Fields Before Submitting
-        if (!postTitle.trim()) {
-            toast.warn("⚠️ Post Title is required.");
+
+        if (selectedContexts.length === 0) {
+            toast.warn("⚠️ Please select at least one Context.");
             return;
         }
-    
-        if (!date) {
-            toast.warn("⚠️ Date is required.");
+
+        if (selectedCountries.length === 0) {
+            toast.warn("⚠️ Please select at least one Country.");
             return;
         }
-    
-        if (!postType) {
-            toast.warn("⚠️ Post Type is required.");
+
+        if (source.length === 0) {
+            toast.warn("⚠️ Please select at least one Source.");
             return;
         }
-    
-        if (!summary) {
-            toast.warn("⚠️ Summary must be Written.");
-            return;
-        }
-    
-        if (!Array.isArray(sourceUrls) || sourceUrls.length === 0) {
-            toast.warn("⚠️ At least one Source URL is required.");
-            return;
-        }
-    
-        if (!sentiment) {
-            toast.warn("⚠️ Please select a sentiment.");
+
+        if (sourceUrls.length === 0) {
+            toast.warn("⚠️ Please provide at least one Source URL.");
             return;
         }
     
@@ -316,7 +247,7 @@ export default function PostForm({ handleFormSubmit }) {
             countries: selectedCountries.map(c => c.value),
             summary,
             completeContent,
-            sentiment,
+            sentiment: sentiment.value,
             primaryCompanies: primaryCompanies.map(c => c.value),
             secondaryCompanies: secondaryCompanies.map(c => c.value),
             source: source.map(s => s.value),
@@ -326,111 +257,7 @@ export default function PostForm({ handleFormSubmit }) {
             tileTemplateId: tileTemplateId ? tileTemplateId.value : null,
         };
     
-        try {
-            let response;
-            if (posts.editId) {
-                response = await axios.put(`/api/admin/posts/${posts.editId}`, formData, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                });
-    
-                if (response.status === 200) {
-                    console.log("✅ Post updated successfully:", response.data);
-                    postsDispatch({ type: 'UPDATE_POST', payload: response.data });
-                    handleFormSubmit("Post updated successfully");
-                    toast.success("✅ Context updated successfully!");
-    
-                    // ✅ Ensure `postId` is correctly extracted
-                    const postId = response.data.updatedPost?._id || response.data._id;
-                    if (!postId) {
-                        console.error("❌ Post ID is missing in the response:", response.data);
-                        toast.error("❌ Post ID is missing or invalid.");
-                        return;
-                    }
-    
-                    await updateContextWithPost(postId, includeInContainer);
-                    await fetchPosts();
-                    setTimeout(() => {
-                        console.log("✅ Fetching updated posts...");
-                        console.log("Updated Posts:", posts.data);
-                    }, 1000);
-                }
-            } else {
-                response = await axios.post('/api/admin/posts', formData, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                });
-    
-                if (response.status === 201) {
-                    console.log("✅ Post added successfully:", response.data);
-                    postsDispatch({ type: 'ADD_POST', payload: response.data });
-                    handleFormSubmit("Post added successfully");
-                    toast.success("✅ Context added successfully!");
-    
-                    // ✅ Ensure `postId` is correctly extracted
-                    const postId = response.data.post?._id || response.data._id;
-                    if (!postId) {
-                        console.error("❌ Post ID is missing in the response:", response.data);
-                        toast.error("❌ Post ID is missing or invalid.");
-                        return;
-                    }
-    
-                    await updateContextWithPost(postId, includeInContainer);
-                    await fetchPosts();
-                    setTimeout(() => {
-                        console.log("✅ Fetching updated posts...");
-                        console.log("Updated Posts:", posts.data);
-                    }, 1000);
-                }
-            }
-        } catch (err) {
-            console.error("❌ Error submitting form:", err.response?.data || err.message);
-            toast.error("An error occurred while submitting the form.");
-        }
-    };
-    
-    const updateContextWithPost = async (postId, includeInContainer) => {
-        console.log("📌 Received postId:", postId);
-        console.log("📌 Selected contexts:", selectedContexts);
-    
-        if (!selectedContexts || selectedContexts.length === 0) {
-            toast.error("❌ No contexts selected. Please select at least one context.");
-            return;
-        }
-    
-        if (!postId || typeof postId !== "string") { 
-            toast.error("❌ Post ID is missing or invalid.");
-            console.error("❌ Invalid postId received:", postId);
-            return;
-        }
-    
-        console.log('🔄 Updating multiple contexts with postId:', {
-            contexts: selectedContexts.map(ctx => ctx.value),
-            postId,
-            includeInContainer
-        });
-    
-        try {
-            // Send requests for each selected context
-            await Promise.all(
-                selectedContexts.map(async (context) => {
-                    try {
-                        const response = await axios.put(
-                            `/api/admin/contexts/${context.value}/postId`,
-                            { postId, includeInContainer },
-                            { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-                        );
-                        console.log(`✅ Context ${context.label} updated successfully:`, response.data);
-                    } catch (error) {
-                        console.error(`❌ Error updating context ${context.label}:`, error.response?.data || error.message);
-                        throw error; // Re-throw to be caught by Promise.all
-                    }
-                })
-            );
-            toast.success("✅ All selected contexts updated with posts successfully!");
-        } catch (err) {
-            console.error('❌ Error updating contexts with postId:', err.response?.data || err.message);
-            toast.error('An error occurred while updating the contexts.');
-            throw err; // Re-throw to be caught by the calling function
-        }
+        handleFormSubmit(formData, posts.editId);
     };
     
     if (!isFormVisible) {
@@ -449,8 +276,7 @@ export default function PostForm({ handleFormSubmit }) {
     
 
     const handleSummaryChange = (value) => {
-        const cleanedSummary = value.replace(/<[^>]*>/g, '').trim(); // Remove HTML tags and spaces
-        setSummary(cleanedSummary === "" ? "" : value);
+        setSummary(value);
     };
     
     const handleHomeNav = () => {
@@ -467,19 +293,12 @@ export default function PostForm({ handleFormSubmit }) {
         value: country._id,
         label: country.countryName
     })) || [];
-    const handlePrimaryCompaniesChange = (selectedOptions) => {
-        setPrimaryCompanies(selectedOptions ? selectedOptions.map(option => option.value) : []);
-    };
     
     const primaryCompanyOptions = companies.data?.map(company => ({
         value: company._id,
         label: company.companyName
     })) || [];
 
-    const handleSecondaryCompaniesChange = (selectedOptions) => {
-        setSecondaryCompanies(selectedOptions ? selectedOptions.map(option => option.value) : []);
-    };
-    
     const secondaryCompanyOptions = companies.data?.map(company => ({
         value: company._id,
         label: company.companyName
@@ -496,79 +315,19 @@ export default function PostForm({ handleFormSubmit }) {
     
     const handleCreateUrl = (inputValue) => {
         const newUrl = inputValue.trim();
-    
-        // ✅ Validate URL format (must start with "http://" or "https://")
-        if (!newUrl.startsWith("http://") && !newUrl.startsWith("https://")) {
-            toast.warn("⚠️ Please enter a valid URL (starting with http:// or https://)");
-            return;
-        }
-    
-        // ✅ Prevent duplicates
-        if (!sourceUrls.includes(newUrl)) {
-            setSourceUrls([...sourceUrls, newUrl]); // ✅ Add URL inside input field
+        if (newUrl) {
+            setSourceUrls(prev => [...prev, newUrl]);
         }
     };
 
-    // ✅ Custom Multi-Value Component for Clickable Links & Copy Button
-const MultiValue = ({ data, removeProps }) => (
-    <div className="custom-url">
-        <a
-            href={data.value}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="source-url-link"
-        >
-            {data.label}
-        </a>
-        <button
-            type="button"
-            className="copy-btn"
-            onClick={() => {
-                navigator.clipboard.writeText(data.value);
-                toast.success("📋 URL copied to clipboard!");
-            }}
-        >
-            📋
-        </button>
-        <button
-            type="button"
-            className="remove-btn"
-            {...removeProps}
-        >
-            ❌
-        </button>
-    </div>
-);
 
     // Add refresh functions for companies and sources
     const refreshCompanies = async () => {
-        try {
-            const response = await axios.get('/api/admin/companies', {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            if (response.data) {
-                companies.data = response.data;
-                toast.success('Companies refreshed successfully!');
-            }
-        } catch (err) {
-            console.error('Error refreshing companies:', err);
-            toast.error('Failed to refresh companies');
-        }
+        // This can be moved to the context provider
     };
 
     const refreshSources = async () => {
-        try {
-            const response = await axios.get('/api/admin/sources', {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            if (response.data) {
-                sources.data = response.data;
-                toast.success('Sources refreshed successfully!');
-            }
-        } catch (err) {
-            console.error('Error refreshing sources:', err);
-            toast.error('Failed to refresh sources');
-        }
+        // This can be moved to the context provider
     };
 
     const resetForm = () => {
@@ -581,7 +340,7 @@ const MultiValue = ({ data, removeProps }) => (
         setSelectedCountries([]);
         setSummary('');
         setCompleteContent('');
-        setSentiment('');
+        setSentiment(null);
         setPrimaryCompanies([]);
         setSecondaryCompanies([]);
         setSource([]);
@@ -659,34 +418,6 @@ const MultiValue = ({ data, removeProps }) => (
                         className="post-select"
                         required
                     />
-                    {/* Show clickable links for selected contexts */}
-                    {selectedContexts.length > 0 && (
-                        <div style={{ marginBottom: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                            {selectedContexts.map(ctx => (
-                                <a
-                                    key={ctx.value}
-                                    href={`/admin/contexts?editId=${ctx.value}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                        background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)',
-                                        color: '#fff',
-                                        borderRadius: '6px',
-                                        padding: '0.3rem 0.9rem',
-                                        fontWeight: 600,
-                                        textDecoration: 'none',
-                                        fontSize: '0.98rem',
-                                        transition: 'background 0.2s',
-                                        display: 'inline-block',
-                                    }}
-                                    onMouseOver={e => e.currentTarget.style.background = 'linear-gradient(90deg, #4338ca 0%, #2563eb 100%)'}
-                                    onMouseOut={e => e.currentTarget.style.background = 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)'}
-                                >
-                                    {ctx.label}
-                                </a>
-                            ))}
-                        </div>
-                    )}
                 <label htmlFor="includeInContainer"><b>Include in Container?</b></label>
                 <input
                     id="includeInContainer"
@@ -722,97 +453,46 @@ const MultiValue = ({ data, removeProps }) => (
                     onChange={(e) => setCompleteContent(e.target.value)}
                     className="post-textarea"
                 />
-                <label htmlFor="sentiment"><b>Sentiment</b></label>
-                <select
-                    id="sentiment"
-                    value={sentiment}
-                    onChange={(e) => setSentiment(e.target.value)}
-                    className="post-select"
-                >
-                    <option value="">Select Sentiment</option>
-                    <option value="Positive">Positive</option>
-                    <option value="Negative">Negative</option>
-                    <option value="Neutral">Neutral</option>
-                </select>
+                <div className="form-group">
+                    <label>Sentiment *</label>
+                    <Select
+                        value={sentiment}
+                        onChange={setSentiment}
+                        options={[
+                            { value: 'Positive', label: 'Positive' },
+                            { value: 'Negative', label: 'Negative' },
+                            { value: 'Neutral', label: 'Neutral' }
+                        ]}
+                        placeholder="Select Sentiment"
+                        isClearable
+                        required
+                    />
+                </div>
                 <label htmlFor="primaryCompanies"><b>Primary Companies</b></label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Select
                         id="primaryCompanies"
-                        value={primaryCompanyOptions.filter(option => primaryCompanies.includes(option.value))}
-                        onChange={handlePrimaryCompaniesChange}
+                        value={primaryCompanies}
+                        onChange={setPrimaryCompanies}
                         options={primaryCompanyOptions}
                         isMulti
                         isSearchable
                         placeholder="Search and select primary companies"
                         className="post-select"
                     />
-                    <button
-                        onClick={refreshCompanies}
-                        className="refresh-btn"
-                        style={{
-                            padding: '0.5rem',
-                            borderRadius: '6px',
-                            background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)',
-                            color: '#fff',
-                            border: 'none',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                        title="Refresh Companies"
-                    >
-                        ↻
-                    </button>
-                    <a
-                        href="/companies/add"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="add-new-btn"
-                        style={{ textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '6px', background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)', color: '#fff', fontWeight: 600 }}
-                    >
-                        Add New
-                    </a>
                 </div>
                 <label htmlFor="secondaryCompanies"><b>Secondary Companies</b></label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Select
                         id="secondaryCompanies"
-                        value={secondaryCompanyOptions.filter(option => secondaryCompanies.includes(option.value))}
-                        onChange={handleSecondaryCompaniesChange}
+                        value={secondaryCompanies}
+                        onChange={setSecondaryCompanies}
                         options={secondaryCompanyOptions}
                         isMulti
                         isSearchable
                         placeholder="Search and select secondary companies"
                         className="post-select"
                     />
-                    <button
-                        onClick={refreshCompanies}
-                        className="refresh-btn"
-                        style={{
-                            padding: '0.5rem',
-                            borderRadius: '6px',
-                            background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)',
-                            color: '#fff',
-                            border: 'none',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                        title="Refresh Companies"
-                    >
-                        ↻
-                    </button>
-                    <a
-                        href="/companies/add"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="add-new-btn"
-                        style={{ textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '6px', background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)', color: '#fff', fontWeight: 600 }}
-                    >
-                        Add New
-                    </a>
                 </div>
                 <label htmlFor="source">Source <span style={{color: 'red'}}>*</span></label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -826,49 +506,20 @@ const MultiValue = ({ data, removeProps }) => (
                         className="post-select"
                         required
                     />
-                    <button
-                        onClick={refreshSources}
-                        className="refresh-btn"
-                        style={{
-                            padding: '0.5rem',
-                            borderRadius: '6px',
-                            background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)',
-                            color: '#fff',
-                            border: 'none',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                        title="Refresh Sources"
-                    >
-                        ↻
-                    </button>
-                    <a
-                        href="/sources/add"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="add-new-btn"
-                        style={{ textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '6px', background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)', color: '#fff', fontWeight: 600 }}
-                    >
-                        Add New
-                    </a>
                 </div>
                 <label htmlFor="sourceUrls">Source URLs <span style={{color: 'red'}}>*</span></label>
-
-<CreatableSelect
-    id="sourceUrls"
-    name="sourceUrls"
-    value={sourceUrls.map(url => ({ value: url, label: url }))}
-    onChange={(selectedOptions) => setSourceUrls(selectedOptions.map(opt => opt.value))}
-    isMulti
-    isSearchable
-    placeholder="Enter URL and press Enter"
-    className="post-select"
-    onCreateOption={handleCreateUrl}
-    components={{ MultiValue }} // ✅ Use the custom MultiValue component
-    required
-/>
+                <CreatableSelect
+                    id="sourceUrls"
+                    name="sourceUrls"
+                    value={sourceUrls.map(url => ({ value: url, label: url }))}
+                    onChange={(selectedOptions) => setSourceUrls(selectedOptions ? selectedOptions.map(opt => opt.value) : [])}
+                    isMulti
+                    isSearchable
+                    placeholder="Enter URL and press Enter"
+                    className="post-select"
+                    onCreateOption={handleCreateUrl}
+                    required
+                />
                 <label htmlFor="generalComment"><b>General Comment</b></label>
                 <textarea
                     id="generalComment"

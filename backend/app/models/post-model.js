@@ -2,7 +2,6 @@ import {Schema, model} from 'mongoose'
 
 const postSchema = new Schema ({
     postTitle: { type: String, required: true },
-    imageUrl: { type: String, required: false },
     date: { type: Date, required: true },       
     postType: { type: String, enum: ['News', 'Expert Opinion', 'Research Report', 'Infographic', 'Interview'], required: true },
     //postTypeId: { type: Schema.Types.ObjectId, ref: 'PostType', required: true},
@@ -13,7 +12,7 @@ const postSchema = new Schema ({
     countries: [{ type: Schema.Types.ObjectId, ref: 'Country', required: true}],
     summary: { type: String, required: true },
     completeContent: { type: String, required: false },   
-    sentiment: { type: String, enum: ['Positive', 'Negative', 'Neutral'], default: 'Neutral', required: false},
+    sentiment: { type: String, enum: ['Positive', 'Negative', 'Neutral'], required: true},
     primaryCompanies: [{ type: Schema.Types.ObjectId, ref: 'Company', required: false}],
     secondaryCompanies: [{ type: Schema.Types.ObjectId, ref: 'Company', required: false}],
     // source: { type: String, ref: 'Source', required: true},
