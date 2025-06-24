@@ -5,9 +5,14 @@ import { useNavigate } from 'react-router-dom';
 import '../../html/css/Theme.css';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; // Import Quill styles
+import TileTemplateContext from '../../context/TileTemplateContext';
+import Select from 'react-select';
+import JsxParser from 'react-jsx-parser';
+import Tile from '../../components/Tile';
 
 export default function ThemeForm({ handleFormSubmit }) {
     const { themes, themesDispatch, sectors: sectorsData, subSectors: subSectorsData, setIsFormVisible, isFormVisible } = useContext(ThemeContext);
+    const { tileTemplates } = useContext(TileTemplateContext);
     const navigate = useNavigate();
 
     const [themeTitle, setThemeTitle] = useState('');
@@ -27,22 +32,30 @@ export default function ThemeForm({ handleFormSubmit }) {
     const [predictiveMomentumScoreImage, setPredictiveMomentumScoreImage] = useState('');
     const overallScoreCalc = (trendingScore * 0.35) + (impactScore * 0.4) + (predictiveMomentumScore * 0.25);
 
+    const [tileTemplateId, setTileTemplateId] = useState(null);
+
+    // Prepare options for react-select
+    const sectorOptions = sectorsData.data?.map(sector => ({ value: sector._id, label: sector.sectorName })) || [];
+    const allSubSectorOptions = subSectorsData.data?.map(subSector => ({ value: subSector._id, label: subSector.subSectorName, sectorId: subSector.sectorId })) || [];
+    const subSectorOptions = filteredSubSectors.map(subSector => ({ value: subSector._id, label: subSector.subSectorName, sectorId: subSector.sectorId }));
+
     useEffect(() => {
-        if (themes.editId) {
-            // First try to find in themes.data
+        if (themes.editId && sectorOptions.length > 0 && allSubSectorOptions.length > 0) {
             let theme = themes.data.find((ele) => ele._id === themes.editId);
-            
-            // If not found in data, try to find in allThemes
             if (!theme && themes.allThemes) {
                 theme = themes.allThemes.find((ele) => ele._id === themes.editId);
             }
-
             if (theme) {
-                console.log("Found theme to edit:", theme);
                 setThemeTitle(theme.themeTitle || '');
                 setIsTrending(theme.isTrending || false);
-                setSelectedSectors(theme.sectors || []);
-                setSelectedSubSectors(theme.subSectors || []);
+                setSelectedSectors((theme.sectors || []).map(id => {
+                    const sector = sectorOptions.find(opt => String(opt.value) === String(id));
+                    return sector || { value: id, label: id };
+                }));
+                setSelectedSubSectors((theme.subSectors || []).map(id => {
+                    const subSector = allSubSectorOptions.find(opt => String(opt.value) === String(id));
+                    return subSector || { value: id, label: id };
+                }));
                 setGeneralComment(theme.generalComment || '');
                 setThemeDescription(theme.themeDescription || '');
                 setTrendingScore(theme.trendingScore || 0);
@@ -51,18 +64,24 @@ export default function ThemeForm({ handleFormSubmit }) {
                 setTrendingScoreImage(theme.trendingScoreImage || '');
                 setImpactScoreImage(theme.impactScoreImage || '');
                 setPredictiveMomentumScoreImage(theme.predictiveMomentumScoreImage || '');
-
-                // Filter sub-sectors based on selected sectors for edit
+                // Set tileTemplateId for edit
+                if (theme.tileTemplateId) {
+                    const template = tileTemplates.find(t => t._id === String(theme.tileTemplateId));
+                    if (template) {
+                        setTileTemplateId({ value: template._id, label: template.name, jsxCode: template.jsxCode });
+                    }
+                } else {
+                    setTileTemplateId(null);
+                }
+                // Filter sub-sectors for dropdown display
                 if (subSectorsData.data && theme.sectors) {
-                    const filtered = subSectorsData.data.filter(subSector => 
-                        theme.sectors.includes(subSector.sectorId)
-                    );
+                    const filtered = subSectorsData.data.filter(subSector => theme.sectors.map(sid => String(sid)).includes(String(subSector.sectorId)));
                     setFilteredSubSectors(filtered);
                 }
             } else {
                 console.error("Theme not found with ID:", themes.editId);
             }
-        } else {
+        } else if (!themes.editId) {
             // Reset form for new theme
             setThemeTitle('');
             setIsTrending(false);
@@ -77,16 +96,28 @@ export default function ThemeForm({ handleFormSubmit }) {
             setTrendingScoreImage('');
             setImpactScoreImage('');
             setPredictiveMomentumScoreImage('');
+            setTileTemplateId(null);
         }
-    }, [themes.editId, themes.data, themes.allThemes, subSectorsData.data]);
+    }, [themes.editId, themes.data, themes.allThemes, subSectorsData.data, tileTemplates, sectorOptions.length, allSubSectorOptions.length]);
+
+    // Update filteredSubSectors when selectedSectors changes
+    useEffect(() => {
+        if (subSectorsData.data && selectedSectors.length > 0) {
+            const selectedSectorIds = selectedSectors.map(s => s.value);
+            const filtered = subSectorsData.data.filter(subSector => selectedSectorIds.includes(subSector.sectorId));
+            setFilteredSubSectors(filtered);
+        } else {
+            setFilteredSubSectors([]);
+        }
+    }, [selectedSectors, subSectorsData.data]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         const formData = {
             themeTitle,
             isTrending,
-            sectors: selectedSectors,
-            subSectors: selectedSubSectors,
+            sectors: selectedSectors.map(s => s.value),
+            subSectors: selectedSubSectors.map(s => s.value),
             generalComment,
             themeDescription, // Include themeDescription
             overallScore: overallScoreCalc,
@@ -95,7 +126,8 @@ export default function ThemeForm({ handleFormSubmit }) {
             predictiveMomentumScore,
             trendingScoreImage,
             impactScoreImage,
-            predictiveMomentumScoreImage
+            predictiveMomentumScoreImage,
+            tileTemplateId: tileTemplateId ? tileTemplateId.value : null,
         };
 
         try {
@@ -114,20 +146,12 @@ export default function ThemeForm({ handleFormSubmit }) {
         }
     };
 
-    const handleSectorChange = (e) => {
-        const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-        setSelectedSectors(selectedOptions);
-
-        // Filter sub-sectors based on selected sectors
-        if (subSectorsData.data) {
-            const filtered = subSectorsData.data.filter(subSector => selectedOptions.includes(subSector.sectorId));
-            setFilteredSubSectors(filtered);
-        }
+    const handleSectorChange = (selectedOptions) => {
+        setSelectedSectors(selectedOptions || []);
     };
 
-    const handleSubSectorChange = (e) => {
-        const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-        setSelectedSubSectors(selectedOptions);
+    const handleSubSectorChange = (selectedOptions) => {
+        setSelectedSubSectors(selectedOptions || []);
     };
 
     const handleHomeNav = () => {
@@ -262,36 +286,31 @@ export default function ThemeForm({ handleFormSubmit }) {
 
                 <div className="form-group">
                     <label htmlFor="sectors"><b>Sectors</b> <span style={{color: 'red'}}>*</span></label>
-                    <select
+                    <Select
                         id="sectors"
                         name="sectors"
                         value={selectedSectors}
                         onChange={handleSectorChange}
+                        options={sectorOptions}
+                        isMulti
                         className="theme-select"
-                        multiple
                         required
-                    >
-                        {sectorsData.data && sectorsData.data.map(sector => (
-                            <option key={sector._id} value={sector._id}>{sector.sectorName}</option>
-                        ))}
-                    </select>
+                        placeholder="Select sectors..."
+                    />
                 </div>
 
                 <div className="form-group">
                     <label htmlFor="subSectors"><b>Select Sub-Sectors</b></label>
-                    <select
+                    <Select
                         id="subSectors"
-                        multiple
+                        name="subSectors"
                         value={selectedSubSectors}
                         onChange={handleSubSectorChange}
+                        options={subSectorOptions}
+                        isMulti
                         className="theme-select"
-                    >
-                        {filteredSubSectors.map((subSector) => (
-                            <option key={subSector._id} value={subSector._id}>
-                                {subSector.subSectorName}
-                            </option>
-                        ))}
-                    </select>
+                        placeholder="Select sub-sectors..."
+                    />
                 </div>
 
                 <div className="form-group">
@@ -302,6 +321,58 @@ export default function ThemeForm({ handleFormSubmit }) {
                         value={generalComment}
                         onChange={(e) => setGeneralComment(e.target.value)}
                         className="theme-textarea"
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label>Tile Template</label>
+                    <Select
+                        value={tileTemplateId}
+                        onChange={setTileTemplateId}
+                        options={tileTemplates.map(template => ({ value: template._id, label: template.name, jsxCode: template.jsxCode }))}
+                        formatOptionLabel={({ label, jsxCode }) => (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%' }}>
+                                <div style={{
+                                    minWidth: '50px',
+                                    height: '50px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                    border: '1px solid #dee2e6',
+                                    borderRadius: '4px',
+                                    overflow: 'hidden',
+                                }}>
+                                    <div style={{
+                                        transform: 'scale(0.6)',
+                                        transformOrigin: 'center center',
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}>
+                                        <JsxParser
+                                            jsx={jsxCode}
+                                            components={{ Tile }}
+                                            onError={(error) => console.error('JSX Parser Error:', error)}
+                                        />
+                                    </div>
+                                </div>
+                                <span>{label}</span>
+                            </div>
+                        )}
+                        isClearable
+                        placeholder="Select a Tile Template"
+                        isSearchable={true}
+                        filterOption={(option, inputValue) => {
+                            const label = option.label || '';
+                            const jsxCode = option.data.jsxCode || '';
+                            return (
+                                label.toLowerCase().includes(inputValue.toLowerCase()) ||
+                                jsxCode.toLowerCase().includes(inputValue.toLowerCase())
+                            );
+                        }}
                     />
                 </div>
 

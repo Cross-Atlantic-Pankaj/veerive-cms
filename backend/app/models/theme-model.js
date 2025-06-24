@@ -16,6 +16,7 @@ const themeSchema = new Schema ({
 
     generalComment: { type: String, required: false },
     
+    tileTemplateId: { type: Schema.Types.ObjectId, ref: 'TileTemplate', required: false },
 
     seoData: {
         seoURL: { type: String, required: false }, 

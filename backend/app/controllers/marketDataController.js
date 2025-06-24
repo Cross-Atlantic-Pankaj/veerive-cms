@@ -2,7 +2,8 @@ import MarketData from '../models/marketData.js';
 
 export const createMarketData = async (req, res) => {
   try {
-    const doc = new MarketData(req.body);
+    const { url, ...rest } = req.body;
+    const doc = new MarketData(rest);
     await doc.save();
     res.status(201).json(doc);
   } catch (err) {

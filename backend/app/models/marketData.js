@@ -6,7 +6,6 @@ const marketDataSchema = new Schema({
   sector: { type: Schema.Types.ObjectId, ref: 'Sector', required: true },
   subSector: { type: Schema.Types.ObjectId, ref: 'SubSector', required: true },
   sourceName: { type: String, required: true },
-  url: { type: String, required: true },
   csvUpload: { type: String } // store file path or URL
 }, { timestamps: true });
 

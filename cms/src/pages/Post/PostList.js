@@ -24,23 +24,29 @@ export default function PostList() {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortConfig, setSortConfig] = useState({ key: "date", direction: "descending" });
     const [page, setPage] = useState(() => parseInt(localStorage.getItem("currentPage")) || 1);
-    const [totalPages, setTotalPages] = useState(1);
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
     const [allPosts, setAllPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const itemsPerPage = 10;
 
     const fetchAllPosts = async () => {
         try {
+            setLoading(true);
             const response = await axios.get(`/api/admin/posts/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
             
             if (response.data.success) {
-                setAllPosts(response.data.posts);
+                setAllPosts(response.data.posts || response.data.data || []);
             } else {
                 toast.error("Failed to fetch all posts");
+                setAllPosts([]);
             }
         } catch (error) {
             toast.error("Failed to fetch all posts. Please try again.");
+            setAllPosts([]);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -50,8 +56,8 @@ export default function PostList() {
     useEffect(() => {
         const fetchAndEdit = async () => {
             if (editIdFromQuery) {
-                if (typeof fetchPosts === 'function') {
-                    await fetchPosts('all');
+                if (typeof fetchAllPosts === 'function') {
+                    await fetchAllPosts();
                 }
                 handleEditClick(editIdFromQuery);
             }
@@ -69,7 +75,6 @@ export default function PostList() {
     useEffect(() => {
         if (page) {
             localStorage.setItem("currentPage", page);
-            fetchPosts(page);
         }
     }, [page]);
 
@@ -80,9 +85,14 @@ export default function PostList() {
         }
     }, []);
 
+    // Fetch all posts on component mount
+    useEffect(() => {
+        fetchAllPosts();
+    }, []);
+
     useEffect(() => {
         if (searchQuery === "") {
-            fetchPosts();
+            fetchAllPosts();
         }
     }, [searchQuery]);
 
@@ -91,54 +101,15 @@ export default function PostList() {
             if (searchQuery.trim() !== "") {
                 handleSearch();
             } else {
-                fetchPosts();
+                fetchAllPosts();
             }
         }, 100);
         return () => clearTimeout(delayDebounce);
     }, [searchQuery]);
 
-    const fetchPosts = async () => {
-        try {
-            const response = await axios.get(`/api/admin/posts?page=${page}&limit=10`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            });
-
-            if (response.data.success) {
-                postsDispatch({ type: "SET_POSTS", payload: response.data.posts });
-                setTotalPages(response.data.totalPages || 1);
-            } else {
-                toast.error("Failed to fetch posts");
-            }
-        } catch (error) {
-            toast.error("Failed to fetch posts. Please try again.");
-        }
-    };
-   
-    
-
     const handleSearch = async () => {
-        if (searchQuery.trim() === "") {
-            fetchPosts();
-            return;
-        }
-    
-        try {
-            const response = await axios.get(`/api/admin/posts/all?search=${encodeURIComponent(searchQuery)}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            });
-    
-            if (response.data.success) {
-                postsDispatch({ type: "SET_POSTS", payload: response.data.posts });
-                setTotalPages(1);
-                setPage(1);
-            } else {
-                postsDispatch({ type: "SET_POSTS", payload: [] });
-                setTotalPages(1);
-                setPage(1);
-            }
-        } catch (error) {
-            toast.error("❌ Search API Error: Please try again.");
-        }
+        // Search is now handled client-side in the filteredPosts useMemo
+        setPage(1); // Reset to first page when searching
     };
     
     const getContextName = (contextsArray) => {
@@ -166,7 +137,7 @@ export default function PostList() {
     };
     
     const requestSort = (key) => {
-        let direction = key === "date" ? "descending" : "ascending";
+        let direction = "ascending";
     
         if (sortConfig.key === key) {
             direction = sortConfig.direction === "ascending" ? "descending" : "ascending";
@@ -175,45 +146,8 @@ export default function PostList() {
         setSortConfig({ key, direction });
     };
     
-   const sortedPosts = useMemo(() => {
-        let sortablePosts = Array.isArray(posts?.data) ? [...new Set(posts.data)] : [];
-    
-        if (sortConfig !== null) {
-            sortablePosts.sort((a, b) => {
-                let aValue, bValue;
-    
-                switch (sortConfig.key) {
-                    case "postTitle":
-                    case "postType":
-                        aValue = (a[sortConfig.key] || "").toLowerCase();
-                        bValue = (b[sortConfig.key] || "").toLowerCase();
-                        return sortConfig.direction === "ascending" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-    
-                    case "date":
-                        aValue = new Date(a.date || 0);
-                        bValue = new Date(b.date || 0);
-                        return sortConfig.direction === "ascending" ? aValue - bValue : bValue - aValue;
-    
-                    case "context":
-                        aValue = getContextName(a.context).toLowerCase();
-                        bValue = getContextName(b.context).toLowerCase();
-                        return sortConfig.direction === "ascending" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-    
-                    default:
-                        aValue = a[sortConfig.key] || "";
-                        bValue = b[sortConfig.key] || "";
-                        return sortConfig.direction === "ascending" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-                }
-            });
-        }
-    
-        return sortablePosts;
-    }, [posts?.data, sortConfig, contexts?.data]);
-    
-    
-
     const filteredPosts = useMemo(() => {
-        let data = allPosts.length ? allPosts : (Array.isArray(posts?.data) ? posts.data : []);
+        let data = [...allPosts];
         if (dateRange.start && dateRange.end) {
             data = data.filter(post => {
                 const d = new Date(post.date);
@@ -224,14 +158,75 @@ export default function PostList() {
             data = data.filter(post => (post.postTitle || '').toLowerCase().includes(searchQuery.toLowerCase()));
         }
         return data;
-    }, [allPosts, posts?.data, dateRange, searchQuery]);
+    }, [allPosts, dateRange, searchQuery]);
+
+    // Helper to normalize strings for sorting
+    function normalizeString(str) {
+        return (str || '')
+            .replace(/^[^a-zA-Z0-9]+/, '') // Remove leading non-alphanumeric chars
+            .trim()
+            .toLowerCase();
+    }
+
+    // Combined filtering and sorting
+    const processedPosts = useMemo(() => {
+        let data = [...filteredPosts];
+        
+        if (sortConfig !== null) {
+            data.sort((a, b) => {
+                let aValue, bValue;
+
+                switch (sortConfig.key) {
+                    case "postTitle":
+                    case "postType":
+                        aValue = normalizeString(a[sortConfig.key]);
+                        bValue = normalizeString(b[sortConfig.key]);
+                        return sortConfig.direction === "ascending" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+
+                    case "date":
+                        aValue = new Date(a.date || 0);
+                        bValue = new Date(b.date || 0);
+                        return sortConfig.direction === "ascending" ? aValue - bValue : bValue - aValue;
+
+                    case "context":
+                        aValue = normalizeString(getContextName(a.context));
+                        bValue = normalizeString(getContextName(b.context));
+                        return sortConfig.direction === "ascending" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+
+                    case "isTrending":
+                        aValue = a.isTrending ? 1 : 0;
+                        bValue = b.isTrending ? 1 : 0;
+                        return sortConfig.direction === "ascending" ? aValue - bValue : bValue - aValue;
+
+                    default:
+                        aValue = normalizeString(a[sortConfig.key]);
+                        bValue = normalizeString(b[sortConfig.key]);
+                        return sortConfig.direction === "ascending" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+                }
+            });
+        }
+
+        return data;
+    }, [filteredPosts, sortConfig, contexts?.data]);
+
+    // Frontend pagination
+    const totalPages = Math.max(1, Math.ceil(processedPosts.length / itemsPerPage));
+    const currentPage = Math.min(page, totalPages);
+    const paginatedPosts = processedPosts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    // Reset page if current page is beyond total pages
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setPage(1);
+        }
+    }, [totalPages, currentPage]);
 
     const handleNextPage = () => {
-        if (page < totalPages) setPage(page + 1);
+        if (currentPage < totalPages) setPage(currentPage + 1);
     };
 
     const handlePrevPage = () => {
-        if (page > 1) setPage(page - 1);
+        if (currentPage > 1) setPage(currentPage - 1);
     };
 
     if (isLoading && (!contexts?.data || contexts.data.length === 0)) {
@@ -250,7 +245,7 @@ export default function PostList() {
             if (response.status === 200) {
                 postsDispatch({ type: "REMOVE_POST", payload: id });
                 toast.success('posts removed successfully!')
-                await fetchPosts(); 
+                await fetchAllPosts(); // Refresh all posts after deletion
             }
         } catch (error) {
             toast.error("Failed to delete post. Please try again.");
@@ -411,13 +406,15 @@ export default function PostList() {
         window.open(`/contexts?filterContexts=${contextIds.join(',')}`, '_blank');
     };
 
+    const today = new Date().toISOString().split('T')[0];
+
     return (
         <div className="post-list-container">
             <div className="post-list-controls">
                 <button className="add-post-btn" onClick={handleAddClick}>Add Post</button>
                 <div className="date-range-controls">
-                    <label>From: <input type="date" value={dateRange.start} onChange={e => setDateRange(r => ({ ...r, start: e.target.value }))} /></label>
-                    <label>To: <input type="date" value={dateRange.end} onChange={e => setDateRange(r => ({ ...r, end: e.target.value }))} /></label>
+                    <label>From: <input type="date" value={dateRange.start} onChange={e => setDateRange(r => ({ ...r, start: e.target.value }))} max={today} /></label>
+                    <label>To: <input type="date" value={dateRange.end} onChange={e => setDateRange(r => ({ ...r, end: e.target.value }))} max={today} /></label>
                     <button className="download-csv-btn" onClick={handleDownloadCSV}>Download CSV</button>
                 </div>
             </div>
@@ -434,18 +431,28 @@ export default function PostList() {
             <table className="post-table">
                 <thead>
                     <tr>
-                        <th onClick={() => requestSort("date")}>Date</th>
-                        <th onClick={() => requestSort("postTitle")}>Post Title</th>
-                        <th onClick={() => requestSort("context")}>Context</th>
-                        <th onClick={() => requestSort("postType")}>Post Type</th>
-                        <th onClick={() => requestSort("isTrending")}>Is Trending</th>
+                        <th onClick={() => requestSort("date")}>
+                            Date {sortConfig.key === "date" && (sortConfig.direction === "ascending" ? "🔼" : "🔽")}
+                        </th>
+                        <th onClick={() => requestSort("postTitle")}>
+                            Post Title {sortConfig.key === "postTitle" && (sortConfig.direction === "ascending" ? "🔼" : "🔽")}
+                        </th>
+                        <th onClick={() => requestSort("context")}>
+                            Context {sortConfig.key === "context" && (sortConfig.direction === "ascending" ? "🔼" : "🔽")}
+                        </th>
+                        <th onClick={() => requestSort("postType")}>
+                            Post Type {sortConfig.key === "postType" && (sortConfig.direction === "ascending" ? "🔼" : "🔽")}
+                        </th>
+                        <th onClick={() => requestSort("isTrending")}>
+                            Is Trending {sortConfig.key === "isTrending" && (sortConfig.direction === "ascending" ? "🔼" : "🔽")}
+                        </th>
                         <th>Actions</th>
                         <th>Show Contexts</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredPosts.length > 0 ? (
-                        filteredPosts.map((post) => (
+                    {paginatedPosts.length > 0 ? (
+                        paginatedPosts.map((post) => (
                             <tr key={post._id}>
                                 <td>{post.date ? new Date(post.date).toLocaleDateString() : ''}</td>
                                 <td>{post.postTitle}</td>
@@ -489,9 +496,9 @@ export default function PostList() {
 
             {/* Pagination Controls */}
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
-                <button onClick={handlePrevPage} disabled={page === 1} style={{ padding: '0.5rem 1rem' }}>Previous</button>
-                <span>Page {page} of {totalPages}</span>
-                <button onClick={handleNextPage} disabled={page === totalPages} style={{ padding: '0.5rem 1rem' }}>Next</button>
+                <button onClick={handlePrevPage} disabled={currentPage === 1} style={{ padding: '0.5rem 1rem' }}>Previous</button>
+                <span>Page {currentPage} of {totalPages}</span>
+                <button onClick={handleNextPage} disabled={currentPage === totalPages} style={{ padding: '0.5rem 1rem' }}>Next</button>
             </div>
         </div>
     );

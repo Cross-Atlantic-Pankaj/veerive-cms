@@ -13,7 +13,6 @@ export default function MarketDataForm() {
   const [sector, setSector] = useState('');
   const [subSector, setSubSector] = useState('');
   const [sourceName, setSourceName] = useState('');
-  const [url, setUrl] = useState('');
   const [csvUpload, setCsvUpload] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -41,7 +40,6 @@ export default function MarketDataForm() {
         sector,
         subSector,
         sourceName,
-        url,
         csvUpload
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -140,18 +138,6 @@ export default function MarketDataForm() {
                   <option key={src._id} value={src.sourceName}>{src.sourceName}</option>
                 ))}
               </select>
-            </div>
-            
-            <div>
-              <label>URL <span style={{color: 'red'}}>*</span></label>
-              <input 
-                className="company-input" 
-                value={url} 
-                onChange={e => setUrl(e.target.value)} 
-                required 
-                placeholder="Enter URL"
-                type="url"
-              />
             </div>
             
             <div>

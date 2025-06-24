@@ -62,19 +62,32 @@ themesCltr.delete = async (req, res) => {
     }
 }
 
+// Helper to always return sectors/subSectors as array of ObjectId strings
+function toIdArray(arr) {
+    if (!Array.isArray(arr)) return [];
+    return arr.map(item => (item && item._id ? String(item._id) : String(item)));
+}
 
 // Get paginated themes
 themesCltr.list = async (req, res) => {
     try {
-        const { page = 1, limit = 10 } = req.query; // Get page and limit from query params
+        const { page = 1, limit = 10 } = req.query;
         const pageNumber = parseInt(page);
         const limitNumber = parseInt(limit);
 
-        const themes = await Theme.find({})
+        let themes = await Theme.find({})
+            .populate('sectors')
+            .populate('subSectors')
             .skip((pageNumber - 1) * limitNumber)
             .limit(limitNumber);
 
         const totalThemes = await Theme.countDocuments();
+        themes = themes.map(theme => {
+            const t = theme.toObject();
+            t.sectors = toIdArray(t.sectors);
+            t.subSectors = toIdArray(t.subSectors);
+            return t;
+        });
 
         res.json({
             themes,
@@ -89,10 +102,17 @@ themesCltr.list = async (req, res) => {
     }
 };
 
-
 themesCltr.getAllThemes = async (req, res) => {
     try {
-        const allThemes = await Theme.find({}); // ✅ No pagination, fetch all themes
+        let allThemes = await Theme.find({})
+            .populate('sectors')
+            .populate('subSectors');
+        allThemes = allThemes.map(theme => {
+            const t = theme.toObject();
+            t.sectors = toIdArray(t.sectors);
+            t.subSectors = toIdArray(t.subSectors);
+            return t;
+        });
         res.json({ success: true, themes: allThemes });
     } catch (err) {
         console.error("Error fetching all themes:", err);
@@ -104,12 +124,15 @@ themesCltr.getAllThemes = async (req, res) => {
 themesCltr.getOne = async (req, res) => {
     try {
         const id = req.params.id;
-        const theme = await Theme.findById(id);
-        
+        let theme = await Theme.findById(id)
+            .populate('sectors')
+            .populate('subSectors');
         if (!theme) {
             return res.status(404).json({ message: 'Theme not found' });
         }
-        
+        theme = theme.toObject();
+        theme.sectors = toIdArray(theme.sectors);
+        theme.subSectors = toIdArray(theme.subSectors);
         res.json(theme);
     } catch (err) {
         console.error("Error fetching theme:", err);

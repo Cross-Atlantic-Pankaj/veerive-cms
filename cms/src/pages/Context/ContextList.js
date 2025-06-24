@@ -1,4 +1,4 @@
-import React, { useContext, useState, useMemo, useEffect } from 'react'; // Importing necessary hooks and components from React
+import React, { useContext, useState, useMemo, useEffect, useCallback } from 'react'; // Importing necessary hooks and components from React
 import ContextContext from '../../context/ContextContext'; // Importing the context for managing global state
 import axios from '../../config/axios'; // Importing axios instance for making HTTP requests
 import '../../html/css/Context.css'; // Importing the CSS file for styling the component
@@ -23,8 +23,10 @@ export default function ContextList() {
     const { allThemes } = useContext(ContextContext); // ✅ Use allThemes
     const { state } = useContext(AuthContext);
     const userRole = state.user?.role;
+    
     // Local state to manage the search query and sorting configuration
     const [sortConfig, setSortConfig] = useState({ key: 'contextTitle', direction: 'ascending' });
+    const [localSearchQuery, setLocalSearchQuery] = useState(''); // Local search state
     const [contextsData, setContextsData] = useState([]); // ✅ New local state for rendering
     const [downloadStartDate, setDownloadStartDate] = useState('');
     const [downloadEndDate, setDownloadEndDate] = useState('');
@@ -34,7 +36,6 @@ export default function ContextList() {
     const location = useLocation();
     const query = useQuery();
     const navigate = useNavigate();
-    const [displayedContexts, setDisplayedContexts] = useState([]);
 
     // Get the filter parameter from URL
     const filterContextIds = query.get('filterContexts')?.split(',').filter(Boolean) || [];
@@ -75,16 +76,14 @@ export default function ContextList() {
         }
     }, [page]);
 
-    // // Fetch contexts from the API on component mount or when the context changes
-
+    // Fetch contexts from the API on component mount or when the context changes
     useEffect(() => {
         const fetchContexts = async () => {
             setIsLoading(true);
     
             try {
-                const apiUrl = searchQuery.trim()
-                    ? `/api/admin/contexts/all?search=${encodeURIComponent(searchQuery)}`
-                    : `/api/admin/contexts?page=${page}&limit=10`;
+                // Always fetch paginated data, search will be handled client-side
+                const apiUrl = `/api/admin/contexts?page=${page}&limit=10`;
     
                 console.log(`🔍 Fetching contexts from: ${apiUrl}`);
     
@@ -93,16 +92,21 @@ export default function ContextList() {
                 });
     
                 if (response.data.success) {
+                    console.log('📊 API Response:', {
+                        contextsCount: response.data.contexts?.length || 0,
+                        totalPages: response.data.totalPages,
+                        page: response.data.page,
+                        total: response.data.total
+                    });
+                    
                     contextsDispatch({ 
-                        
                         type: "SET_CONTEXTS", 
                         payload: { 
                             contexts: response.data.contexts, 
-                            totalPages: searchQuery.trim() ? 1 : response.data.totalPages, 
-                            page: searchQuery.trim() ? 1 : response.data.page
+                            totalPages: response.data.totalPages || 1, 
+                            page: response.data.page || 1
                         } 
                     });
-                
                 }
             } catch (err) {
                 console.error("❌ Error fetching contexts:", err);
@@ -113,8 +117,7 @@ export default function ContextList() {
         };
     
         fetchContexts();
-    }, [page, searchQuery]); // ✅ Fetch when `page` or `searchQuery` changes
-    
+    }, [page]); // ✅ Only fetch when page changes, NOT when searchQuery changes
     
     // Helper function to get sector names from IDs
     const getSectorNames = (ids, data) => {
@@ -147,14 +150,6 @@ export default function ContextList() {
     };
 
     // Helper function to get theme names from IDs
-    // const getThemeNames = (ids, data) => {
-    //     if (!Array.isArray(ids)) return 'Unknown'; // Return 'Unknown' if IDs are not an array
-    //     const themeNames = ids.map(id => {
-    //         const item = data.find(ele => ele._id === id); // Find the theme by ID
-    //         return item ? item.themeTitle : 'Unknown'; // Return the theme title or 'Unknown' if not found
-    //     });
-    //     return themeNames.join(', '); // Join theme titles with a comma
-    // };
     const getThemeNames = (ids) => {
         if (!Array.isArray(ids)) return 'Unknown';
         
@@ -164,19 +159,48 @@ export default function ContextList() {
         }).join(', ');
     };
 
-    // Memoized sortedContexts to avoid re-sorting on every render
-    const sortedContexts = useMemo(() => {
-        let sortableContexts = [...(contexts.data || [])]; // Clone the contexts data array
+    // Consolidated sorting and filtering logic - NOW uses localSearchQuery instead of searchQuery
+    const processedContexts = useMemo(() => {
+        // Use allContexts for search functionality, contexts.data for normal pagination
+        let data = localSearchQuery.trim() ? allContexts : (contexts.data || []);
+        
+        // Apply context ID filter if present
+        if (filterContextIds.length > 0) {
+            data = data.filter(context => filterContextIds.includes(context._id));
+        }
 
+        // Apply search filter using localSearchQuery
+        if (localSearchQuery.trim()) {
+            data = data.filter(context => {
+                const formattedDate = format(new Date(context.date), 'yyyy-MM-dd');
+                return (
+                    (context.contextTitle && context.contextTitle.toLowerCase().includes(localSearchQuery.toLowerCase())) ||
+                    (formattedDate && formattedDate.startsWith(localSearchQuery))
+                );
+            });
+        }
+
+        // Apply sorting
         if (sortConfig !== null) {
-            sortableContexts.sort((a, b) => {
+            data.sort((a, b) => {
                 let aValue, bValue;
 
-                // Determine the value to be compared based on the sorting key
                 switch (sortConfig.key) {
+                    case 'date':
+                        aValue = new Date(a.date);
+                        bValue = new Date(b.date);
+                        break;
                     case 'contextTitle':
-                        aValue = a.contextTitle;
-                        bValue = b.contextTitle;
+                        aValue = a.contextTitle || '';
+                        bValue = b.contextTitle || '';
+                        break;
+                    case 'displayOrder':
+                        aValue = a.displayOrder || 0;
+                        bValue = b.displayOrder || 0;
+                        break;
+                    case 'containerType':
+                        aValue = a.containerType || '';
+                        bValue = b.containerType || '';
                         break;
                     case 'sectors':
                         aValue = getSectorNames(a.sectors, sectors.data);
@@ -191,16 +215,25 @@ export default function ContextList() {
                         bValue = getSignalNames(b.signalCategories, signals.data);
                         break;
                     case 'themes':
-                        aValue = getThemeNames(a.themes, themes.data);
-                        bValue = getThemeNames(b.themes, themes.data);
+                        aValue = getThemeNames(a.themes);
+                        bValue = getThemeNames(b.themes);
                         break;
                     default:
-                        aValue = a[sortConfig.key];
-                        bValue = b[sortConfig.key];
+                        aValue = a[sortConfig.key] || '';
+                        bValue = b[sortConfig.key] || '';
                         break;
                 }
 
-                // Sort based on the direction (ascending/descending)
+                // Handle null/undefined values
+                if (aValue === null || aValue === undefined) aValue = '';
+                if (bValue === null || bValue === undefined) bValue = '';
+
+                // Convert to strings for comparison if they're not dates
+                if (sortConfig.key !== 'date' && sortConfig.key !== 'displayOrder') {
+                    aValue = String(aValue).toLowerCase();
+                    bValue = String(bValue).toLowerCase();
+                }
+
                 if (aValue < bValue) {
                     return sortConfig.direction === 'ascending' ? -1 : 1;
                 }
@@ -210,23 +243,45 @@ export default function ContextList() {
                 return 0;
             });
         }
-        return sortableContexts; // Return the sorted array
-    }, [contexts.data, sortConfig, sectors.data, subSectors.data, signals.data, themes.data]);
 
-    // Filter contexts based on the search query
-    const filteredContexts = useMemo(() => {
-        if (!searchQuery) return contexts.data || []; // ✅ Use API data if no search query
-        
-        return contexts.data.filter(context => {
-            const formattedDate = format(new Date(context.date), 'yyyy-MM-dd');
+        return data;
+    }, [allContexts, contexts.data, localSearchQuery, sortConfig, filterContextIds, sectors.data, subSectors.data, signals.data, allThemes]);
+
+    // Determine if we're in search mode
+    const isSearchMode = localSearchQuery.trim().length > 0;
+
+    // Calculate pagination for processed data
+    const itemsPerPage = 10;
+    const totalFilteredItems = processedContexts.length;
+    const totalFilteredPages = Math.ceil(totalFilteredItems / itemsPerPage);
     
-            return (
-                (context.contextTitle && context.contextTitle.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                (formattedDate && formattedDate.startsWith(searchQuery))
-            );
-        });
-    }, [contexts.data, searchQuery]);
-    
+    // In search mode, show all results. In normal mode, use server pagination
+    const currentPageData = isSearchMode 
+        ? processedContexts // Show all filtered results when searching
+        : processedContexts; // Use backend paginated data as-is in normal mode
+
+    // Use appropriate total pages with fallback
+    const displayTotalPages = isSearchMode ? totalFilteredPages : (totalPages || 1);
+
+    // Debug logging
+    console.log('🔍 Pagination Debug:', {
+        isSearchMode,
+        localSearchQuery,
+        totalFilteredItems,
+        totalFilteredPages,
+        totalPages,
+        displayTotalPages,
+        currentPageDataLength: currentPageData.length,
+        page
+    });
+
+    // Update pagination when filtered results change
+    useEffect(() => {
+        if (isSearchMode && page > totalFilteredPages && totalFilteredPages > 0) {
+            setPage(1);
+        }
+    }, [totalFilteredPages, page, setPage, isSearchMode]);
+
     // Handle the removal of a context
     const handleRemove = async (id) => {
         if (!window.confirm('Are you sure you want to delete this context?')) return;
@@ -245,14 +300,13 @@ export default function ContextList() {
         }
     };
 
-    // Placeholder for additional logic if needed during search
-    
+    // Handle search input change
     const handleSearch = (e) => {
-        setSearchQuery(e.target.value);
+        setLocalSearchQuery(e.target.value);
     };
 
     const handleNextPage = () => {
-        if (page < totalPages) {
+        if (page < displayTotalPages) {
             console.log("Navigating to Next Page:", page + 1);
             setPage(page + 1);
             localStorage.setItem('contextPage', page + 1);  // ✅ Store updated page in local storage
@@ -371,112 +425,7 @@ export default function ContextList() {
         }
     };
 
-    // Memoized sorted and filtered contexts
-    const sortedAndFilteredContexts = useMemo(() => {
-        let filtered = allContexts;
-
-        // Apply date range filter
-        if (downloadStartDate || downloadEndDate) {
-            filtered = filtered.filter(context => {
-                const ctxDate = new Date(context.date);
-                const start = downloadStartDate ? new Date(downloadStartDate) : null;
-                const end = downloadEndDate ? new Date(downloadEndDate) : null;
-                return (!start || ctxDate >= start) && (!end || ctxDate <= end);
-            });
-        }
-
-        // Apply search filter
-        if (searchQuery) {
-            filtered = filtered.filter(context => {
-                const formattedDate = format(new Date(context.date), 'yyyy-MM-dd');
-                return (
-                    (context.contextTitle && context.contextTitle.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                    (formattedDate && formattedDate.startsWith(searchQuery))
-                );
-            });
-        }
-
-        // Apply sorting
-        if (sortConfig !== null) {
-            filtered.sort((a, b) => {
-                let aValue, bValue;
-
-                switch (sortConfig.key) {
-                    case 'contextTitle':
-                        aValue = a.contextTitle;
-                        bValue = b.contextTitle;
-                        break;
-                    case 'sectors':
-                        aValue = getSectorNames(a.sectors, sectors.data);
-                        bValue = getSectorNames(b.sectors, sectors.data);
-                        break;
-                    case 'subSectors':
-                        aValue = getSubSectorNames(a.subSectors, subSectors.data);
-                        bValue = getSubSectorNames(b.subSectors, subSectors.data);
-                        break;
-                    case 'signalCategories':
-                        aValue = getSignalNames(a.signalCategories, signals.data);
-                        bValue = getSignalNames(b.signalCategories, signals.data);
-                        break;
-                    case 'themes':
-                        aValue = getThemeNames(a.themes);
-                        bValue = getThemeNames(b.themes);
-                        break;
-                    default:
-                        aValue = a[sortConfig.key];
-                        bValue = b[sortConfig.key];
-                        break;
-                }
-
-                if (aValue < bValue) {
-                    return sortConfig.direction === 'ascending' ? -1 : 1;
-                }
-                if (aValue > bValue) {
-                    return sortConfig.direction === 'ascending' ? 1 : -1;
-                }
-                return 0;
-            });
-        }
-
-        return filtered;
-    }, [allContexts, searchQuery, sortConfig, sectors.data, subSectors.data, signals.data, downloadStartDate, downloadEndDate]);
-
-    // Calculate pagination
-    const itemsPerPage = 10;
-    const totalFilteredItems = sortedAndFilteredContexts.length;
-    const totalFilteredPages = Math.ceil(totalFilteredItems / itemsPerPage);
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentPageData = sortedAndFilteredContexts.slice(startIndex, endIndex);
-
-    // Update pagination when filtered results change
-    useEffect(() => {
-        if (page > totalFilteredPages) {
-            setPage(1);
-        }
-    }, [totalFilteredPages, page]);
-
-    useEffect(() => {
-        if (contexts?.data) {
-            let filtered = [...contexts.data];
-            
-            // First apply context ID filter if present
-            if (filterContextIds.length > 0) {
-                console.log('Filtering contexts with IDs:', filterContextIds);
-                filtered = filtered.filter(context => filterContextIds.includes(context._id));
-                console.log('Filtered contexts:', filtered);
-            }
-
-            // Then apply search filter if present
-            if (searchQuery.trim()) {
-                filtered = filtered.filter(context =>
-                    context.contextTitle.toLowerCase().includes(searchQuery.toLowerCase())
-                );
-            }
-
-            setDisplayedContexts(filtered);
-        }
-    }, [contexts?.data, filterContextIds, searchQuery]);
+    const today = new Date().toISOString().split('T')[0];
 
     if (isLoading) return <LoadingSpinner />;
 
@@ -491,11 +440,11 @@ export default function ContextList() {
                 <div className="center-controls">
                     <label>
                         Start Date:
-                        <input type="date" value={downloadStartDate} onChange={e => setDownloadStartDate(e.target.value)} placeholder="dd-mm-yyyy" />
+                        <input type="date" value={downloadStartDate} onChange={e => setDownloadStartDate(e.target.value)} placeholder="dd-mm-yyyy" max={today} />
                     </label>
                     <label>
                         End Date:
-                        <input type="date" value={downloadEndDate} onChange={e => setDownloadEndDate(e.target.value)} placeholder="dd-mm-yyyy" />
+                        <input type="date" value={downloadEndDate} onChange={e => setDownloadEndDate(e.target.value)} placeholder="dd-mm-yyyy" max={today} />
                     </label>
                     <button onClick={handleDownloadCSV} disabled={isDownloading} style={{ minWidth: '120px' }}>
                         {isDownloading ? 'Downloading...' : 'Download CSV'}
@@ -505,11 +454,10 @@ export default function ContextList() {
                     <input
                         type="text"
                         placeholder="Search by Title or Date..."
-                        value={searchQuery}
+                        value={localSearchQuery}
                         onChange={handleSearch}
                         className="search-input"
                     />
-                    <button className="search-btn" onClick={handleSearch}>Search</button>
                 </div>
             </div>
             <table className="context-table">
@@ -547,8 +495,8 @@ export default function ContextList() {
             </thead>
             <tbody>
                 {/* Table body with context data */}
-                {displayedContexts.length > 0 ? (
-                    displayedContexts.map((ele) => (
+                {currentPageData.length > 0 ? (
+                    currentPageData.map((ele) => (
                         <tr key={ele._id}>
                             <td className="date-cell">{
                                 ele.date && (
@@ -576,16 +524,23 @@ export default function ContextList() {
                     ))
                 ) : (
                     <tr>
-                        <td colSpan="3" style={{ textAlign: 'center' }}>
+                        <td colSpan="10" style={{ textAlign: 'center' }}>
                             {filterContextIds.length > 0 
                                 ? 'No matching contexts found for this filter'
+                                : localSearchQuery.trim()
+                                ? 'No contexts found matching your search'
                                 : 'No contexts found'}
                         </td>
                     </tr>
                 )}
             </tbody>
         </table>
-        <div className="pagination">
+        {isSearchMode ? (
+            <div className="pagination">
+                <span>Showing all {currentPageData.length} results for "{localSearchQuery}"</span>
+            </div>
+        ) : (
+            <div className="pagination">
                 <button 
                     onClick={handlePrevPage}  // ✅ Handle Previous Page
                     disabled={page === 1}     // ✅ Disable on First Page
@@ -593,15 +548,16 @@ export default function ContextList() {
                     Previous
                 </button>
 
-                <span> Page {page} of {totalFilteredPages} </span>  {/* ✅ Display Current Page & Total Pages */}
+                <span> Page {page} of {displayTotalPages} </span>  {/* ✅ Display Current Page & Total Pages */}
 
                 <button 
                     onClick={handleNextPage}  // ✅ Handle Next Page
-                    disabled={page === totalFilteredPages}  // ✅ Disable on Last Page
+                    disabled={page === displayTotalPages || displayTotalPages === 0}  // ✅ Disable on Last Page or when no pages
                 >
                     Next
                 </button>
             </div>
-            </div>
+        )}
+        </div>
     );
 }

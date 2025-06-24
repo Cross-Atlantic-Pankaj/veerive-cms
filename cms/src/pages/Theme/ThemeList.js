@@ -11,6 +11,13 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
+function normalizeString(str) {
+    return (str || '')
+        .trim()
+        .replace(/^[^a-zA-Z0-9]+/, '')
+        .toLowerCase();
+}
+
 export default function ThemeList() {
     const { 
         themes, 
@@ -40,13 +47,10 @@ export default function ThemeList() {
     const [isRefreshingThemes, setIsRefreshingThemes] = useState(false);
 
     useEffect(() => {
-        console.log("ThemeList mounted, fetching themes...");
-        fetchThemes(currentPage);
         fetchAllThemes();
     }, []);
 
     useEffect(() => {
-        console.log("Edit ID changed:", themes.editId);
         if (themes.editId) {
             setIsFormVisible(true);
         }
@@ -59,7 +63,6 @@ export default function ThemeList() {
     }, [editIdFromQuery, handleEditClick]);
 
     useEffect(() => {
-        // Only trigger if editId changes
         if (location.state && location.state.editId && location.state.editId !== prevEditId.current) {
             handleEditClick(location.state.editId);
             prevEditId.current = location.state.editId;
@@ -82,28 +85,43 @@ export default function ThemeList() {
         }).join(', '); 
     };
 
+    // Always use allThemes for sorting/searching/pagination
     const sortedThemes = useMemo(() => {
-        let sortableThemes = searchQuery ? [...themes.allThemes] : [...themes.data];
+        let sortableThemes = [...(themes.allThemes || [])];
         if (sortConfig !== null) {
             sortableThemes.sort((a, b) => {
-                if (a[sortConfig.key] < b[sortConfig.key]) {
+                if (sortConfig.key === 'themeTitle') {
+                    const aValue = normalizeString(a.themeTitle);
+                    const bValue = normalizeString(b.themeTitle);
+                    return sortConfig.direction === 'ascending' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+                }
+                if ((a[sortConfig.key] || '') < (b[sortConfig.key] || '')) {
                     return sortConfig.direction === 'ascending' ? -1 : 1;
                 }
-                if (a[sortConfig.key] > b[sortConfig.key]) {
+                if ((a[sortConfig.key] || '') > (b[sortConfig.key] || '')) {
                     return sortConfig.direction === 'ascending' ? 1 : -1;
                 }
                 return 0;
             });
         }
         return sortableThemes;
-    }, [themes.data, themes.allThemes, searchQuery, sortConfig]);
+    }, [themes.allThemes, sortConfig]);
     
-    const filteredThemes = sortedThemes.filter(theme =>
-        (theme.themeTitle || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        getSectorNames(theme.sectors, sectors.data).toLowerCase().includes(searchQuery.toLowerCase()) ||
-        getSubSectorNames(theme.subSectors, subSectors.data).toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    
+    // Search on allThemes
+    const filteredThemes = useMemo(() => {
+        return sortedThemes.filter(theme =>
+            (theme.themeTitle || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            getSectorNames(theme.sectors, sectors.data).toLowerCase().includes(searchQuery.toLowerCase()) ||
+            getSubSectorNames(theme.subSectors, subSectors.data).toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [sortedThemes, searchQuery, sectors.data, subSectors.data]);
+
+    // Pagination on filteredThemes
+    const itemsPerPage = 10;
+    const totalPages = Math.max(1, Math.ceil(filteredThemes.length / itemsPerPage));
+    const currentPageSafe = Math.min(currentPage, totalPages);
+    const paginatedThemes = filteredThemes.slice((currentPageSafe - 1) * itemsPerPage, currentPageSafe * itemsPerPage);
+
     const handleRemove = async (id) => {
         const userInput = window.confirm('Are you sure you want to remove this theme?');
         if (userInput) {
@@ -111,7 +129,7 @@ export default function ThemeList() {
                 await axios.delete(`/api/admin/themes/${id}`, { 
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
                 });
-                fetchThemes(currentPage);
+                fetchAllThemes();
             } catch (err) {
                 alert(err.message);
             }
@@ -119,7 +137,6 @@ export default function ThemeList() {
     };
 
     const handleSearch = () => {
-        fetchThemes(1);
         setCurrentPage(1);
     };
 
@@ -150,7 +167,7 @@ export default function ThemeList() {
                 'Predictive Momentum Score Image'
             ];
 
-            // Prepare data rows
+            // Prepare data rows (all filtered themes, not just current page)
             const csvData = filteredThemes.map(theme => [
                 theme.themeTitle || '',
                 theme.isTrending ? 'Yes' : 'No',
@@ -195,10 +212,7 @@ export default function ThemeList() {
         }
     };
 
-    console.log("Current state:", { isFormVisible, editId: themes.editId, themesCount: themes.data.length });
-
     if (isFormVisible) {
-        console.log("Showing ThemeForm");
         return (
             <div className="theme-list-container">
                 <ThemeForm handleFormSubmit={handleFormSubmit} />
@@ -206,32 +220,10 @@ export default function ThemeList() {
         );
     }
 
-    console.log("Showing ThemeList");
     return (
         <div className="theme-list-container">
             <div className="theme-list-top-bar" style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
                 <button className="add-theme-btn" onClick={handleAddClick}>Add Theme</button>
-                <button
-                    className="refresh-theme-btn"
-                    style={{ marginLeft: 8, padding: '4px 10px', borderRadius: 16, background: '#f3f4f6', border: '1px solid #d1d5db', cursor: isRefreshingThemes ? 'not-allowed' : 'pointer', opacity: isRefreshingThemes ? 0.6 : 1 }}
-                    title="Refresh themes"
-                    onClick={async () => {
-                        setIsRefreshingThemes(true);
-                        try {
-                            await fetchThemes(currentPage);
-                            await fetchAllThemes();
-                        } finally {
-                            setIsRefreshingThemes(false);
-                        }
-                    }}
-                    disabled={isRefreshingThemes}
-                >
-                    {isRefreshingThemes ? (
-                        <span style={{ fontSize: 16, display: 'inline-block', animation: 'spin 1s linear infinite' }}>⏳</span>
-                    ) : (
-                        <span>&#x21bb; Refresh</span>
-                    )}
-                </button>
                 <button
                     className="download-csv-btn"
                     style={{
@@ -276,7 +268,7 @@ export default function ThemeList() {
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredThemes.map(ele => (
+                    {paginatedThemes.map(ele => (
                         <tr key={ele._id}>
                             <td>{ele.themeTitle}</td>
                             <td>{getSectorNames(ele.sectors, sectors.data)}</td>
@@ -294,12 +286,12 @@ export default function ThemeList() {
                     ))}
                 </tbody>
             </table>
-            {themes.totalPages > 0 && (
+            {totalPages > 0 && (
                 <div className="pagination">
                     <button
-                        disabled={themes.currentPage === 1}
+                        disabled={currentPageSafe === 1}
                         onClick={() => {
-                            const newPage = Math.max(themes.currentPage - 1, 1);
+                            const newPage = Math.max(currentPageSafe - 1, 1);
                             setCurrentPage(newPage);
                             localStorage.setItem('currentPage', newPage);
                         }}
@@ -307,12 +299,12 @@ export default function ThemeList() {
                         Previous
                     </button>
                     <span>
-                        Page {themes.currentPage} of {themes.totalPages || 1}
+                        Page {currentPageSafe} of {totalPages}
                     </span>
                     <button
-                        disabled={themes.currentPage >= themes.totalPages}
+                        disabled={currentPageSafe >= totalPages}
                         onClick={() => {
-                            const newPage = Math.min(themes.currentPage + 1, themes.totalPages);
+                            const newPage = Math.min(currentPageSafe + 1, totalPages);
                             setCurrentPage(newPage);
                             localStorage.setItem('currentPage', newPage);
                         }}

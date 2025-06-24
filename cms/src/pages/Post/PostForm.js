@@ -14,6 +14,8 @@ import TileTemplateContext from '../../context/TileTemplateContext';
 import JsxParser from 'react-jsx-parser';
 import Tile from '../../components/Tile';
 
+const today = new Date().toISOString().split('T')[0];
+
 const customSelectStyles = {
     option: (provided, state) => ({
       ...provided,
@@ -212,26 +214,42 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
         e.preventDefault();
     
         // Validation checks
-        if (!postTitle.trim() || !date || !postType || !summary || !sentiment) {
-            toast.warn("⚠️ Please fill out all required text fields and selections.");
+        if (!postTitle.trim()) {
+            toast.warn("⚠️ Post Title is required.");
             return;
         }
-
+        if (!date) {
+            toast.warn("⚠️ Date is required.");
+            return;
+        }
+        if (new Date(date) > new Date(today)) {
+            toast.warn("⚠️ Date cannot be in the future.");
+            return;
+        }
+        if (!postType) {
+            toast.warn("⚠️ Post Type is required.");
+            return;
+        }
+        if (!summary) {
+            toast.warn("⚠️ Summary is required.");
+            return;
+        }
+        if (!sentiment) {
+            toast.warn("⚠️ Sentiment is required.");
+            return;
+        }
         if (selectedContexts.length === 0) {
             toast.warn("⚠️ Please select at least one Context.");
             return;
         }
-
         if (selectedCountries.length === 0) {
             toast.warn("⚠️ Please select at least one Country.");
             return;
         }
-
         if (source.length === 0) {
             toast.warn("⚠️ Please select at least one Source.");
             return;
         }
-
         if (sourceUrls.length === 0) {
             toast.warn("⚠️ Please provide at least one Source URL.");
             return;
@@ -374,6 +392,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     onChange={(e) => setDate(e.target.value)}
                     className="post-input"
                     required
+                    max={today}
                 />
                 <label htmlFor="postType">Post Type <span style={{color: 'red'}}>*</span></label>
                 <select
@@ -538,6 +557,15 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                         styles={customSelectStyles}
                         isClearable
                         placeholder="Select a Tile Template"
+                        isSearchable={true}
+                        filterOption={(option, inputValue) => {
+                            const label = option.label || '';
+                            const jsxCode = option.data.jsxCode || '';
+                            return (
+                                label.toLowerCase().includes(inputValue.toLowerCase()) ||
+                                jsxCode.toLowerCase().includes(inputValue.toLowerCase())
+                            );
+                        }}
                     />
                 </div>
                 <button type="submit" className="submit-btn">Save Post</button>
