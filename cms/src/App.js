@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { useContext, useEffect } from 'react'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -54,8 +54,13 @@ import MarketDataForm from './pages/MarketData/MarketDataForm';
 
 function App() {
   const { state, loading  } = useContext(AuthContext);
+  const location = useLocation();
   const postContext = useContext(PostContext); // ✅ Get PostContext safely
   const fetchPosts = postContext?.fetchPosts || (() => {}); // ✅ Prevent error if undefined
+
+  // Define paths where header should be hidden
+  const authPaths = ['/', '/login', '/forgot-password', '/reset-password'];
+  const shouldShowHeader = state.isLoggedIn && !authPaths.includes(location.pathname);
 
   useEffect(() => {
     if (state.isLoggedIn && fetchPosts) {
@@ -65,7 +70,18 @@ function App() {
 
   // If loading is true, show a loading indicator
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        color: '#4F46E5'
+      }}>
+        Loading...
+      </div>
+    );
   }
   return (
     <MasterDataProvider>
@@ -82,7 +98,7 @@ function App() {
                           <PostProvider>
                             <TileTemplateProvider>
                               <div>
-                                {state.isLoggedIn && <HeaderComponent />}
+                                {shouldShowHeader && <HeaderComponent />}
                                 
                                 <Routes>
                                   <Route path="/" element={<Login />} />
