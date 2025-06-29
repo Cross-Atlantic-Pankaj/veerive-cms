@@ -26,7 +26,6 @@ const PostPage = () => {
 
     return (
         <div className="posts-container">
-            <h2>Posts Master</h2>
             {!isFormVisible ? (
                 <PostList />
             ) : (

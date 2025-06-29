@@ -3,19 +3,23 @@ import React, { useContext } from 'react';
 import SubSignalList from './SubSignalList';
 import SubSignalForm from './SubSignalForm';
 import SubSignalContext from '../../context/SubSignalContext';
-import '../../html/css/SubSignal.css';
+import styles from '../../html/css/SubSignal.module.css';
 
 export default function SubSignalPage() {
     const {  isFormVisible, handleAddClick, handleFormSubmit } = useContext(SubSignalContext);
 
     return (
-        <div className="subsignals-container">
-            <h2>SubSignals Master</h2>
+        <div className={styles.contentContainer}>
+            <div className={styles.pageHeader}>
+                <h1 className={styles.pageTitle}>Business Sub-Signals</h1>
+                {!isFormVisible && (
+                    <button className={styles.primaryButton} onClick={handleAddClick}>
+                        + Add New Sub-Signal
+                    </button>
+                )}
+            </div>
             {!isFormVisible ? (
-                <>
-                    <button className="add-subsignal-btn" onClick={handleAddClick}>Add SubSignal</button>
-                    <SubSignalList />
-                </>
+                <SubSignalList />
             ) : (
                 <SubSignalForm handleFormSubmit={handleFormSubmit} />
             )}

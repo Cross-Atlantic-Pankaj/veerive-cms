@@ -1,11 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from '../../config/axios';
 import SectorContext from '../../context/SectorContext';
 import SubSectorContext from '../../context/SubSectorContext';
 import SourceContext from '../../context/SourceContext';
 import { toast } from 'react-toastify';
-import '../../html/css/MarketData.css';
+import styles from '../../html/css/MarketData.module.css';
 
 export default function MarketDataForm() {
   const [title, setTitle] = useState('');
@@ -16,6 +16,8 @@ export default function MarketDataForm() {
   const [csvUpload, setCsvUpload] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEdit = Boolean(id);
   const { sectors } = useContext(SectorContext);
   const { subSectors } = useContext(SubSectorContext);
   const { sources } = useContext(SourceContext);
@@ -24,34 +26,82 @@ export default function MarketDataForm() {
     console.log('Sectors data:', sectors);
   }, [sectors]);
 
+  // Fetch market data for edit mode
+  const fetchMarketData = async () => {
+    if (!id) return;
+    
+    try {
+      setLoading(true);
+      const response = await axios.get(`/api/admin/market-data/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      const data = response.data;
+      setTitle(data.title || '');
+      setDataDescription(data.dataDescription || '');
+      setSector(data.sector?._id || '');
+      setSubSector(data.subSector?._id || '');
+      setSourceName(data.sourceName || '');
+      setCsvUpload(data.csvUpload || '');
+    } catch (error) {
+      console.error('Error fetching market data:', error);
+      toast.error('Failed to fetch market data');
+      navigate('/market-data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isEdit) {
+      fetchMarketData();
+    }
+  }, [id, isEdit]);
+
   // Reset sub-sector when sector changes
   useEffect(() => {
+    if (!isEdit) {
     setSubSector('');
-  }, [sector]);
+    }
+  }, [sector, isEdit]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
     try {
-      await axios.post('/api/admin/market-data', {
+      const requestData = {
         title,
         dataDescription,
         sector,
         subSector,
         sourceName,
         csvUpload
-      }, {
+      };
+
+      if (isEdit) {
+        await axios.put(`/api/admin/market-data/${id}`, requestData, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        toast.success('Market data updated successfully!');
+      } else {
+        await axios.post('/api/admin/market-data', requestData, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       toast.success('Market data added successfully!');
+      }
+      
       navigate('/market-data');
     } catch (error) {
-      console.error('Error adding market data:', error);
-      toast.error('Failed to add market data');
+      console.error('Error saving market data:', error);
+      toast.error(`Failed to ${isEdit ? 'update' : 'add'} market data`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    navigate('/market-data');
   };
 
   const filteredSubSectors = subSectors?.data?.filter(ss => ss.sectorId === sector) || [];
@@ -60,16 +110,29 @@ export default function MarketDataForm() {
   const sectorOptions = sectors?.data || [];
   console.log('Available sector options:', sectorOptions);
 
+  if (isEdit && loading) {
+    return (
+      <div className={styles.formContainer}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <p>Loading market data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="app-container">
-      <div className="content-container">
-        <div className="company-form-container">
-          <h2>Add Market Data</h2>
-          <form onSubmit={handleSubmit} className="company-form">
+    <div className={styles.formContainer}>
+      <button type="button" className={styles.cancelBtn} style={{ marginBottom: 20 }} onClick={() => navigate('/market-data')}>
+        ← Back to Market Data
+      </button>
+      <div className={styles.companyFormContainer}>
+        <h2>{isEdit ? 'Edit' : 'Add'} Market Data</h2>
+        <form onSubmit={handleSubmit} className={styles.companyForm}>
             <div>
               <label>Title <span style={{color: 'red'}}>*</span></label>
               <input 
-                className="company-input" 
+              className={styles.companyInput} 
                 value={title} 
                 onChange={e => setTitle(e.target.value)} 
                 required 
@@ -80,7 +143,7 @@ export default function MarketDataForm() {
             <div>
               <label>Data Description <span style={{color: 'red'}}>*</span></label>
               <textarea 
-                className="company-textarea" 
+              className={styles.companyTextarea} 
                 value={dataDescription} 
                 onChange={e => setDataDescription(e.target.value)} 
                 required 
@@ -91,7 +154,7 @@ export default function MarketDataForm() {
             <div>
               <label>Sector <span style={{color: 'red'}}>*</span></label>
               <select 
-                className="company-select" 
+              className={styles.companySelect} 
                 value={sector} 
                 onChange={e => setSector(e.target.value)} 
                 required
@@ -112,7 +175,7 @@ export default function MarketDataForm() {
             <div>
               <label>Sub-Sector <span style={{color: 'red'}}>*</span></label>
               <select 
-                className="company-select" 
+              className={styles.companySelect} 
                 value={subSector} 
                 onChange={e => setSubSector(e.target.value)} 
                 required
@@ -128,7 +191,7 @@ export default function MarketDataForm() {
             <div>
               <label>Source Name <span style={{color: 'red'}}>*</span></label>
               <select
-                className="company-select"
+              className={styles.companySelect}
                 value={sourceName}
                 onChange={e => setSourceName(e.target.value)}
                 required
@@ -143,22 +206,23 @@ export default function MarketDataForm() {
             <div>
               <label>CSV Upload (URL or file path)</label>
               <input 
-                className="company-input" 
+              className={styles.companyInput} 
                 value={csvUpload} 
                 onChange={e => setCsvUpload(e.target.value)} 
                 placeholder="Enter CSV upload URL or file path (optional)"
               />
             </div>
             
+          <div className={styles.buttonGroup}>
             <button 
-              className="company-submit-btn" 
+              className={styles.companySubmitBtn} 
               type="submit"
               disabled={loading}
             >
               {loading ? 'Adding...' : 'Add Market Data'}
             </button>
+          </div>
           </form>
-        </div>
       </div>
     </div>
   );

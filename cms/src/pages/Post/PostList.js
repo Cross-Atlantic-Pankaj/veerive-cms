@@ -9,6 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useLocation } from 'react-router-dom';
 import { saveAs } from 'file-saver';
 import AuthContext from '../../context/AuthContext';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -27,6 +28,13 @@ export default function PostList() {
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
     const [allPosts, setAllPosts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [confirmationModal, setConfirmationModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+        itemToDelete: null
+    });
     const itemsPerPage = 10;
 
     const fetchAllPosts = async () => {
@@ -171,28 +179,28 @@ export default function PostList() {
     // Combined filtering and sorting
     const processedPosts = useMemo(() => {
         let data = [...filteredPosts];
-        
+    
         if (sortConfig !== null) {
             data.sort((a, b) => {
                 let aValue, bValue;
-
+    
                 switch (sortConfig.key) {
                     case "postTitle":
                     case "postType":
                         aValue = normalizeString(a[sortConfig.key]);
                         bValue = normalizeString(b[sortConfig.key]);
                         return sortConfig.direction === "ascending" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-
+    
                     case "date":
                         aValue = new Date(a.date || 0);
                         bValue = new Date(b.date || 0);
                         return sortConfig.direction === "ascending" ? aValue - bValue : bValue - aValue;
-
+    
                     case "context":
                         aValue = normalizeString(getContextName(a.context));
                         bValue = normalizeString(getContextName(b.context));
                         return sortConfig.direction === "ascending" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-
+    
                     case "isTrending":
                         aValue = a.isTrending ? 1 : 0;
                         bValue = b.isTrending ? 1 : 0;
@@ -205,10 +213,10 @@ export default function PostList() {
                 }
             });
         }
-
+    
         return data;
     }, [filteredPosts, sortConfig, contexts?.data]);
-
+    
     // Frontend pagination
     const totalPages = Math.max(1, Math.ceil(processedPosts.length / itemsPerPage));
     const currentPage = Math.min(page, totalPages);
@@ -233,10 +241,17 @@ export default function PostList() {
         return <h3>Loading Contexts... (But showing posts)</h3>;
     }
     
+    const handleRemoveClick = (id, postTitle) => {
+        setConfirmationModal({
+            isOpen: true,
+            title: 'Delete Post',
+            message: `Are you sure you want to delete "${postTitle}"? This action cannot be undone.`,
+            onConfirm: () => handleRemove(id),
+            itemToDelete: id
+        });
+    };
+
     const handleRemove = async (id) => {
-        const userConfirmed = window.confirm("Are you sure you want to delete this post?");
-        if (!userConfirmed) return;
-    
         try {
             const response = await axios.delete(`/api/admin/posts/${id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -249,7 +264,13 @@ export default function PostList() {
             }
         } catch (error) {
             toast.error("Failed to delete post. Please try again.");
+        } finally {
+            setConfirmationModal(prev => ({ ...prev, isOpen: false }));
         }
+    };
+
+    const handleCloseModal = () => {
+        setConfirmationModal(prev => ({ ...prev, isOpen: false }));
     };
 
     const resolveField = (field, type) => {
@@ -410,6 +431,48 @@ export default function PostList() {
 
     return (
         <div className="post-list-container">
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '24px',
+                paddingBottom: '16px',
+                borderBottom: '1px solid #e5e7eb'
+            }}>
+                <h1 style={{
+                    fontSize: '1.5rem',
+                    color: '#1a1a1a',
+                    margin: 0,
+                    fontFamily: 'Inter, Arial, sans-serif'
+                }}>Posts Master</h1>
+            </div>
+
+            {/* Stats Card */}
+            <div style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                padding: '20px',
+                margin: '20px 0',
+                textAlign: 'center',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+                <div style={{
+                    fontSize: '2.5rem',
+                    fontWeight: 'bold',
+                    background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    marginBottom: '8px'
+                }}>{posts.data.length}</div>
+                <div style={{
+                    fontSize: '1rem',
+                    color: '#64748b',
+                    fontWeight: '500'
+                }}>Total Posts</div>
+            </div>
+            
             <div className="post-list-controls">
                 <button className="add-post-btn" onClick={handleAddClick}>Add Post</button>
                 <div className="date-range-controls">
@@ -460,8 +523,8 @@ export default function PostList() {
                                 <td>{post.postType}</td>
                                 <td>{post.isTrending ? 'Yes' : 'No'}</td>
                                 <td>
-                                    <button className="edit-btn" onClick={() => handleEditClick(post._id)} disabled={userRole === 'User'}>Edit</button>
-                                    <button className="remove-btn" onClick={() => handleRemove(post._id)} disabled={userRole === 'User'}>Remove</button>
+                                    <button className="edit-btn" onClick={() => handleEditClick(post._id)} disabled={userRole === 'User'}>✏️ Edit</button>
+                                    <button className="remove-btn" onClick={() => handleRemoveClick(post._id, post.postTitle)} disabled={userRole === 'User'}>🗑️ Delete</button>
                                 </td>
                                 <td>
                                     <button 
@@ -500,6 +563,17 @@ export default function PostList() {
                 <span>Page {currentPage} of {totalPages}</span>
                 <button onClick={handleNextPage} disabled={currentPage === totalPages} style={{ padding: '0.5rem 1rem' }}>Next</button>
             </div>
+            
+            <ConfirmationModal
+                isOpen={confirmationModal.isOpen}
+                onClose={handleCloseModal}
+                onConfirm={confirmationModal.onConfirm}
+                title={confirmationModal.title}
+                message={confirmationModal.message}
+                confirmText="Delete"
+                cancelText="Cancel"
+                type="danger"
+            />
         </div>
     );
 }

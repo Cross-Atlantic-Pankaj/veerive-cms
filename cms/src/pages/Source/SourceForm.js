@@ -1,16 +1,16 @@
 import React, { useContext, useState, useEffect } from 'react';
 import SourceContext from '../../context/SourceContext';
 import axios from '../../config/axios';
-import '../../html/css/Source.css'; // Ensure this CSS file is created
+import styles from '../../html/css/Source.module.css';
 
 export default function SourceForm() {
     const { sources, sourcesDispatch, handleFormSubmit, setIsFormVisible, isFormVisible } = useContext(SourceContext);
  
-const [sourceName, setSourceName] = useState('');
-const [sourceType, setSourceType] = useState('');
-const [generalComment, setGeneralComment] = useState('');
+    const [sourceName, setSourceName] = useState('');
+    const [sourceType, setSourceType] = useState('');
+    const [generalComment, setGeneralComment] = useState('');
 
-      useEffect(() => {
+    useEffect(() => {
         if (sources.editId) {
             const source = sources.data.find((ele) => ele._id === sources.editId);
             setSourceName(source.sourceName);
@@ -23,7 +23,6 @@ const [generalComment, setGeneralComment] = useState('');
         }
     }, [sources.editId]);
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         const formData = {
@@ -31,7 +30,7 @@ const [generalComment, setGeneralComment] = useState('');
             sourceType,
             generalComment,
         };
-                   if (sources.editId) {
+        if (sources.editId) {
             try {
                 const response = await axios.put(`/api/admin/sources/${sources.editId}`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
                 sourcesDispatch({ type: 'UPDATE_SOURCE', payload: response.data });
@@ -50,47 +49,68 @@ const [generalComment, setGeneralComment] = useState('');
         }
     };
 
-    const handleHomeNav = () =>{
-        setIsFormVisible(false)
-        console.log('form vis', isFormVisible)
-    }
+    const handleHomeNav = () => {
+        setIsFormVisible(false);
+        console.log('form vis', isFormVisible);
+    };
+
+    const handleBackToList = () => {
+        setIsFormVisible(false);
+    };
 
     return (
-        <div className="source-form-container">
-            <button type="button" className="submit-btn" onClick={handleHomeNav}>Source Home</button>
-            <form onSubmit={handleSubmit} className="source-form">
-                <label htmlFor="sourceName">Source Name <span style={{color: 'red'}}>*</span></label>
-                <input
-                    type="text"
-                    name="sourceName"
-                    value={sourceName}
-                    onChange={(e) => setSourceName(e.target.value)}
-                    placeholder="Source Name"
-                    className="source-input"
-                    required
-                />
-                <label htmlFor="sourceType">Source Type <span style={{color: 'red'}}>*</span></label>
-                <select
-                    name="sourceType"
-                    value={sourceType}
-                    onChange={(e) => setSourceType(e.target.value)}
-                    className="source-select"
-                    required
-                >
-                    <option value="">Select Source Type</option>
-                    <option value="News Site">News Site</option>
-                    <option value="Social Media Post">Social Media Post</option>
-                    <option value="Professional Services Firm">Professional Services Firm</option>
-                    <option value="Other">Other</option>
-                </select>
-                <textarea
-                    name="generalComment"
-                    value={generalComment}
-                    onChange={(e) => setGeneralComment(e.target.value)}
-                    placeholder="General Comment"
-                    className="source-textarea"
-                />
-                <button type="submit" className="source-submit-btn">Submit</button>
+        <div className={styles.companyFormContainer}>
+            <button type="button" className={styles.cancelBtn} style={{ marginBottom: 20 }} onClick={handleBackToList}>
+                ← Back to Sources
+            </button>
+            <h2>{sources.editId ? 'Edit Source' : 'Add Source'}</h2>
+            <form onSubmit={handleSubmit} className={styles.companyForm}>
+                <div>
+                    <label>Source Name <span style={{color: 'red'}}>*</span></label>
+                    <input
+                        type="text"
+                        value={sourceName}
+                        onChange={(e) => setSourceName(e.target.value)}
+                        placeholder="Source Name"
+                        className={styles.companyInput}
+                        required
+                    />
+                </div>
+                
+                <div>
+                    <label>Source Type <span style={{color: 'red'}}>*</span></label>
+                    <select
+                        value={sourceType}
+                        onChange={(e) => setSourceType(e.target.value)}
+                        className={styles.companySelect}
+                        required
+                    >
+                        <option value="">Select Source Type</option>
+                        <option value="News Site">News Site</option>
+                        <option value="Social Media Post">Social Media Post</option>
+                        <option value="Professional Services Firm">Professional Services Firm</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label>General Comment</label>
+                    <textarea
+                        value={generalComment}
+                        onChange={(e) => setGeneralComment(e.target.value)}
+                        placeholder="General Comment"
+                        className={styles.companyTextarea}
+                    />
+                </div>
+                
+                <div className={styles.buttonGroup}>
+                    <button type="submit" className={styles.companySubmitBtn}>
+                        {sources.editId ? 'Update Source' : 'Add Source'}
+                    </button>
+                    <button type="button" onClick={handleHomeNav} className={styles.cancelBtn}>
+                        Cancel
+                    </button>
+                </div>
             </form>
         </div>
     );

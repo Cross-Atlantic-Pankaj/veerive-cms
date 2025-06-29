@@ -1,11 +1,14 @@
 import { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from '../../config/axios';
 import SubSectorContext from '../../context/SubSectorContext';
 import SectorContext from '../../context/SectorContext';
+import styles from '../../html/css/SubSector.module.css';
 
 export default function SubSectorForm({ handleFormSubmit }) {
     const { subSectors, subSectorsDispatch, setIsFormVisible, isFormVisible } = useContext(SubSectorContext);
     const { sectors } = useContext(SectorContext);
+    const navigate = useNavigate();
 
     const [subSectorName, setSubSectorName] = useState('');
     const [sectorId, setSectorId] = useState('');
@@ -50,51 +53,70 @@ export default function SubSectorForm({ handleFormSubmit }) {
         }
     };
 
-    const handleHomeNav = () =>{
-        setIsFormVisible(false)
-        console.log('form vis', isFormVisible)
-    }
+    const handleHomeNav = () => {
+        setIsFormVisible(false);
+        console.log('form vis', isFormVisible);
+    };
+
+    const handleBackToList = () => {
+        setIsFormVisible(false);
+        navigate('/sub-sectors');
+    };
 
     return (
-        <div className="sub-sector-form-container">
-            <button type="button" className="submit-btn" onClick={handleHomeNav}>Sub-Sector Home</button>
-            <form onSubmit={handleSubmit} className="sub-sector-form">
-                <h2>{subSectors.editId ? 'Edit Sub-Sector' : 'Add Sub-Sector'}</h2>
-                <label htmlFor="subSectorName">Sub-Sector Name <span style={{color: 'red'}}>*</span></label>
-                <input
-                    type="text"
-                    placeholder="Enter sub-sector name"
-                    name="subSectorName"
-                    value={subSectorName}
-                    onChange={(e) => setSubSectorName(e.target.value)}
-                    className="sub-sector-input"
-                    required
-                />
-                <label htmlFor="sectorId">Sector <span style={{color: 'red'}}>*</span></label>
-                <select
-                    name="sectorId"
-                    value={sectorId}
-                    onChange={(e) => setSectorId(e.target.value)}
-                    className="sub-sector-select"
-                    required
-                >
-                    <option value="">Select Sector</option>
-                    {sectors.data.map((sector) => (
-                        <option key={sector._id} value={sector._id}>
-                            {sector.sectorName}
-                        </option>
-                    ))}
-                </select>
-                <textarea
-                    placeholder="Enter comment"
-                    name="generalComment"
-                    value={generalComment}
-                    onChange={(e) => setGeneralComment(e.target.value)}
-                    className="sub-sector-textarea"
-                />
-                <button type="submit" className="sub-sector-submit-btn">
-                    {subSectors.editId ? 'Update Sub-Sector' : 'Add Sub-Sector'}
-                </button>
+        <div className={styles.companyFormContainer}>
+            <button type="button" className={styles.cancelBtn} style={{ marginBottom: 20 }} onClick={handleBackToList}>
+                ← Back to Sub-Sectors
+            </button>
+            <h2>{subSectors.editId ? 'Edit Sub-Sector' : 'Add Sub-Sector'}</h2>
+            <form onSubmit={handleSubmit} className={styles.companyForm}>
+                <div>
+                    <label>Sub-Sector Name <span style={{color: 'red'}}>*</span></label>
+                    <input
+                        type="text"
+                        placeholder="Enter sub-sector name"
+                        value={subSectorName}
+                        onChange={(e) => setSubSectorName(e.target.value)}
+                        className={styles.companyInput}
+                        required
+                    />
+                </div>
+                
+                <div>
+                    <label>Sector <span style={{color: 'red'}}>*</span></label>
+                    <select
+                        value={sectorId}
+                        onChange={(e) => setSectorId(e.target.value)}
+                        className={styles.companySelect}
+                        required
+                    >
+                        <option value="">Select Sector</option>
+                        {sectors.data.map((sector) => (
+                            <option key={sector._id} value={sector._id}>
+                                {sector.sectorName}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                
+                <div>
+                    <label>General Comment</label>
+                    <textarea
+                        placeholder="Enter comment"
+                        value={generalComment}
+                        onChange={(e) => setGeneralComment(e.target.value)}
+                        className={styles.companyTextarea}
+                    />
+                </div>
+                
+                <div className={styles.buttonGroup}>
+                    <button type="submit" className={styles.companySubmitBtn}>
+                        {subSectors.editId ? 'Update Sub-Sector' : 'Add Sub-Sector'}
+                    </button>
+                    <button type="button" onClick={handleHomeNav} className={styles.cancelBtn}>
+                        Cancel
+                    </button>
+                </div>
             </form>
         </div>
     );

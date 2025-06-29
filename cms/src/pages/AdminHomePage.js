@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Card, CardContent, Typography, Box, Fade } from '@mui/material';
 import AuthContext from '../context/AuthContext';
+import styles from '../html/css/AdminHome.module.css';
 
 const AdminHomePage = () => {
     const { state } = useContext(AuthContext);
@@ -12,75 +12,51 @@ const AdminHomePage = () => {
         return () => clearInterval(timer);
     }, []);
 
+    const getRoleBadgeClass = (role) => {
+        switch (role) {
+            case 'SuperAdmin':
+                return `${styles.roleBadge} ${styles.superAdminBadge}`;
+            case 'Admin':
+                return `${styles.roleBadge} ${styles.adminBadge}`;
+            default:
+                return styles.roleBadge;
+        }
+    };
+
     return (
-        <Box
-            sx={{
-                minHeight: '80vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'linear-gradient(120deg, #e0e7ff 0%, #f0fdfa 100%)',
-                position: 'relative',
-                overflow: 'hidden',
-            }}
-        >
-            {/* Subtle animated background circles */}
-            <Fade in timeout={1500}>
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        width: 400,
-                        height: 400,
-                        borderRadius: '50%',
-                        background: 'rgba(99, 102, 241, 0.12)',
-                        top: -100,
-                        left: -100,
-                        zIndex: 0,
-                        animation: 'float1 8s ease-in-out infinite',
-                        '@keyframes float1': {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(30px)' },
-                        },
-                    }}
-                />
-            </Fade>
-            <Fade in timeout={2000}>
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        width: 300,
-                        height: 300,
-                        borderRadius: '50%',
-                        background: 'rgba(16, 185, 129, 0.10)',
-                        bottom: -80,
-                        right: -80,
-                        zIndex: 0,
-                        animation: 'float2 10s ease-in-out infinite',
-                        '@keyframes float2': {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-30px)' },
-                        },
-                    }}
-                />
-            </Fade>
-            <Card sx={{ minWidth: 350, maxWidth: 500, boxShadow: 6, borderRadius: 4, zIndex: 1, background: 'rgba(255,255,255,0.95)' }}>
-                <CardContent>
-                    <Typography variant="h3" align="center" gutterBottom fontWeight={700}>
-                        Welcome, {user.name ? user.name : 'User'}!
-                    </Typography>
-                    <Typography variant="h6" align="center" color="text.secondary" gutterBottom>
-                        Role: <b>{user.role}</b>
-                    </Typography>
-                    <Typography variant="body1" align="center" sx={{ mb: 3 }}>
-                        {dateTime.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}<br />
-                        {dateTime.toLocaleTimeString()}
-                    </Typography>
-                    <Typography variant="body2" align="center" color="text.secondary">
-                        This is your Veerive CMS dashboard. Enjoy your session!
-                    </Typography>
-                </CardContent>
-            </Card>
-        </Box>
+        <div className={styles.adminHomeContainer}>
+            {/* Animated background circles */}
+            <div className={styles.backgroundCircle1}></div>
+            <div className={styles.backgroundCircle2}></div>
+            
+            <div className={styles.welcomeCard}>
+                <h1 className={styles.welcomeTitle}>
+                    Welcome, {user.name || 'User'}!
+                </h1>
+                
+                <div className={styles.roleInfo}>
+                    Role: <span className={getRoleBadgeClass(user.role)}>{user.role}</span>
+                </div>
+                
+                <div className={styles.dateTimeContainer}>
+                    <div className={styles.dateText}>
+                        📅 {dateTime.toLocaleDateString(undefined, { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        })}
+                    </div>
+                    <div className={styles.timeText}>
+                        🕐 {dateTime.toLocaleTimeString()}
+                    </div>
+                </div>
+                
+                <div className={styles.welcomeMessage}>
+                    🎉 This is your Veerive CMS dashboard. Enjoy your session and manage your content with ease!
+                </div>
+            </div>
+        </div>
     );
 };
 

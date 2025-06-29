@@ -8,6 +8,7 @@ import { toast } from 'react-toastify'; // ✅ Import toast
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 import Papa from 'papaparse'; // For CSV generation
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ConfirmationModal from '../../components/ConfirmationModal';
 import AuthContext from '../../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -33,6 +34,13 @@ export default function ContextList() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [postsMap, setPostsMap] = useState({}); // Store post ID to title mapping
     const [allContexts, setAllContexts] = useState([]); // Store all contexts
+    const [confirmationModal, setConfirmationModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+        itemToDelete: null
+    });
     const location = useLocation();
     const query = useQuery();
     const navigate = useNavigate();
@@ -82,8 +90,11 @@ export default function ContextList() {
             setIsLoading(true);
     
             try {
-                // Always fetch paginated data, search will be handled client-side
-                const apiUrl = `/api/admin/contexts?page=${page}&limit=10`;
+                // If sorting is active, fetch all contexts for proper cross-page sorting
+                const needsAllData = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending';
+                const apiUrl = needsAllData 
+                    ? `/api/admin/contexts/all`
+                    : `/api/admin/contexts?page=${page}&limit=10`;
     
                 console.log(`🔍 Fetching contexts from: ${apiUrl}`);
     
@@ -92,21 +103,46 @@ export default function ContextList() {
                 });
     
                 if (response.data.success) {
-                    console.log('📊 API Response:', {
-                        contextsCount: response.data.contexts?.length || 0,
-                        totalPages: response.data.totalPages,
-                        page: response.data.page,
-                        total: response.data.total
-                    });
+                    const contextsData = response.data.contexts || [];
                     
-                    contextsDispatch({ 
-                        type: "SET_CONTEXTS", 
-                        payload: { 
-                            contexts: response.data.contexts, 
-                            totalPages: response.data.totalPages || 1, 
-                            page: response.data.page || 1
-                        } 
-                    });
+                    if (needsAllData) {
+                        // Store all contexts and calculate pagination client-side
+                        setAllContexts(contextsData);
+                        const totalItems = contextsData.length;
+                        const calculatedTotalPages = Math.ceil(totalItems / 10);
+                        
+                        console.log('📊 All Data Response:', {
+                            contextsCount: contextsData.length,
+                            calculatedTotalPages,
+                            page
+                        });
+                        
+                        contextsDispatch({ 
+                            type: "SET_CONTEXTS", 
+                            payload: { 
+                                contexts: contextsData, 
+                                totalPages: calculatedTotalPages, 
+                                page: page
+                            } 
+                        });
+                    } else {
+                        // Use server pagination for default view
+                        console.log('📊 Paginated API Response:', {
+                            contextsCount: contextsData.length,
+                            totalPages: response.data.totalPages,
+                            page: response.data.page,
+                            total: response.data.total
+                        });
+                        
+                        contextsDispatch({ 
+                            type: "SET_CONTEXTS", 
+                            payload: { 
+                                contexts: contextsData, 
+                                totalPages: response.data.totalPages || 1, 
+                                page: response.data.page || 1
+                            } 
+                        });
+                    }
                 }
             } catch (err) {
                 console.error("❌ Error fetching contexts:", err);
@@ -117,7 +153,7 @@ export default function ContextList() {
         };
     
         fetchContexts();
-    }, [page]); // ✅ Only fetch when page changes, NOT when searchQuery changes
+    }, [page, sortConfig]); // ✅ Re-fetch when page OR sortConfig changes
     
     // Helper function to get sector names from IDs
     const getSectorNames = (ids, data) => {
@@ -159,10 +195,20 @@ export default function ContextList() {
         }).join(', ');
     };
 
+    // Helper function to normalize text for sorting (remove non-letters, convert to lowercase)
+    const normalizeForSorting = (text) => {
+        if (!text) return '';
+        return String(text).replace(/[^a-zA-Z]/g, '').toLowerCase();
+    };
+
     // Consolidated sorting and filtering logic - NOW uses localSearchQuery instead of searchQuery
     const processedContexts = useMemo(() => {
-        // Use allContexts for search functionality, contexts.data for normal pagination
-        let data = localSearchQuery.trim() ? allContexts : (contexts.data || []);
+        // Determine which dataset to use
+        const isSortingActive = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending';
+        const isSearchActive = localSearchQuery.trim().length > 0;
+        
+        // Use allContexts when searching or when sorting is active (for cross-page sorting)
+        let data = (isSearchActive || isSortingActive) ? allContexts : (contexts.data || []);
         
         // Apply context ID filter if present
         if (filterContextIds.length > 0) {
@@ -191,36 +237,36 @@ export default function ContextList() {
                         bValue = new Date(b.date);
                         break;
                     case 'contextTitle':
-                        aValue = a.contextTitle || '';
-                        bValue = b.contextTitle || '';
+                        aValue = normalizeForSorting(a.contextTitle);
+                        bValue = normalizeForSorting(b.contextTitle);
                         break;
                     case 'displayOrder':
                         aValue = a.displayOrder || 0;
                         bValue = b.displayOrder || 0;
                         break;
                     case 'containerType':
-                        aValue = a.containerType || '';
-                        bValue = b.containerType || '';
+                        aValue = normalizeForSorting(a.containerType);
+                        bValue = normalizeForSorting(b.containerType);
                         break;
                     case 'sectors':
-                        aValue = getSectorNames(a.sectors, sectors.data);
-                        bValue = getSectorNames(b.sectors, sectors.data);
+                        aValue = normalizeForSorting(getSectorNames(a.sectors, sectors.data));
+                        bValue = normalizeForSorting(getSectorNames(b.sectors, sectors.data));
                         break;
                     case 'subSectors':
-                        aValue = getSubSectorNames(a.subSectors, subSectors.data);
-                        bValue = getSubSectorNames(b.subSectors, subSectors.data);
+                        aValue = normalizeForSorting(getSubSectorNames(a.subSectors, subSectors.data));
+                        bValue = normalizeForSorting(getSubSectorNames(b.subSectors, subSectors.data));
                         break;
                     case 'signalCategories':
-                        aValue = getSignalNames(a.signalCategories, signals.data);
-                        bValue = getSignalNames(b.signalCategories, signals.data);
+                        aValue = normalizeForSorting(getSignalNames(a.signalCategories, signals.data));
+                        bValue = normalizeForSorting(getSignalNames(b.signalCategories, signals.data));
                         break;
                     case 'themes':
-                        aValue = getThemeNames(a.themes);
-                        bValue = getThemeNames(b.themes);
+                        aValue = normalizeForSorting(getThemeNames(a.themes));
+                        bValue = normalizeForSorting(getThemeNames(b.themes));
                         break;
                     default:
-                        aValue = a[sortConfig.key] || '';
-                        bValue = b[sortConfig.key] || '';
+                        aValue = normalizeForSorting(a[sortConfig.key]);
+                        bValue = normalizeForSorting(b[sortConfig.key]);
                         break;
                 }
 
@@ -228,45 +274,68 @@ export default function ContextList() {
                 if (aValue === null || aValue === undefined) aValue = '';
                 if (bValue === null || bValue === undefined) bValue = '';
 
-                // Convert to strings for comparison if they're not dates
-                if (sortConfig.key !== 'date' && sortConfig.key !== 'displayOrder') {
-                    aValue = String(aValue).toLowerCase();
-                    bValue = String(bValue).toLowerCase();
+                // For dates and numbers, use direct comparison
+                if (sortConfig.key === 'date') {
+                    if (aValue < bValue) {
+                        return sortConfig.direction === 'ascending' ? -1 : 1;
+                    }
+                    if (aValue > bValue) {
+                        return sortConfig.direction === 'ascending' ? 1 : -1;
+                    }
+                    return 0;
+                } else if (sortConfig.key === 'displayOrder') {
+                    // Numeric comparison for display order
+                    const numA = Number(aValue) || 0;
+                    const numB = Number(bValue) || 0;
+                    if (numA < numB) {
+                        return sortConfig.direction === 'ascending' ? -1 : 1;
+                    }
+                    if (numA > numB) {
+                        return sortConfig.direction === 'ascending' ? 1 : -1;
+                    }
+                    return 0;
+                } else {
+                    // String comparison for text fields (already normalized)
+                    if (aValue < bValue) {
+                        return sortConfig.direction === 'ascending' ? -1 : 1;
+                    }
+                    if (aValue > bValue) {
+                        return sortConfig.direction === 'ascending' ? 1 : -1;
+                    }
+                    return 0;
                 }
-
-                if (aValue < bValue) {
-                    return sortConfig.direction === 'ascending' ? -1 : 1;
-                }
-                if (aValue > bValue) {
-                    return sortConfig.direction === 'ascending' ? 1 : -1;
-                }
-                return 0;
             });
         }
 
         return data;
     }, [allContexts, contexts.data, localSearchQuery, sortConfig, filterContextIds, sectors.data, subSectors.data, signals.data, allThemes]);
 
-    // Determine if we're in search mode
+    // Determine if we're in search mode or sorting mode
     const isSearchMode = localSearchQuery.trim().length > 0;
+    const isSortingActive = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending';
+    const isClientSideMode = isSearchMode || isSortingActive;
 
     // Calculate pagination for processed data
     const itemsPerPage = 10;
     const totalFilteredItems = processedContexts.length;
     const totalFilteredPages = Math.ceil(totalFilteredItems / itemsPerPage);
     
-    // In search mode, show all results. In normal mode, use server pagination
-    const currentPageData = isSearchMode 
-        ? processedContexts // Show all filtered results when searching
-        : processedContexts; // Use backend paginated data as-is in normal mode
+    // In client-side mode (search or sorting), apply pagination to processed data
+    // In server-side mode, use backend paginated data as-is
+    const currentPageData = isClientSideMode 
+        ? processedContexts.slice((page - 1) * itemsPerPage, page * itemsPerPage)
+        : processedContexts;
 
     // Use appropriate total pages with fallback
-    const displayTotalPages = isSearchMode ? totalFilteredPages : (totalPages || 1);
+    const displayTotalPages = isClientSideMode ? totalFilteredPages : (totalPages || 1);
 
     // Debug logging
     console.log('🔍 Pagination Debug:', {
         isSearchMode,
+        isSortingActive,
+        isClientSideMode,
         localSearchQuery,
+        sortConfig,
         totalFilteredItems,
         totalFilteredPages,
         totalPages,
@@ -277,15 +346,23 @@ export default function ContextList() {
 
     // Update pagination when filtered results change
     useEffect(() => {
-        if (isSearchMode && page > totalFilteredPages && totalFilteredPages > 0) {
+        if (isClientSideMode && page > totalFilteredPages && totalFilteredPages > 0) {
             setPage(1);
         }
-    }, [totalFilteredPages, page, setPage, isSearchMode]);
-
+    }, [totalFilteredPages, page, setPage, isClientSideMode]);
+    
     // Handle the removal of a context
-    const handleRemove = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this context?')) return;
+    const handleRemoveClick = (id, contextTitle) => {
+        setConfirmationModal({
+            isOpen: true,
+            title: 'Delete Context',
+            message: `Are you sure you want to delete "${contextTitle}"? This action cannot be undone.`,
+            onConfirm: () => handleRemove(id),
+            itemToDelete: id
+        });
+    };
 
+    const handleRemove = async (id) => {
         try {
             const response = await axios.delete(`/api/admin/contexts/${id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -297,7 +374,13 @@ export default function ContextList() {
             }
         } catch (error) {
             toast.error('Failed to delete context. Please try again.');
+        } finally {
+            setConfirmationModal(prev => ({ ...prev, isOpen: false }));
         }
+    };
+
+    const handleCloseModal = () => {
+        setConfirmationModal(prev => ({ ...prev, isOpen: false }));
     };
 
     // Handle search input change
@@ -433,6 +516,30 @@ export default function ContextList() {
     return (
         <div className="context-list-container">
             <div className="heading-beautiful">Contexts Master</div>
+            
+            {/* Stats Card */}
+            <div style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                padding: '20px',
+                margin: '20px 0',
+                textAlign: 'center',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+                <div style={{
+                    fontSize: '2.5rem',
+                    fontWeight: 'bold',
+                    color: '#4F46E5',
+                    marginBottom: '8px'
+                }}>{allContexts.length}</div>
+                <div style={{
+                    fontSize: '1rem',
+                    color: '#64748b',
+                    fontWeight: '500'
+                }}>Total Contexts</div>
+            </div>
+            
             <div className="top-bar">
                 <div className="left-controls">
                     <button className="add-context-btn" onClick={handleAddClick} disabled={userRole === 'User'}>Add Context</button>
@@ -516,8 +623,8 @@ export default function ContextList() {
                             <td>{ele.isTrending ? 'Yes' : 'No'}</td>
                             <td>
                                 <div className="action-buttons">
-                                    <button className="edit-btn" onClick={() => handleEditClick(ele._id)} disabled={userRole === 'User'}>Edit</button>
-                                    <button className="remove-btn" onClick={() => handleRemove(ele._id)} disabled={userRole === 'User'}>Remove</button>
+                                    <button className="edit-btn" onClick={() => handleEditClick(ele._id)} disabled={userRole === 'User'}>✏️ Edit</button>
+                                    <button className="remove-btn" onClick={() => handleRemoveClick(ele._id, ele.contextTitle)} disabled={userRole === 'User'}>🗑️ Delete</button>
                                 </div>
                             </td>
                         </tr>
@@ -537,10 +644,43 @@ export default function ContextList() {
         </table>
         {isSearchMode ? (
             <div className="pagination">
-                <span>Showing all {currentPageData.length} results for "{localSearchQuery}"</span>
+                <span>Showing {currentPageData.length} of {totalFilteredItems} results for "{localSearchQuery}"</span>
+                {totalFilteredPages > 1 && (
+                    <>
+                        <button 
+                            onClick={handlePrevPage}
+                            disabled={page === 1}
+                        >
+                            Previous
+                        </button>
+                        <span> Page {page} of {displayTotalPages} </span>
+                        <button 
+                            onClick={handleNextPage}
+                            disabled={page === displayTotalPages || displayTotalPages === 0}
+                        >
+                            Next
+                        </button>
+                    </>
+                )}
+            </div>
+        ) : isSortingActive ? (
+            <div className="pagination">
+                <button 
+                    onClick={handlePrevPage}
+                    disabled={page === 1}
+                >
+                    Previous
+                </button>
+                <span> Page {page} of {displayTotalPages} ({totalFilteredItems} total items - sorted) </span>
+                <button 
+                    onClick={handleNextPage}
+                    disabled={page === displayTotalPages || displayTotalPages === 0}
+                >
+                    Next
+                </button>
             </div>
         ) : (
-            <div className="pagination">
+        <div className="pagination">
                 <button 
                     onClick={handlePrevPage}  // ✅ Handle Previous Page
                     disabled={page === 1}     // ✅ Disable on First Page
@@ -558,6 +698,17 @@ export default function ContextList() {
                 </button>
             </div>
         )}
-        </div>
+        
+        <ConfirmationModal
+            isOpen={confirmationModal.isOpen}
+            onClose={handleCloseModal}
+            onConfirm={confirmationModal.onConfirm}
+            title={confirmationModal.title}
+            message={confirmationModal.message}
+            confirmText="Delete"
+            cancelText="Cancel"
+            type="danger"
+        />
+            </div>
     );
 }

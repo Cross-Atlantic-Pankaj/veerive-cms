@@ -2,6 +2,7 @@
 import { useState, useContext, useEffect } from 'react';
 import axios from '../../config/axios';
 import SubSignalContext from '../../context/SubSignalContext';
+import styles from '../../html/css/SubSignal.module.css';
 
 export default function SubSignalForm({ handleFormSubmit }) {
     const { subSignals, subSignalsDispatch, handleAddClick, setIsFormVisible, isFormVisible } = useContext(SubSignalContext);
@@ -10,6 +11,8 @@ export default function SubSignalForm({ handleFormSubmit }) {
     const [signalId, setSignalId] = useState('');
     const [generalComment, setGeneralComment] = useState('');
     const [signals, setSignals] = useState([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoadingSignals, setIsLoadingSignals] = useState(true);
 
     useEffect(() => {
         if (subSignals.editId) {
@@ -27,33 +30,45 @@ export default function SubSignalForm({ handleFormSubmit }) {
     useEffect(() => {
         (async () => {
             try {
-                const response = await axios.get('/api/admin/signals', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                setIsLoadingSignals(true);
+                const response = await axios.get('/api/admin/signals', { 
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                });
                 setSignals(response.data);
             } catch (err) {
-                console.log(err);
+                console.error('Error fetching signals:', err);
+                alert('Error loading signals');
+            } finally {
+                setIsLoadingSignals(false);
             }
         })();
     }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
+        
         const formData = { subSignalName, signalId, generalComment };
-        if (subSignals.editId) {
-            try {
-                const response = await axios.put(`/api/admin/sub-signals/${subSignals.editId}`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        
+        try {
+            if (subSignals.editId) {
+                const response = await axios.put(`/api/admin/sub-signals/${subSignals.editId}`, formData, { 
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                });
                 subSignalsDispatch({ type: 'UPDATE_SUBSIGNAL', payload: response.data });
-                handleFormSubmit('SubSignal updated successfully');
-            } catch (err) {
-                console.log(err.message);
-            }
-        } else {
-            try {
-                const response = await axios.post('/api/admin/sub-signals', formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                handleFormSubmit('Sub-Signal updated successfully');
+            } else {
+                const response = await axios.post('/api/admin/sub-signals', formData, { 
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                });
                 subSignalsDispatch({ type: 'ADD_SUBSIGNAL', payload: response.data });
-                handleFormSubmit('SubSignal added successfully');
-            } catch (err) {
-                alert(err.message);
+                handleFormSubmit('Sub-Signal added successfully');
             }
+        } catch (err) {
+            console.error('Error submitting form:', err);
+            alert(err.response?.data?.message || err.message || 'An error occurred');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -63,46 +78,130 @@ export default function SubSignalForm({ handleFormSubmit }) {
     }
 
     return (
-        <div className="subsignal-form-container">
-            <button type="button" className="submit-btn" onClick={handleHomeNav}>Sub-Signal Home</button>
-            <form onSubmit={handleSubmit} className="subsignal-form">
-                <h2>{subSignals.editId ? 'Edit SubSignal' : 'Add SubSignal'}</h2>
-                <label htmlFor="subSignalName">Sub-Signal Name <span style={{color: 'red'}}>*</span></label>
-                <input
-                    type="text"
-                    placeholder="Enter sub-signal name"
-                    name="subSignalName"
-                    value={subSignalName}
-                    onChange={(e) => setSubSignalName(e.target.value)}
-                    className="subsignal-input"
-                    required
-                />
-                <label htmlFor="signalId">Signal <span style={{color: 'red'}}>*</span></label>
-                <select
-                    name="signalId"
-                    value={signalId}
-                    onChange={(e) => setSignalId(e.target.value)}
-                    className="subsignal-select"
-                    required
+        <div className={styles.contentContainer}>
+            <div className={styles.pageHeader}>
+                <h1 className={styles.pageTitle}>
+                    {subSignals.editId ? 'Edit Business Sub-Signal' : 'Add Business Sub-Signal'}
+                </h1>
+                <button 
+                    type="button" 
+                    className={styles.primaryButton} 
+                    onClick={handleHomeNav}
+                    disabled={isSubmitting}
                 >
-                    <option value="">Select Signal</option>
-                    {signals.map((signal) => (
-                        <option key={signal._id} value={signal._id}>
-                            {signal.signalName}
-                        </option>
-                    ))}
-                </select>
-                <textarea
-                    placeholder="Enter comment"
-                    name="generalComment"
-                    value={generalComment}
-                    onChange={(e) => setGeneralComment(e.target.value)}
-                    className="subsignal-textarea"
-                />
-                <button type="submit" className="subsignal-submit-btn">
-                    {subSignals.editId ? 'Update SubSignal' : 'Add SubSignal'}
+                    ← Back to Sub-Signals
                 </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className={styles.formContainer}>
+                <h2 className={styles.formTitle}>
+                    {subSignals.editId ? 'Edit Sub-Signal Details' : 'Create New Sub-Signal'}
+                </h2>
+
+                <div className={styles.formGroup}>
+                    <label htmlFor="subSignalName" className={styles.formLabel}>
+                        Sub-Signal Name <span style={{color: '#ef4444'}}>*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="subSignalName"
+                        placeholder="Enter sub-signal name (e.g., Interest Rate Changes, Competitor Analysis)"
+                        name="subSignalName"
+                        value={subSignalName}
+                        onChange={(e) => setSubSignalName(e.target.value)}
+                        className={styles.formInput}
+                        required
+                        disabled={isSubmitting}
+                    />
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label htmlFor="signalId" className={styles.formLabel}>
+                        Parent Signal <span style={{color: '#ef4444'}}>*</span>
+                    </label>
+                    <select
+                        id="signalId"
+                        name="signalId"
+                        value={signalId}
+                        onChange={(e) => setSignalId(e.target.value)}
+                        className={styles.formSelect}
+                        required
+                        disabled={isSubmitting || isLoadingSignals}
+                    >
+                        <option value="">
+                            {isLoadingSignals ? 'Loading signals...' : 'Select a parent signal'}
+                        </option>
+                        {signals.map((signal) => (
+                            <option key={signal._id} value={signal._id}>
+                                {signal.signalName}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label htmlFor="generalComment" className={styles.formLabel}>
+                        General Comment
+                    </label>
+                    <textarea
+                        id="generalComment"
+                        placeholder="Enter detailed description or comment about this sub-signal..."
+                        name="generalComment"
+                        value={generalComment}
+                        onChange={(e) => setGeneralComment(e.target.value)}
+                        className={styles.formTextarea}
+                        disabled={isSubmitting}
+                        rows={4}
+                    />
+                </div>
+
+                <div className={styles.formActions}>
+                    <button 
+                        type="button" 
+                        className={styles.cancelButton}
+                        onClick={handleHomeNav}
+                        disabled={isSubmitting}
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit" 
+                        className={styles.saveButton}
+                        disabled={isSubmitting || isLoadingSignals || !signalId}
+                    >
+                        {isSubmitting 
+                            ? (subSignals.editId ? 'Updating...' : 'Creating...') 
+                            : (subSignals.editId ? 'Update Sub-Signal' : 'Create Sub-Signal')
+                        }
+                    </button>
+                </div>
             </form>
+
+            {(isSubmitting || isLoadingSignals) && (
+                <div style={{ 
+                    position: 'fixed', 
+                    top: 0, 
+                    left: 0, 
+                    right: 0, 
+                    bottom: 0, 
+                    backgroundColor: 'rgba(0,0,0,0.5)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    zIndex: 1000 
+                }}>
+                    <div style={{ 
+                        backgroundColor: 'white', 
+                        padding: '20px', 
+                        borderRadius: '8px', 
+                        textAlign: 'center' 
+                    }}>
+                        <div>
+                            {isLoadingSignals ? 'Loading signals...' : 'Processing...'}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

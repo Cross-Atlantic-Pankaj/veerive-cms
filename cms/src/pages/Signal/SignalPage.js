@@ -3,19 +3,23 @@ import React, { useContext } from 'react';
 import SignalList from './SignalList';
 import SignalForm from './SignalForm';
 import SignalContext from '../../context/SignalContext';
-import '../../html/css/Signal.css';
+import styles from '../../html/css/Signal.module.css';
 
 export default function SignalPage() {
     const {  isFormVisible, handleAddClick, handleFormSubmit } = useContext(SignalContext);
 
     return (
-        <div className="signals-container">
-            <h2>Signals Master</h2>
+        <div className={styles.contentContainer}>
+            <div className={styles.pageHeader}>
+                <h1 className={styles.pageTitle}>Business Signals</h1>
+                {!isFormVisible && (
+                    <button className={styles.primaryButton} onClick={handleAddClick}>
+                        + Add New Signal
+                    </button>
+                )}
+            </div>
             {!isFormVisible ? (
-                <>
-                    <button className="add-signal-btn" onClick={handleAddClick}>Add Signal</button>
-                    <SignalList />
-                </>
+                <SignalList />
             ) : (
                 <SignalForm handleFormSubmit={handleFormSubmit} />
             )}

@@ -1,10 +1,10 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from '../../config/axios';
 import SectorContext from '../../context/SectorContext';
 import SubSectorContext from '../../context/SubSectorContext';
 import { toast } from 'react-toastify';
-import '../../html/css/ClarificationGuidance.css';
+import styles from '../../html/css/ClarificationGuidance.module.css';
 
 export default function ClarificationGuidanceForm() {
   const [title, setTitle] = useState('');
@@ -13,12 +13,44 @@ export default function ClarificationGuidanceForm() {
   const [subSector, setSubSector] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEdit = Boolean(id);
   const { sectors } = useContext(SectorContext);
   const { subSectors } = useContext(SubSectorContext);
 
   useEffect(() => {
     console.log('Sectors data:', sectors);
   }, [sectors]);
+
+  // Fetch guidance data for edit mode
+  const fetchClarificationGuidance = async () => {
+    if (!id) return;
+    
+    try {
+      setLoading(true);
+      const response = await axios.get(`/api/admin/clarification-guidance/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      const guidance = response.data;
+      setTitle(guidance.title || '');
+      setClarificationNote(guidance.clarificationNote || '');
+      setSector(guidance.sector?._id || '');
+      setSubSector(guidance.subSector?._id || '');
+    } catch (error) {
+      console.error('Error fetching clarification guidance:', error);
+      toast.error('Failed to fetch clarification guidance');
+      navigate('/clarification-guidance');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isEdit) {
+      fetchClarificationGuidance();
+    }
+  }, [id, isEdit]);
 
   // Reset sub-sector when sector changes
   useEffect(() => {
@@ -30,22 +62,36 @@ export default function ClarificationGuidanceForm() {
     setLoading(true);
     
     try {
-      await axios.post('/api/admin/clarification-guidance', {
+      const requestData = {
         title,
         clarificationNote,
         sector,
         subSector
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      toast.success('Clarification guidance added successfully!');
+      };
+
+      if (isEdit) {
+        await axios.put(`/api/admin/clarification-guidance/${id}`, requestData, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        toast.success('Clarification guidance updated successfully!');
+      } else {
+        await axios.post('/api/admin/clarification-guidance', requestData, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        toast.success('Clarification guidance added successfully!');
+      }
+      
       navigate('/clarification-guidance');
     } catch (error) {
-      console.error('Error adding clarification guidance:', error);
-      toast.error('Failed to add clarification guidance');
+      console.error('Error saving clarification guidance:', error);
+      toast.error(`Failed to ${isEdit ? 'update' : 'add'} clarification guidance`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    navigate('/clarification-guidance');
   };
 
   const filteredSubSectors = subSectors?.data?.filter(ss => ss.sectorId === sector) || [];
@@ -54,80 +100,101 @@ export default function ClarificationGuidanceForm() {
   const sectorOptions = sectors?.data || [];
   console.log('Available sector options:', sectorOptions);
 
+  if (isEdit && loading) {
+    return (
+      <div className={styles.formContainer}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <p>Loading clarification guidance...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="app-container">
-      <div className="content-container">
-        <div className="company-form-container">
-          <h2>Add Clarification Guidance</h2>
-          <form onSubmit={handleSubmit} className="company-form">
-            <div>
-              <label>Title <span style={{color: 'red'}}>*</span></label>
-              <input 
-                className="company-input" 
-                value={title} 
-                onChange={e => setTitle(e.target.value)} 
-                required 
-                placeholder="Enter title"
-              />
-            </div>
-            
-            <div>
-              <label>Clarification Note <span style={{color: 'red'}}>*</span></label>
-              <textarea 
-                className="company-textarea" 
-                value={clarificationNote} 
-                onChange={e => setClarificationNote(e.target.value)} 
-                required 
-                placeholder="Enter clarification note"
-              />
-            </div>
-            
-            <div>
-              <label>Sector <span style={{color: 'red'}}>*</span></label>
-              <select 
-                className="company-select" 
-                value={sector} 
-                onChange={e => setSector(e.target.value)} 
-                required
-              >
-                <option value="">Select Sector</option>
-                {sectorOptions.length > 0 ? (
-                  sectorOptions.map(sec => (
-                    <option key={sec._id} value={sec._id}>
-                      {sec.name || sec.sectorName}
-                    </option>
-                  ))
-                ) : (
-                  <option value="" disabled>Loading sectors...</option>
-                )}
-              </select>
-            </div>
-            
-            <div>
-              <label>Sub-Sector <span style={{color: 'red'}}>*</span></label>
-              <select 
-                className="company-select" 
-                value={subSector} 
-                onChange={e => setSubSector(e.target.value)} 
-                required
-                disabled={!sector}
-              >
-                <option value="">Select Sub-Sector</option>
-                {filteredSubSectors.map(ss => (
-                  <option key={ss._id} value={ss._id}>{ss.name || ss.subSectorName}</option>
-                ))}
-              </select>
-            </div>
-            
+    <div className={styles.formContainer}>
+      <button type="button" className={styles.cancelBtn} style={{ marginBottom: 20 }} onClick={() => navigate('/clarification-guidance')}>
+        ← Back to Clarification Guidance
+      </button>
+      <div className={styles.companyFormContainer}>
+        <h2>{isEdit ? 'Edit' : 'Add'} Clarification Guidance</h2>
+        <form onSubmit={handleSubmit} className={styles.companyForm}>
+          <div>
+            <label>Title <span style={{color: 'red'}}>*</span></label>
+            <input 
+              className={styles.companyInput}
+              value={title} 
+              onChange={e => setTitle(e.target.value)} 
+              required 
+              placeholder="Enter title"
+            />
+          </div>
+          
+          <div>
+            <label>Clarification Note <span style={{color: 'red'}}>*</span></label>
+            <textarea 
+              className={styles.companyTextarea}
+              value={clarificationNote} 
+              onChange={e => setClarificationNote(e.target.value)} 
+              required 
+              placeholder="Enter clarification note"
+            />
+          </div>
+          
+          <div>
+            <label>Sector <span style={{color: 'red'}}>*</span></label>
+            <select 
+              className={styles.companySelect}
+              value={sector} 
+              onChange={e => setSector(e.target.value)} 
+              required
+            >
+              <option value="">Select Sector</option>
+              {sectorOptions.length > 0 ? (
+                sectorOptions.map(sec => (
+                  <option key={sec._id} value={sec._id}>
+                    {sec.name || sec.sectorName}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>Loading sectors...</option>
+              )}
+            </select>
+          </div>
+          
+          <div>
+            <label>Sub-Sector <span style={{color: 'red'}}>*</span></label>
+            <select 
+              className={styles.companySelect}
+              value={subSector} 
+              onChange={e => setSubSector(e.target.value)} 
+              required
+              disabled={!sector}
+            >
+              <option value="">Select Sub-Sector</option>
+              {filteredSubSectors.map(ss => (
+                <option key={ss._id} value={ss._id}>{ss.name || ss.subSectorName}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className={styles.buttonGroup}>
             <button 
-              className="company-submit-btn" 
+              className={styles.companySubmitBtn}
               type="submit"
               disabled={loading}
             >
-              {loading ? 'Adding...' : 'Add Clarification Guidance'}
+              {loading ? (isEdit ? 'Updating...' : 'Adding...') : (isEdit ? 'Update' : 'Add')} Clarification Guidance
             </button>
-          </form>
-        </div>
+            <button 
+              type="button"
+              onClick={handleCancel}
+              className={styles.cancelBtn}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

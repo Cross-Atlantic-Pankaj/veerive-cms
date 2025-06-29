@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react'; // Importing necessary React hooks and components
 import CompanyContext from '../../context/CompanyContext'; // Importing CompanyContext to use context state and actions
 import axios from '../../config/axios'; // Importing axios instance for making HTTP requests
-import '../../html/css/Company.css'; // Importing CSS file for styling the component
+import styles from '../../html/css/Company.module.css'; // Importing CSS module for styling the component
 
 export default function CompanyForm() {
     // Destructuring context values and functions from CompanyContext
@@ -104,110 +104,113 @@ export default function CompanyForm() {
     console.log('filtered subsec', filteredSubSectors); // Log filtered sub-sectors for debugging
     console.log('sele sub sec', subSector); // Log selected sub-sectors for debugging
     
-    const handleHomeNav = () => {
-        // Hides the form when navigating back to home
+    const handleBackToList = () => {
         setIsFormVisible(false);
-        console.log('form vis', isFormVisible); // Log form visibility status for debugging
     };
 
     return (
-        <div className="company-form-container">
-            <button type="button" className="submit-btn" onClick={handleHomeNav}>Company Home</button>
-            {/* Button to navigate back to company home */}
-            <form onSubmit={handleSubmit} className="company-form">
-                <label htmlFor="companyName"><b>Company Name</b> <span style={{color: 'red'}}>*</span></label>
-                <input
-                    id="companyName"
-                    type="text"
-                    placeholder="Company Name"
-                    name="companyName"
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    className="company-input"
-                    required
-                />
-                {/* Input field for company name */}
-                <label htmlFor="parentName"><b>Parent Name</b></label>
-                <input
-                    id="parentName"
-                    type="text"
-                    placeholder="Parent Name"
-                    name="parentName"
-                    value={parentName}
-                    onChange={(e) => setParentName(e.target.value)}
-                    className="company-input"
-                />
-                {/* Input field for parent company name */}
-                <label htmlFor="website"><b>Company Website</b> <span style={{color: 'red'}}>*</span></label>
-                <input
-                    id="website"
-                    type="text"
-                    placeholder="Company Website"
-                    name="website"
-                    value={website}
-                    onChange={(e) => setWebsite(e.target.value)}
-                    className="company-input"
-                    required
-                />
-                {/* Input field for company website */}
-                <label htmlFor="country"><b>Country</b> <span style={{color: 'red'}}>*</span></label>
-                <select
-                    id="country"
-                    name="country"
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    className="company-select"
-                    required
-                >
-                    <option value=""><b>Select Country</b></option>
-                    {/* Default option */}
-                    {countries.data && countries.data.map(country => (
-                        <option key={country._id} value={country._id}>{country.countryName}</option>
-                    ))}
-                    {/* Options for each country */}
-                </select>
-                <label htmlFor="sectors"><b>Sectors</b> <span style={{color: 'red'}}>*</span></label>
-                <select
-                    id="sectors"
-                    name="sectors"
-                    value={sector}
-                    onChange={handleSectorChange}
-                    className="company-select"
-                    required
-                >
-                    <option value="">Select Sector</option>
-                    {sectorsData.data && sectorsData.data.map(sector => (
-                        <option key={sector._id} value={sector._id}>{sector.sectorName}</option>
-                    ))}
-                    {/* Options for each sector */}
-                </select>
-                <label htmlFor="subSectors"><b>Sub-Sectors</b></label>
-                <select
-                    id="subSectors"
-                    name="subSectors"
-                    value={subSector}
-                    onChange={(e) => setSubSector(e.target.value)}
-                    className="company-select"
-                    disabled={!sector}
-                >
-                    <option value="">Select Sub-Sector</option>
-                    {filteredSubSectors.map(subSector => (
-                        <option key={subSector._id} value={subSector._id}>{subSector.subSectorName}</option>
-                    ))}
-                    {/* Options for each filtered sub-sector */}
-                </select>
-                <label htmlFor="generalComment"><b>General Comment</b></label>
-                <textarea
-                    id="generalComment"
-                    name="generalComment"
-                    value={generalComment}
-                    onChange={(e) => setGeneralComment(e.target.value)}
-                    placeholder="General Comment"
-                    className="company-textarea"
-                />
-                {/* Textarea for general comment */}
-                <button type="submit" className="company-submit-btn">Submit</button>
-                {/* Submit button for the form */}
+        <div className={styles.companyFormContainer}>
+            <button 
+                type="button" 
+                className={styles.cancelBtn} 
+                style={{ marginBottom: 20 }} 
+                onClick={handleBackToList}
+            >
+                ← Back to Companies
+            </button>
+            <h2>{companies.editId ? 'Edit Company' : 'Add Company'}</h2>
+            <form onSubmit={handleSubmit} className={styles.companyForm}>
+                <div>
+                    <label>Company Name <span style={{color: 'red'}}>*</span></label>
+                    <input
+                        type="text"
+                        placeholder="Company Name"
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                        className={styles.companyInput}
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Parent Name</label>
+                    <input
+                        type="text"
+                        placeholder="Parent Name"
+                        value={parentName}
+                        onChange={(e) => setParentName(e.target.value)}
+                        className={styles.companyInput}
+                    />
+                </div>
+                <div>
+                    <label>Company Website <span style={{color: 'red'}}>*</span></label>
+                    <input
+                        type="text"
+                        placeholder="Company Website"
+                        value={website}
+                        onChange={(e) => setWebsite(e.target.value)}
+                        className={styles.companyInput}
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Country <span style={{color: 'red'}}>*</span></label>
+                    <select
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        className={styles.companySelect}
+                        required
+                    >
+                        <option value="">Select Country</option>
+                        {countries.data && countries.data.map(country => (
+                            <option key={country._id} value={country._id}>{country.countryName}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label>Sectors <span style={{color: 'red'}}>*</span></label>
+                    <select
+                        value={sector}
+                        onChange={handleSectorChange}
+                        className={styles.companySelect}
+                        required
+                    >
+                        <option value="">Select Sector</option>
+                        {sectorsData.data && sectorsData.data.map(sector => (
+                            <option key={sector._id} value={sector._id}>{sector.sectorName}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label>Sub-Sectors</label>
+                    <select
+                        value={subSector}
+                        onChange={(e) => setSubSector(e.target.value)}
+                        className={styles.companySelect}
+                        disabled={!sector}
+                    >
+                        <option value="">Select Sub-Sector</option>
+                        {filteredSubSectors.map(subSector => (
+                            <option key={subSector._id} value={subSector._id}>{subSector.subSectorName}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label>General Comment</label>
+                    <textarea
+                        value={generalComment}
+                        onChange={(e) => setGeneralComment(e.target.value)}
+                        placeholder="General Comment"
+                        className={styles.companyTextarea}
+                    />
+                </div>
+                <div className={styles.buttonGroup}>
+                    <button type="submit" className={styles.companySubmitBtn}>
+                        {companies.editId ? 'Update Company' : 'Add Company'}
+                    </button>
+                    <button type="button" onClick={() => setIsFormVisible(false)} className={styles.cancelBtn}>
+                        Cancel
+                    </button>
+                </div>
             </form>
         </div>
     );

@@ -1,8 +1,9 @@
-import React, { useContext, useState } from 'react'; // Import React and hooks from React
+import React, { useContext, useState, useEffect } from 'react'; // Import React and hooks from React
 import CompanyContext from '../../context/CompanyContext'; // Import CompanyContext for managing company-related state
 import axios from '../../config/axios'; // Import axios instance for making HTTP requests
-import '../../html/css/Company.css'; // Import CSS for styling the CompanyList component
+import styles from '../../html/css/Company.module.css'; // Import CSS modules for styling the CompanyList component
 import AuthContext from '../../context/AuthContext';
+import ConfirmationModal from '../../components/ConfirmationModal';
 import Papa from 'papaparse';
 
 export default function CompanyList() {
@@ -15,6 +16,21 @@ export default function CompanyList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortColumn, setSortColumn] = useState('companyName');
     const [sortOrder, setSortOrder] = useState('asc'); // 'asc' for ascending, 'desc' for descending
+    const [page, setPage] = useState(1);
+    const [confirmationModal, setConfirmationModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+        itemToDelete: null
+    });
+    const itemsPerPage = 10;
+
+    // Helper function to normalize text for sorting (remove non-letters, convert to lowercase)
+    const normalizeForSorting = (text) => {
+        if (!text) return '';
+        return String(text).replace(/[^a-zA-Z]/g, '').toLowerCase();
+    };
 
     // Helper function to get country name by ID
     const getCountryName = (id, data) => {
@@ -54,17 +70,63 @@ export default function CompanyList() {
 
     // Sort the filtered companies based on the selected column and order
     const sortedCompanies = [...filteredCompanies].sort((a, b) => {
-        const aValue = a[sortColumn] || ''; // Get the value of the column for company a
-        const bValue = b[sortColumn] || ''; // Get the value of the column for company b
+        let aValue, bValue;
 
-        let comparison = 0;
-        if (aValue > bValue) {
-            comparison = 1; // Determine the comparison result
-        } else if (aValue < bValue) {
-            comparison = -1; // Determine the comparison result
+        // Get values based on sort column with proper normalization
+        switch (sortColumn) {
+            case 'companyName':
+                aValue = normalizeForSorting(a.companyName);
+                bValue = normalizeForSorting(b.companyName);
+                break;
+            case 'parentName':
+                aValue = normalizeForSorting(a.parentName);
+                bValue = normalizeForSorting(b.parentName);
+                break;
+            case 'website':
+                aValue = normalizeForSorting(a.website);
+                bValue = normalizeForSorting(b.website);
+                break;
+            case 'country':
+                aValue = normalizeForSorting(getCountryName(a.country, countries.data));
+                bValue = normalizeForSorting(getCountryName(b.country, countries.data));
+                break;
+            case 'sectors':
+                aValue = normalizeForSorting(getSectorNames(a.sectors, sectors.data));
+                bValue = normalizeForSorting(getSectorNames(b.sectors, sectors.data));
+                break;
+            case 'subSectors':
+                aValue = normalizeForSorting(getSubSectorNames(a.subSectors, subSectors.data));
+                bValue = normalizeForSorting(getSubSectorNames(b.subSectors, subSectors.data));
+                break;
+            case 'generalComment':
+                aValue = normalizeForSorting(a.generalComment);
+                bValue = normalizeForSorting(b.generalComment);
+                break;
+            default:
+                aValue = normalizeForSorting(a[sortColumn]);
+                bValue = normalizeForSorting(b[sortColumn]);
+                break;
         }
-        return sortOrder === 'asc' ? comparison : -comparison; // Return sorted result based on order
+
+        // Handle null/undefined values
+        if (aValue === null || aValue === undefined) aValue = '';
+        if (bValue === null || bValue === undefined) bValue = '';
+
+        // String comparison for normalized text
+        let comparison = 0;
+        if (aValue < bValue) {
+            comparison = -1;
+        } else if (aValue > bValue) {
+            comparison = 1;
+        }
+        
+        return sortOrder === 'asc' ? comparison : -comparison;
     });
+
+    // Pagination
+    const totalPages = Math.max(1, Math.ceil(sortedCompanies.length / itemsPerPage));
+    const currentPage = Math.min(page, totalPages);
+    const paginatedCompanies = sortedCompanies.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     // Handle sorting when a column header is clicked
     const handleSort = (column) => {
@@ -77,21 +139,29 @@ export default function CompanyList() {
     };
 
     // Handle company removal
+    const handleRemoveClick = (id, companyName) => {
+        setConfirmationModal({
+            isOpen: true,
+            title: 'Delete Company',
+            message: `Are you sure you want to remove "${companyName}"? This action cannot be undone.`,
+            onConfirm: () => handleRemove(id),
+            itemToDelete: id
+        });
+    };
+
     const handleRemove = async (id) => {
-        const userInput = window.confirm('Are you sure you want to remove this company?'); // Confirm deletion
-        if (userInput) {
-            try {
-                const response = await axios.delete(`/api/admin/companies/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }); // Make API request to delete company
-                companiesDispatch({ type: 'REMOVE_COMPANY', payload: response.data._id }); // Dispatch action to remove company from context
-            } catch (err) {
-                alert(err.message); // Show error message if deletion fails
-            }
+        try {
+            const response = await axios.delete(`/api/admin/companies/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }); // Make API request to delete company
+            companiesDispatch({ type: 'REMOVE_COMPANY', payload: response.data._id }); // Dispatch action to remove company from context
+        } catch (err) {
+            alert(err.message); // Show error message if deletion fails
+        } finally {
+            setConfirmationModal(prev => ({ ...prev, isOpen: false }));
         }
     };
 
-    // Handle search input change
-    const handleSearch = () => {
-        // You can perform additional logic on search if needed
+    const handleCloseModal = () => {
+        setConfirmationModal(prev => ({ ...prev, isOpen: false }));
     };
 
     const handleDownloadCSV = () => {
@@ -122,55 +192,152 @@ export default function CompanyList() {
         URL.revokeObjectURL(url);
     };
 
+    // Reset to page 1 if search/filter changes and current page is out of range
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setPage(1);
+        }
+    }, [totalPages, currentPage]);
+
+    // Reset page when search changes
+    useEffect(() => {
+        setPage(1);
+    }, [searchQuery]);
+
+    const handleNextPage = () => {
+        if (page < totalPages) {
+            setPage(page + 1);
+        }
+    };
+
+    const handlePrevPage = () => {
+        if (page > 1) {
+            setPage(page - 1);
+        }
+    };
+
     return (
-        <div className="company-list-container"> {/* Container for the company list */}
-            <button className="add-company-btn" onClick={handleAddClick}>Add Company</button> {/* Button to add a new company */}
-            <div className="search-container"> {/* Container for the search input */}
+        <div className={styles.contentContainer}>
+            <div className={styles.pageHeader}>
+                <h2>Companies Master</h2>
+                <div className={styles.headerActions}>
+                    <button className={styles.primaryButton} onClick={handleAddClick}>Add Company</button>
+                    <button className={styles.primaryButton} onClick={handleDownloadCSV}>Download CSV</button>
+                </div>
+            </div>
+
+            {/* Stats Card */}
+            <div style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                padding: '20px',
+                margin: '20px 0',
+                textAlign: 'center',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+                <div style={{
+                    fontSize: '2.5rem',
+                    fontWeight: 'bold',
+                    background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    marginBottom: '8px'
+                }}>{companies.data.length}</div>
+                <div style={{
+                    fontSize: '1rem',
+                    color: '#64748b',
+                    fontWeight: '500'
+                }}>Total Companies</div>
+            </div>
+            
+            <div style={{ display: 'flex', marginBottom: 16 }}>
                 <input
                     type="text"
-                    placeholder="Search..."
+                    placeholder="Search companies..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)} // Update search query state on input change
-                    className="search-input"
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={styles.searchInput}
                 />
-                <button className="search-btn" onClick={handleSearch}>Search</button> {/* Button to trigger search */}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-                <button onClick={handleDownloadCSV} className="download-btn">Download CSV</button>
-            </div>
-            <div className="table-responsive"> 
-            <table className="company-table"> {/* Table to display the list of companies */}
-                <thead>
-                    <tr>
-                        <th onClick={() => handleSort('companyName')}>Company Name {sortColumn === 'companyName' && (sortOrder === 'asc' ? '▲' : '▼')}</th> {/* Column header with sorting indicator */}
-                        <th onClick={() => handleSort('parentName')}>Parent Name {sortColumn === 'parentName' && (sortOrder === 'asc' ? '▲' : '▼')}</th> {/* Column header with sorting indicator */}
-                        <th onClick={() => handleSort('website')}>Website {sortColumn === 'website' && (sortOrder === 'asc' ? '▲' : '▼')}</th> {/* Column header with sorting indicator */}
-                        <th onClick={() => handleSort('country')}>Country {sortColumn === 'country' && (sortOrder === 'asc' ? '▲' : '▼')}</th> {/* Column header with sorting indicator */}
-                        <th onClick={() => handleSort('sectors')}>Sectors {sortColumn === 'sectors' && (sortOrder === 'asc' ? '▲' : '▼')}</th> {/* Column header with sorting indicator */}
-                        <th onClick={() => handleSort('subSectors')}>Sub-Sectors {sortColumn === 'subSectors' && (sortOrder === 'asc' ? '▲' : '▼')}</th> {/* Column header with sorting indicator */}
-                        <th onClick={() => handleSort('generalComment')}>General Comment {sortColumn === 'generalComment' && (sortOrder === 'asc' ? '▲' : '▼')}</th> {/* Column header with sorting indicator */}
-                        <th>Actions</th> {/* Column header for action buttons */}
-                    </tr>
-                </thead>
-                <tbody>
-                    {sortedCompanies.map(ele => (
-                        <tr key={ele._id}> {/* Row for each company */}
-                            <td>{ele.companyName}</td> {/* Display company name */}
-                            <td>{ele.parentName}</td> {/* Display parent name */}
-                            <td>{ele.website}</td> {/* Display website */}
-                            <td>{getCountryName(ele.country, countries.data)}</td> {/* Display country name */}
-                            <td>{getSectorNames(ele.sectors, sectors.data)}</td> {/* Display sector names */}
-                            <td>{getSubSectorNames(ele.subSectors, subSectors.data)}</td> {/* Display sub-sector names */}
-                            <td>{ele.generalComment || 'N/A'}</td> {/* Display general comment or 'N/A' if not available */}
-                            <td>
-                                <button className="edit-btn" onClick={() => handleEditClick(ele._id)} disabled={userRole === 'User'}>Edit</button> {/* Button to edit company */}
-                                <button className="remove-btn" onClick={() => handleRemove(ele._id)} disabled={userRole === 'User'}>Remove</button> {/* Button to remove company */}
-                            </td>
+            
+            <div className={styles.tableWrapper}>
+                <table className={styles.dataTable}>
+                    <thead>
+                        <tr>
+                            <th onClick={() => handleSort('companyName')}>Company Name {sortColumn === 'companyName' && (sortOrder === 'asc' ? '🔼' : '🔽')}</th>
+                            <th onClick={() => handleSort('parentName')}>Parent Name {sortColumn === 'parentName' && (sortOrder === 'asc' ? '🔼' : '🔽')}</th>
+                            <th onClick={() => handleSort('website')}>Website {sortColumn === 'website' && (sortOrder === 'asc' ? '🔼' : '🔽')}</th>
+                            <th onClick={() => handleSort('country')}>Country {sortColumn === 'country' && (sortOrder === 'asc' ? '🔼' : '🔽')}</th>
+                            <th onClick={() => handleSort('sectors')}>Sectors {sortColumn === 'sectors' && (sortOrder === 'asc' ? '🔼' : '🔽')}</th>
+                            <th onClick={() => handleSort('subSectors')}>Sub-Sectors {sortColumn === 'subSectors' && (sortOrder === 'asc' ? '🔼' : '🔽')}</th>
+                            <th onClick={() => handleSort('generalComment')}>General Comment {sortColumn === 'generalComment' && (sortOrder === 'asc' ? '🔼' : '🔽')}</th>
+                            <th>Actions</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        {paginatedCompanies.length === 0 ? (
+                            <tr>
+                                <td colSpan="8" className={styles.emptyMessage}>
+                                    {searchQuery.trim() ? 'No companies found matching your search' : 'No companies found'}
+                                </td>
+                            </tr>
+                        ) : (
+                            paginatedCompanies.map(ele => (
+                                <tr key={ele._id}>
+                                    <td>{ele.companyName}</td>
+                                    <td>{ele.parentName}</td>
+                                    <td>{ele.website}</td>
+                                    <td>{getCountryName(ele.country, countries.data)}</td>
+                                    <td>{getSectorNames(ele.sectors, sectors.data)}</td>
+                                    <td>{getSubSectorNames(ele.subSectors, subSectors.data)}</td>
+                                    <td>{ele.generalComment || 'N/A'}</td>
+                                    <td>
+                                        <button 
+                                            className={`${styles.actionButton} ${styles.editButton}`} 
+                                            onClick={() => handleEditClick(ele._id)} 
+                                            disabled={userRole === 'User'}
+                                        >
+                                            ✏️ Edit
+                                        </button>
+                                        <button 
+                                            className={`${styles.actionButton} ${styles.deleteButton}`} 
+                                            onClick={() => handleRemoveClick(ele._id, ele.companyName)} 
+                                            disabled={userRole === 'User'}
+                                        >
+                                            🗑️ Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+                
+                {totalPages > 1 && (
+                    <div className={styles.pagination}>
+                        <button onClick={handlePrevPage} disabled={currentPage === 1}>
+                            Previous
+                        </button>
+                        <span>Page {currentPage} of {totalPages} ({sortedCompanies.length} total items)</span>
+                        <button onClick={handleNextPage} disabled={currentPage === totalPages}>
+                            Next
+                        </button>
+                    </div>
+                )}
+            </div>
+            
+            <ConfirmationModal
+                isOpen={confirmationModal.isOpen}
+                onClose={handleCloseModal}
+                onConfirm={confirmationModal.onConfirm}
+                title={confirmationModal.title}
+                message={confirmationModal.message}
+                confirmText="Delete"
+                cancelText="Cancel"
+                type="danger"
+            />
         </div>
     );
 }

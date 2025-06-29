@@ -10,6 +10,7 @@ const contextSchema = new Schema ({
     signalCategories: [{type: Schema.Types.ObjectId, ref: 'Signal', required: true}],
     signalSubCategories: [{type: Schema.Types.ObjectId, ref: 'SubSignal', required: false}],
     themes: [{ type: Schema.Types.ObjectId, ref: 'Theme', required: false }], 
+    tileTemplates: [{ type: Schema.Types.ObjectId, ref: 'TileTemplate', required: false }],
     //posts: [{ type: Schema.Types.ObjectId, ref: 'Post', required: false }], 
 
     posts: [

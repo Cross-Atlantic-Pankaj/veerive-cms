@@ -1,13 +1,16 @@
 import { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from '../../config/axios';
 import CountryContext from '../../context/CountryContext';
 import RegionContext from '../../context/RegionContext';
 import { toast } from 'react-toastify';
+import styles from '../../html/css/Country.module.css';
 
 export default function CountryForm() {
     const { countries, countriesDispatch, handleFormSubmit, setIsFormVisible, isFormVisible } = useContext(CountryContext);
     const { regions } = useContext(RegionContext);
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     const [countryName, setCountryName] = useState('');
     const [regionId, setRegionId] = useState('');
@@ -88,64 +91,81 @@ export default function CountryForm() {
         setIsFormVisible(false);
     };
 
+    const handleBackToList = () => {
+        setIsFormVisible(false);
+        navigate('/countries');
+    };
+
     if (isLoading) {
-        return <div className="loading-spinner">Loading...</div>;
+        return <div className={styles.loadingContainer}>Loading...</div>;
     }
 
     return (
-        <div className="country-form-container">
-            <button 
-                type="button" 
-                className="submit-btn" 
-                onClick={handleHomeNav}
-                disabled={isLoading}
-            >
-                Country Home
+        <div className={styles.companyFormContainer}>
+            <button type="button" className={styles.cancelBtn} style={{ marginBottom: 20 }} onClick={handleBackToList}>
+                ← Back to Countries
             </button>
-            <form onSubmit={handleSubmit} className="country-form">
-                <h2>{countries.editId ? 'Edit Country' : 'Add Country'}</h2>
-                <label htmlFor="countryName">Country Name <span style={{color: 'red'}}>*</span></label>
-                <input
-                    type="text"
-                    placeholder="Enter country name"
-                    name="countryName"
-                    value={countryName}
-                    onChange={(e) => setCountryName(e.target.value)}
-                    className="country-input"
-                    disabled={isLoading}
-                    required
-                />
-                <label htmlFor="regionId">Region <span style={{color: 'red'}}>*</span></label>
-                <select
-                    name="regionId"
-                    value={regionId}
-                    onChange={(e) => setRegionId(e.target.value)}
-                    className="country-select"
-                    disabled={isLoading}
-                    required
-                >
-                    <option value="">Select Region</option>
-                    {regions.data?.map(region => (
-                        <option key={region._id} value={region._id}>
-                            {region.regionName}
-                        </option>
-                    ))}
-                </select>
-                <textarea
-                    placeholder="Enter comment"
-                    name="generalComment"
-                    value={generalComment}
-                    onChange={(e) => setGeneralComment(e.target.value)}
-                    className="country-textarea"
-                    disabled={isLoading}
-                />
-                <button 
-                    type="submit" 
-                    className="country-submit-btn"
-                    disabled={isLoading}
-                >
-                    {isLoading ? 'Processing...' : (countries.editId ? 'Update Country' : 'Add Country')}
-                </button>
+            <h2>{countries.editId ? 'Edit Country' : 'Add Country'}</h2>
+            <form onSubmit={handleSubmit} className={styles.companyForm}>
+                <div>
+                    <label>Country Name <span style={{color: 'red'}}>*</span></label>
+                    <input
+                        type="text"
+                        placeholder="Enter country name"
+                        value={countryName}
+                        onChange={(e) => setCountryName(e.target.value)}
+                        className={styles.companyInput}
+                        disabled={isLoading}
+                        required
+                    />
+                </div>
+                
+                <div>
+                    <label>Region <span style={{color: 'red'}}>*</span></label>
+                    <select
+                        value={regionId}
+                        onChange={(e) => setRegionId(e.target.value)}
+                        className={styles.companySelect}
+                        disabled={isLoading}
+                        required
+                    >
+                        <option value="">Select Region</option>
+                        {regions.data?.map(region => (
+                            <option key={region._id} value={region._id}>
+                                {region.regionName}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                
+                <div>
+                    <label>General Comment</label>
+                    <textarea
+                        placeholder="Enter comment"
+                        value={generalComment}
+                        onChange={(e) => setGeneralComment(e.target.value)}
+                        className={styles.companyTextarea}
+                        disabled={isLoading}
+                    />
+                </div>
+                
+                <div className={styles.buttonGroup}>
+                    <button 
+                        type="submit" 
+                        className={styles.companySubmitBtn}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Processing...' : (countries.editId ? 'Update Country' : 'Add Country')}
+                    </button>
+                    <button 
+                        type="button" 
+                        onClick={handleHomeNav} 
+                        className={styles.cancelBtn}
+                        disabled={isLoading}
+                    >
+                        Cancel
+                    </button>
+                </div>
             </form>
         </div>
     );

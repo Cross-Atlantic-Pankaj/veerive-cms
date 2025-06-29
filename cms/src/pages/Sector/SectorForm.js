@@ -1,9 +1,12 @@
 import { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from '../../config/axios';
 import SectorContext from '../../context/SectorContext';
+import styles from '../../html/css/Sector.module.css';
 
 export default function SectorForm({ handleFormSubmit }) {
     const { sectors, sectorsDispatch, setIsFormVisible, isFormVisible } = useContext(SectorContext);
+    const navigate = useNavigate();
 
     const [sectorName, setSectorName] = useState('');
     const [generalComment, setGeneralComment] = useState('');
@@ -44,37 +47,56 @@ export default function SectorForm({ handleFormSubmit }) {
         }
     };
 
-    const handleHomeNav = () =>{
-        setIsFormVisible(false)
-        console.log('form vis', isFormVisible)
-    }
+    const handleHomeNav = () => {
+        setIsFormVisible(false);
+        console.log('form vis', isFormVisible);
+    };
+
+    const handleBackToList = () => {
+        setIsFormVisible(false);
+        navigate('/sectors');
+    };
 
     return (
-        <div className="sector-form-container">
-            <button type="button" className="submit-btn" onClick={handleHomeNav}>Sector Home</button>
-            <form onSubmit={handleSubmit} className="sector-form">
+        <div className={styles.companyFormContainer}>
+            <button type="button" className={styles.cancelBtn} style={{ marginBottom: 20 }} onClick={handleBackToList}>
+                ← Back to Sectors
+            </button>
+            <div className={styles.companyFormContainer}>
                 <h2>{sectors.editId ? 'Edit Sector' : 'Add Sector'}</h2>
-                <label htmlFor="sectorName">Sector Name <span style={{color: 'red'}}>*</span></label>
-                <input
-                    type="text"
-                    placeholder="Enter sector name"
-                    name="sectorName"
-                    value={sectorName}
-                    onChange={(e) => setSectorName(e.target.value)}
-                    className="sector-input"
-                    required
-                />
-                <textarea
-                    placeholder="Enter comment"
-                    name="generalComment"
-                    value={generalComment}
-                    onChange={(e) => setGeneralComment(e.target.value)}
-                    className="sector-textarea"
-                />
-                <button type="submit" className="sector-submit-btn">
-                    {sectors.editId ? 'Update Sector' : 'Add Sector'}
-                </button>
-            </form>
+                <form onSubmit={handleSubmit} className={styles.companyForm}>
+                    <div>
+                        <label>Sector Name <span style={{color: 'red'}}>*</span></label>
+                        <input
+                            type="text"
+                            placeholder="Enter sector name"
+                            value={sectorName}
+                            onChange={(e) => setSectorName(e.target.value)}
+                            className={styles.companyInput}
+                            required
+                        />
+                    </div>
+                    
+                    <div>
+                        <label>General Comment</label>
+                        <textarea
+                            placeholder="Enter comment"
+                            value={generalComment}
+                            onChange={(e) => setGeneralComment(e.target.value)}
+                            className={styles.companyTextarea}
+                        />
+                    </div>
+                    
+                    <div className={styles.buttonGroup}>
+                        <button type="submit" className={styles.companySubmitBtn}>
+                            {sectors.editId ? 'Update Sector' : 'Add Sector'}
+                        </button>
+                        <button type="button" onClick={handleHomeNav} className={styles.cancelBtn}>
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }

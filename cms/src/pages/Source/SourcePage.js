@@ -3,19 +3,15 @@ import React, { useContext } from 'react';
 import SourceList from './SourceList';
 import SourceForm from './SourceForm';
 import SourceContext from '../../context/SourceContext';
-import '../../html/css/Source.css';
+import styles from '../../html/css/Source.module.css';
 
 const SourcePage = () => {
-    const {  isFormVisible, handleAddClick, handleFormSubmit } = useContext(SourceContext);
+    const {  isFormVisible, handleFormSubmit } = useContext(SourceContext);
 
     return (
         <div className="source-page">
-            <h2>Sources Master</h2>
             {!isFormVisible ? (
-                <>
-                    <button className="add-region-btn" onClick={handleAddClick}>Add Source</button>
-                    <SourceList />
-                </>
+                <SourceList />
             ) : (
                 <SourceForm handleFormSubmit={handleFormSubmit} />
             )}

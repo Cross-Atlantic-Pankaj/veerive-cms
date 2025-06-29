@@ -36,9 +36,9 @@ import subSignalsCltr from './app/controllers/subSignals-cltr.js'
 import sourcesCltr from './app/controllers/sources-cltr.js'
 import themesCltr from './app/controllers/themes-cltr.js'
 import storyOrdersCltr from './app/controllers/storyOrders-cltr.js'
-import { createClarificationGuidance, getAllClarificationGuidance } from './app/controllers/clarificationGuidanceController.js';
-import { createQueryRefiner, getAllQueryRefiner } from './app/controllers/queryRefinerController.js';
-import { createMarketData, getAllMarketData } from './app/controllers/marketDataController.js';
+import { createClarificationGuidance, getAllClarificationGuidance, getAllClarificationGuidances, getOneClarificationGuidance, updateClarificationGuidance, deleteClarificationGuidance } from './app/controllers/clarificationGuidanceController.js';
+import { createQueryRefiner, getAllQueryRefiner, getAllQueryRefiners, getOneQueryRefiner, updateQueryRefiner, deleteQueryRefiner } from './app/controllers/queryRefinerController.js';
+import { createMarketData, getAllMarketData, getAllMarketDatas, getOneMarketData, updateMarketData, deleteMarketData } from './app/controllers/marketDataController.js';
 import User from './app/models/user-model.js';
 import bcryptjs from 'bcryptjs';
 import ensureSuperAdmin from './utils/superAdmin.js';
@@ -295,14 +295,26 @@ app.delete('/api/admin/story-orders/:id', authenticateUser, authorizeUser(['Admi
 // ClarificationGuidance routes
 app.post('/api/admin/clarification-guidance', authenticateUser, createClarificationGuidance);
 app.get('/api/admin/clarification-guidance', authenticateUser, getAllClarificationGuidance);
+app.get('/api/admin/clarification-guidance/all', authenticateUser, getAllClarificationGuidances);
+app.get('/api/admin/clarification-guidance/:id', authenticateUser, getOneClarificationGuidance);
+app.put('/api/admin/clarification-guidance/:id', authenticateUser, updateClarificationGuidance);
+app.delete('/api/admin/clarification-guidance/:id', authenticateUser, deleteClarificationGuidance);
 
 // QueryRefiner routes
 app.post('/api/admin/query-refiner', authenticateUser, createQueryRefiner);
 app.get('/api/admin/query-refiner', authenticateUser, getAllQueryRefiner);
+app.get('/api/admin/query-refiner/all', authenticateUser, getAllQueryRefiners);
+app.get('/api/admin/query-refiner/:id', authenticateUser, getOneQueryRefiner);
+app.put('/api/admin/query-refiner/:id', authenticateUser, updateQueryRefiner);
+app.delete('/api/admin/query-refiner/:id', authenticateUser, deleteQueryRefiner);
 
 // MarketData routes
 app.post('/api/admin/market-data', authenticateUser, createMarketData);
 app.get('/api/admin/market-data', authenticateUser, getAllMarketData);
+app.get('/api/admin/market-data/all', authenticateUser, getAllMarketDatas);
+app.get('/api/admin/market-data/:id', authenticateUser, getOneMarketData);
+app.put('/api/admin/market-data/:id', authenticateUser, updateMarketData);
+app.delete('/api/admin/market-data/:id', authenticateUser, deleteMarketData);
 
 // Bulk upload routes
 app.post('/api/admin/clarification-guidance/bulk', authenticateUser, authorizeUser(['admin']), bulkUploadClarificationGuidance);

@@ -9,6 +9,7 @@ import { toast } from 'react-toastify'; // ✅ Import toast
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 import PostContext from '../../context/PostContext';
 import ThemeContext from '../../context/ThemeContext';
+import TileTemplateContext from '../../context/TileTemplateContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function ContextForm({ handleFormSubmit }) {
@@ -17,6 +18,7 @@ export default function ContextForm({ handleFormSubmit }) {
     const { allThemes } = useContext(ContextContext); // ✅ Get all themes
     const themeCtx = useContext(ThemeContext);
     const { handleEditClick: handleThemeEditClick, fetchAllThemes } = themeCtx;
+    const { tileTemplates, fetchTileTemplates } = useContext(TileTemplateContext);
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
@@ -34,6 +36,7 @@ export default function ContextForm({ handleFormSubmit }) {
     const [selectedSignalCategories, setSelectedSignalCategories] = useState([]);
     const [selectedSignalSubCategories, setSelectedSignalSubCategories] = useState([]);
     const [selectedThemes, setSelectedThemes] = useState([]);
+    const [selectedTileTemplates, setSelectedTileTemplates] = useState([]);
     const [bannerShow, setBannerShow] = useState(false);
     const [homePageShow, setHomePageShow] = useState(false);
     const [bannerImage, setBannerImage] = useState('');
@@ -57,6 +60,7 @@ export default function ContextForm({ handleFormSubmit }) {
     });
     const [isRefreshingThemes, setIsRefreshingThemes] = useState(false);
     const [isRefreshingPosts, setIsRefreshingPosts] = useState(false);
+    const [isRefreshingTileTemplates, setIsRefreshingTileTemplates] = useState(false);
 
    // ✅ Fix: Fetch posts only if they are not already fetched
 
@@ -92,6 +96,14 @@ export default function ContextForm({ handleFormSubmit }) {
         }
     }, [posts]);
 
+    // Fetch tile templates on mount
+    useEffect(() => {
+        if (!tileTemplates || tileTemplates.length === 0) {
+            console.log("🔄 Fetching tile templates for Context Form...");
+            fetchTileTemplates();
+        }
+    }, [tileTemplates, fetchTileTemplates]);
+
     useEffect(() => {
         const editId = editIdFromQuery || contexts.editId;
         console.log('Effect running in ContextForm:');
@@ -112,6 +124,7 @@ export default function ContextForm({ handleFormSubmit }) {
             setSelectedSignalCategories([]);
             setSelectedSignalSubCategories([]);
             setSelectedThemes([]);
+            setSelectedTileTemplates([]);
             setSelectedPosts([]);
             setBannerShow(false);
             setHomePageShow(false);
@@ -170,6 +183,15 @@ export default function ContextForm({ handleFormSubmit }) {
                     };
                 })
             );
+            setSelectedTileTemplates(
+                (context.tileTemplates || []).map(templateId => {
+                    const matchedTemplate = tileTemplates.find(template => template._id === templateId);
+                    return {
+                        value: templateId,
+                        label: matchedTemplate ? matchedTemplate.name : 'Unknown Template'
+                    };
+                })
+            );
             setSelectedPosts(
                 (context.posts || [])
                     .map(post => {
@@ -203,7 +225,7 @@ export default function ContextForm({ handleFormSubmit }) {
         } else {
             console.log('No context found for ID:', editId);
         }
-    }, [editIdFromQuery, contexts.editId, contexts.data, posts, allThemes]);
+    }, [editIdFromQuery, contexts.editId, contexts.data, posts, allThemes, tileTemplates]);
 
     const filteredSubSectors = subSectorsData.data.filter(subSector =>
         selectedSectors.includes(subSector.sectorId)
@@ -304,6 +326,7 @@ export default function ContextForm({ handleFormSubmit }) {
                 // themes: selectedThemes.map(theme => theme.value),
                 //themes: selectedThemes.length > 0 ? selectedThemes.map(theme => theme.value) : [], // ✅ Allow empty array
                 themes: selectedThemes.map(theme => theme.value), // ✅ Use formatted themes
+                tileTemplates: selectedTileTemplates.map(template => template.value),
                 posts: updatedPosts,
                 bannerShow,
                 homePageShow,
@@ -384,6 +407,12 @@ const themeOptions = allThemes.map(theme => ({
     label: theme.themeTitle
 }));
 
+// Convert tileTemplates into a format suitable for react-select
+const tileTemplateOptions = tileTemplates.map(template => ({
+    value: template._id,
+    label: template.name
+}));
+
 
 
 // ✅ Process `postOptions` AFTER `posts` state updates
@@ -424,6 +453,22 @@ useEffect(() => {
         const handleClick = (e) => {
             e.stopPropagation();
             window.open(`/posts?editId=${props.data.value}`, '_blank');
+        };
+        return (
+            <div
+                style={{ cursor: 'pointer', textDecoration: 'underline', color: '#3b82f6' }}
+                onClick={handleClick}
+            >
+                {props.children}
+            </div>
+        );
+    };
+
+    // Custom MultiValueLabel for react-select to make selected tile templates clickable
+    const TileTemplateMultiValueLabel = (props) => {
+        const handleClick = (e) => {
+            e.stopPropagation();
+            window.open(`/tile-templates/edit/${props.data.value}`, '_blank');
         };
         return (
             <div
@@ -615,6 +660,45 @@ useEffect(() => {
                                         disabled={isRefreshingThemes}
                                     >
                                         {isRefreshingThemes ? (
+                                            <span className="spin">⏳</span>
+                                        ) : (
+                                            <span>↻</span>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="field-group">
+                            <div style={{ flex: 1 }}>
+                                <label htmlFor="tileTemplates">Tile Templates</label>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <Select
+                                        id="tileTemplates"
+                                        isMulti
+                                        options={tileTemplateOptions}
+                                        value={selectedTileTemplates}
+                                        onChange={setSelectedTileTemplates}
+                                        className="context-select"
+                                        components={{ MultiValueLabel: TileTemplateMultiValueLabel }}
+                                        placeholder="Select tile templates..."
+                                    />
+                                    <button
+                                        type="button"
+                                        className="refresh-btn"
+                                        title="Refresh tile templates"
+                                        onClick={async () => {
+                                            setIsRefreshingTileTemplates(true);
+                                            try {
+                                                await fetchTileTemplates();
+                                                setSelectedTileTemplates([]);
+                                            } finally {
+                                                setIsRefreshingTileTemplates(false);
+                                            }
+                                        }}
+                                        disabled={isRefreshingTileTemplates}
+                                    >
+                                        {isRefreshingTileTemplates ? (
                                             <span className="spin">⏳</span>
                                         ) : (
                                             <span>↻</span>

@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import ThemeContext from '../../context/ThemeContext';
 import axios from '../../config/axios';
 import { useNavigate } from 'react-router-dom';
-import '../../html/css/Theme.css';
+import styles from '../../html/css/Theme.module.css';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; // Import Quill styles
 import TileTemplateContext from '../../context/TileTemplateContext';
@@ -164,17 +164,13 @@ export default function ThemeForm({ handleFormSubmit }) {
     };
 
     return (
-        <div className="theme-form-container">
-            <button 
-                type="button" 
-                className="submit-btn" 
-                onClick={handleHomeNav}
-                style={{ marginBottom: '20px' }}
-            >
-                Theme Home
+        <div className={styles.companyFormContainer}>
+            <button type="button" className={styles.cancelBtn} style={{ marginBottom: 20 }} onClick={() => { setIsFormVisible(false); navigate('/themes'); }}>
+                ← Back to Themes
             </button>
+            <h2>{themes.editId ? 'Edit Theme' : 'Add Theme'}</h2>
 
-            <form onSubmit={handleSubmit} className="theme-form">
+            <form onSubmit={handleSubmit} className={styles.companyForm}>
                 <div className="form-group">
                     <label htmlFor="themeTitle"><b>Theme Title</b> <span style={{color: 'red'}}>*</span></label>
                     <input
@@ -376,7 +372,14 @@ export default function ThemeForm({ handleFormSubmit }) {
                     />
                 </div>
 
-                <button type="submit" className="submit-btn">Save</button>
+                <div className={styles.buttonGroup}>
+                    <button type="submit" className={styles.companySubmitBtn}>
+                        {themes.editId ? 'Update Theme' : 'Add Theme'}
+                    </button>
+                    <button type="button" onClick={handleHomeNav} className={styles.cancelBtn}>
+                        Cancel
+                    </button>
+                </div>
             </form>
         </div>
     );

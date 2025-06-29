@@ -4,8 +4,11 @@ import TileTemplateContext from '../context/TileTemplateContext';
 
 export const TileTemplateProvider = ({ children }) => {
     const [tileTemplates, setTileTemplates] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
 
     const fetchTileTemplates = useCallback(async () => {
+        setLoading(true);
         try {
             const response = await axios.get('/api/admin/tile-templates', {
                 headers: {
@@ -15,6 +18,9 @@ export const TileTemplateProvider = ({ children }) => {
             setTileTemplates(response.data);
         } catch (error) {
             console.error('Failed to fetch tile templates:', error);
+        } finally {
+            setLoading(false);
+            setInitialLoading(false);
         }
     }, []);
 
@@ -23,6 +29,7 @@ export const TileTemplateProvider = ({ children }) => {
     }, [fetchTileTemplates]);
 
     const addTileTemplate = async (templateData) => {
+        setLoading(true);
         try {
             const response = await axios.post('/api/admin/tile-templates', templateData, {
                 headers: {
@@ -34,10 +41,13 @@ export const TileTemplateProvider = ({ children }) => {
         } catch (error) {
             console.error('Failed to add tile template:', error);
             throw error;
+        } finally {
+            setLoading(false);
         }
     };
 
     const updateTileTemplate = async (id, templateData) => {
+        setLoading(true);
         try {
             const response = await axios.put(`/api/admin/tile-templates/${id}`, templateData, {
                 headers: {
@@ -53,10 +63,13 @@ export const TileTemplateProvider = ({ children }) => {
         } catch (error) {
             console.error('Failed to update tile template:', error);
             throw error;
+        } finally {
+            setLoading(false);
         }
     };
 
     const deleteTileTemplate = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`/api/admin/tile-templates/${id}`, {
                 headers: {
@@ -67,6 +80,8 @@ export const TileTemplateProvider = ({ children }) => {
         } catch (error) {
             console.error('Failed to delete tile template:', error);
             throw error;
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -74,6 +89,8 @@ export const TileTemplateProvider = ({ children }) => {
         <TileTemplateContext.Provider
             value={{
                 tileTemplates,
+                loading,
+                initialLoading,
                 fetchTileTemplates,
                 addTileTemplate,
                 updateTileTemplate,

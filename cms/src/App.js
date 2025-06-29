@@ -224,10 +224,13 @@ function App() {
                                   } />
                                   <Route path="/clarification-guidance" element={<PrivateRoute><ClarificationGuidanceList /></PrivateRoute>} />
                                   <Route path="/clarification-guidance/add" element={<PrivateRoute><ClarificationGuidanceForm /></PrivateRoute>} />
+                                  <Route path="/clarification-guidance/edit/:id" element={<PrivateRoute><ClarificationGuidanceForm /></PrivateRoute>} />
                                   <Route path="/query-refiner" element={<PrivateRoute><QueryRefinerList /></PrivateRoute>} />
                                   <Route path="/query-refiner/add" element={<PrivateRoute><QueryRefinerForm /></PrivateRoute>} />
+                                  <Route path="/query-refiner/edit/:id" element={<PrivateRoute><QueryRefinerForm /></PrivateRoute>} />
                                   <Route path="/market-data" element={<PrivateRoute><MarketDataList /></PrivateRoute>} />
                                   <Route path="/market-data/add" element={<PrivateRoute><MarketDataForm /></PrivateRoute>} />
+                                  <Route path="/market-data/edit/:id" element={<PrivateRoute><MarketDataForm /></PrivateRoute>} />
                                 </Routes>
 
                                 <ToastContainer />
