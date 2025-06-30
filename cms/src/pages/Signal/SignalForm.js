@@ -8,17 +8,14 @@ export default function SignalForm({ handleFormSubmit }) {
     const { signals, signalsDispatch, setIsFormVisible, isFormVisible } = useContext(SignalContext);
 
     const [signalName, setSignalName] = useState('');
-    const [generalComment, setGeneralComment] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (signals.editId) {
             const signal = signals.data.find((ele) => ele._id === signals.editId);
             setSignalName(signal.signalName);
-            setGeneralComment(signal.generalComment);
         } else {
             setSignalName('');
-            setGeneralComment('');
         }
     }, [signals.editId]);
 
@@ -26,7 +23,7 @@ export default function SignalForm({ handleFormSubmit }) {
         e.preventDefault();
         setIsSubmitting(true);
         
-        const formData = { signalName, generalComment };
+        const formData = { signalName };
         
         try {
             if (signals.editId) {
@@ -90,22 +87,6 @@ export default function SignalForm({ handleFormSubmit }) {
                         className={styles.formInput}
                         required
                         disabled={isSubmitting}
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="generalComment" className={styles.formLabel}>
-                        General Comment
-                    </label>
-                    <textarea
-                        id="generalComment"
-                        placeholder="Enter detailed description or comment about this signal..."
-                        name="generalComment"
-                        value={generalComment}
-                        onChange={(e) => setGeneralComment(e.target.value)}
-                        className={styles.formTextarea}
-                        disabled={isSubmitting}
-                        rows={4}
                     />
                 </div>
 

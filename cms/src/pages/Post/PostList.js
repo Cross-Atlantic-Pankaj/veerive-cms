@@ -339,9 +339,9 @@ export default function PostList() {
             }
 
             const headers = [
-                'Date', 'Post Title', 'Context', 'Post Type', 'Is Trending', 'Summary', 'Complete Content', 
-                'Primary Companies', 'Secondary Companies', 'Source', 'Source URLs', 'Sentiment', 
-                'General Comment', 'Created At', 'Updated At'
+                'Date', 'Post Title', 'Context', 'Post Type', 'Is Trending', 'Summary', 
+                'Complete Content', 'Primary Companies', 'Secondary Companies', 'Source', 
+                'Source URLs', 'Sentiment', 'Created At', 'Updated At'
             ];
             
             const rows = filtered.map(post => {
@@ -366,7 +366,6 @@ export default function PostList() {
                     resolveField(post.source, 'source'),
                     (post.sourceUrls || []).join(', '),
                     post.sentiment || '',
-                    post.generalComment || '',
                     post.createdAt ? new Date(post.createdAt).toLocaleString() : '',
                     post.updatedAt ? new Date(post.updatedAt).toLocaleString() : '',
                 ];
@@ -389,45 +388,65 @@ export default function PostList() {
     const handleShowPostContexts = (postContexts) => {
         console.log('Raw post contexts:', postContexts); // Debug log
 
-        if (!postContexts || !Array.isArray(postContexts) || postContexts.length === 0) {
+        if (!postContexts || (!Array.isArray(postContexts) && typeof postContexts !== 'object') || 
+            (Array.isArray(postContexts) && postContexts.length === 0)) {
             toast.info("No contexts associated with this post");
             return;
         }
 
-        // Extract context IDs, handling all possible formats
-        const contextIds = postContexts.map(ctx => {
+        let contextIds = [];
+
+        // Handle if postContexts is a single object
+        if (!Array.isArray(postContexts)) {
+            postContexts = [postContexts];
+        }
+
+        // Extract context IDs
+        contextIds = postContexts.map(ctx => {
             console.log('Processing context:', ctx); // Debug log
+            
             if (!ctx) return null;
             
-            // If it's a string (direct ID)
-            if (typeof ctx === 'string') return ctx;
-            
-            // If it's an object with _id
-            if (ctx._id) return ctx._id;
-            
-            // If it's an object with id
-            if (ctx.id) return ctx.id;
-            
+            // If it's already a context object with _id
+            if (ctx._id) {
+                return ctx._id;
+            }
+            // If it's a string ID
+            else if (typeof ctx === 'string') {
+                return ctx;
+            }
             // If it's an object with value (from select)
-            if (ctx.value) return ctx.value;
-            
-            // If none of the above, log and return null
-            console.log('Unhandled context format:', ctx);
-            return null;
-        }).filter(Boolean); // Remove any null/undefined values
+            else if (ctx.value) {
+                return ctx.value;
+            }
+            else {
+                console.log('Unhandled context format:', ctx);
+                return null;
+            }
+        }).filter(id => id !== null);
 
-        console.log('Filtered context IDs:', contextIds); // Debug log
+        console.log('Context IDs:', contextIds); // Debug log
 
         if (contextIds.length === 0) {
-            toast.info("No valid context IDs found");
+            toast.info("No valid contexts found for this post");
             return;
         }
 
-        // Navigate to contexts page with the filter
+        // Navigate directly to contexts page with the filter
         window.open(`/contexts?filterContexts=${contextIds.join(',')}`, '_blank');
+        
+        // Show a toast with the count
+        toast.success(`Opening ${contextIds.length} context(s) in new tab`);
     };
 
-    const today = new Date().toISOString().split('T')[0];
+    // Get current date in IST timezone
+    const getCurrentDateInIST = () => {
+        const now = new Date();
+        const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000)); // IST is UTC+5:30
+        return istTime.toISOString().split('T')[0];
+    };
+
+    const currentDateInIST = getCurrentDateInIST();
 
     return (
         <div className="post-list-container">
@@ -465,7 +484,7 @@ export default function PostList() {
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
                     marginBottom: '8px'
-                }}>{posts.data.length}</div>
+                }}>{allPosts.length}</div>
                 <div style={{
                     fontSize: '1rem',
                     color: '#64748b',
@@ -476,8 +495,8 @@ export default function PostList() {
             <div className="post-list-controls">
                 <button className="add-post-btn" onClick={handleAddClick}>Add Post</button>
                 <div className="date-range-controls">
-                    <label>From: <input type="date" value={dateRange.start} onChange={e => setDateRange(r => ({ ...r, start: e.target.value }))} max={today} /></label>
-                    <label>To: <input type="date" value={dateRange.end} onChange={e => setDateRange(r => ({ ...r, end: e.target.value }))} max={today} /></label>
+                    <label>From: <input type="date" value={dateRange.start} onChange={e => setDateRange(r => ({ ...r, start: e.target.value }))} max={currentDateInIST} /></label>
+                    <label>To: <input type="date" value={dateRange.end} onChange={e => setDateRange(r => ({ ...r, end: e.target.value }))} max={currentDateInIST} /></label>
                     <button className="download-csv-btn" onClick={handleDownloadCSV}>Download CSV</button>
                 </div>
             </div>
@@ -532,16 +551,6 @@ export default function PostList() {
                                         onClick={() => {
                                             console.log('Post data:', post); // Debug log
                                             handleShowPostContexts(post.contexts);
-                                        }}
-                                        style={{
-                                            background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)',
-                                            color: 'white',
-                                            border: 'none',
-                                            padding: '6px 12px',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer',
-                                            fontSize: '0.9rem',
-                                            fontWeight: '500'
                                         }}
                                     >
                                         Show Post Contexts

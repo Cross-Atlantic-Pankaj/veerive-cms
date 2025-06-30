@@ -8,18 +8,15 @@ export default function SourceForm() {
  
     const [sourceName, setSourceName] = useState('');
     const [sourceType, setSourceType] = useState('');
-    const [generalComment, setGeneralComment] = useState('');
 
     useEffect(() => {
         if (sources.editId) {
             const source = sources.data.find((ele) => ele._id === sources.editId);
             setSourceName(source.sourceName);
             setSourceType(source.sourceType);
-            setGeneralComment(source.generalComment);
         } else {
             setSourceName('');
             setSourceType('');
-            setGeneralComment('');
         }
     }, [sources.editId]);
 
@@ -28,7 +25,6 @@ export default function SourceForm() {
         const formData = {
             sourceName,
             sourceType,
-            generalComment,
         };
         if (sources.editId) {
             try {
@@ -91,16 +87,6 @@ export default function SourceForm() {
                         <option value="Professional Services Firm">Professional Services Firm</option>
                         <option value="Other">Other</option>
                     </select>
-                </div>
-                
-                <div>
-                    <label>General Comment</label>
-                    <textarea
-                        value={generalComment}
-                        onChange={(e) => setGeneralComment(e.target.value)}
-                        placeholder="General Comment"
-                        className={styles.companyTextarea}
-                    />
                 </div>
                 
                 <div className={styles.buttonGroup}>

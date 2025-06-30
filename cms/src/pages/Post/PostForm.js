@@ -5,7 +5,7 @@ import Select from 'react-select'; // Import react-select
 import { format, parseISO } from 'date-fns';
 import ReactQuill from 'react-quill'; // Import ReactQuill
 import 'react-quill/dist/quill.snow.css'; // Import Quill styles
-import '../../html/css/Post.css'; // Ensure this CSS file is created
+import styles from '../../html/css/Post.module.css'; // Using CSS modules
 import { toast } from 'react-toastify'; // ✅ Import toast
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 import CreatableSelect from 'react-select/creatable';
@@ -14,7 +14,14 @@ import TileTemplateContext from '../../context/TileTemplateContext';
 import JsxParser from 'react-jsx-parser';
 import Tile from '../../components/Tile';
 
-const today = new Date().toISOString().split('T')[0];
+// Get current date in IST timezone
+const getCurrentDateInIST = () => {
+    const now = new Date();
+    const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000)); // IST is UTC+5:30
+    return istTime.toISOString().split('T')[0];
+};
+
+const currentDateInIST = getCurrentDateInIST();
 
 const customSelectStyles = {
     option: (provided, state) => ({
@@ -88,9 +95,10 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
     const [secondaryCompanies, setSecondaryCompanies] = useState([]);
     const [source, setSource] = useState([]);
     const [sourceUrls, setSourceUrls] = useState([]); // Changed initial state
-    const [generalComment, setGeneralComment] = useState('');
     const [includeInContainer, setIncludeInContainer] = useState(false); // New state for includeInContainer field
     const [tileTemplateId, setTileTemplateId] = useState(null);
+    const [infographicsUrl, setInfographicsUrl] = useState(''); // New field for Infographic posts
+    const [researchReportsUrl, setResearchReportsUrl] = useState(''); // New field for Research Report posts
 
     const fetchAllContexts = async () => {
         try {
@@ -123,9 +131,6 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
             if (post) {
                 console.log("Editing Post Data:", post);
                 console.log("Editing Post Contexts:", post.contexts);
-
-                // ✅ Store form values in localStorage for persistence
-                
             
             setSelectedContexts(
                 post.contexts && Array.isArray(post.contexts)
@@ -185,8 +190,9 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                         : []
                 );
                 setSourceUrls(post.sourceUrls || []);
-                setGeneralComment(post.generalComment || '');
                 setIncludeInContainer(post.includeInContainer || false);
+                setInfographicsUrl(post.infographicsUrl || '');
+                setResearchReportsUrl(post.researchReportsUrl || '');
                 if (post.tileTemplateId) {
                     const template = tileTemplates.find(t => t._id === post.tileTemplateId);
                     if (template) {
@@ -222,7 +228,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
             toast.warn("⚠️ Date is required.");
             return;
         }
-        if (new Date(date) > new Date(today)) {
+        if (new Date(date) > new Date(currentDateInIST)) {
             toast.warn("⚠️ Date cannot be in the future.");
             return;
         }
@@ -254,6 +260,14 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
             toast.warn("⚠️ Please provide at least one Source URL.");
             return;
         }
+        if (postType === 'Infographic' && !infographicsUrl.trim()) {
+            toast.warn("⚠️ Infographics URL is required for Infographic posts.");
+            return;
+        }
+        if (postType === 'Research Report' && !researchReportsUrl.trim()) {
+            toast.warn("⚠️ Research Reports URL is required for Research Report posts.");
+            return;
+        }
     
         const formData = {
             postTitle,
@@ -270,9 +284,10 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
             secondaryCompanies: secondaryCompanies.map(c => c.value),
             source: source.map(s => s.value),
             sourceUrls,
-            generalComment,
             includeInContainer,
             tileTemplateId: tileTemplateId ? tileTemplateId.value : null,
+            infographicsUrl,
+            researchReportsUrl,
         };
     
         handleFormSubmit(formData, posts.editId);
@@ -363,15 +378,16 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
         setSecondaryCompanies([]);
         setSource([]);
         setSourceUrls([]);
-        setGeneralComment('');
         setIncludeInContainer(false); // Reset includeInContainer
         setTileTemplateId(null);
+        setInfographicsUrl('');
+        setResearchReportsUrl('');
     }
 
     return (
-        <div className="post-form-container">
-            <button type="button" className="submit-btn" onClick={handleHomeNav}>Post Home</button>
-            <form onSubmit={handleSubmit} className="post-form">
+        <div className={styles.postFormContainer}>
+            <button type="button" className={styles.submitBtn} onClick={handleHomeNav}>Post Home</button>
+            <form onSubmit={handleSubmit} className={styles.postForm}>
                 <label htmlFor="postTitle">Post Title <span style={{color: 'red'}}>*</span></label>
                 <input
                     id="postTitle"
@@ -380,7 +396,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     name="postTitle"
                     value={postTitle}
                     onChange={(e) => setPostTitle(e.target.value)}
-                    className="post-input"
+                    className={styles.postInput}
                     required
                 />
                 <label htmlFor="date">Date <span style={{color: 'red'}}>*</span></label>
@@ -390,9 +406,9 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     name="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="post-input"
+                    className={styles.postInput}
                     required
-                    max={today}
+                    max={currentDateInIST}
                 />
                 <label htmlFor="postType">Post Type <span style={{color: 'red'}}>*</span></label>
                 <select
@@ -400,7 +416,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     name="postType"
                     value={postType}
                     onChange={(e) => setPostType(e.target.value)}
-                    className="post-select"
+                    className={styles.postSelect}
                     required
                 >
                     <option value="">Select Post Type</option>
@@ -410,13 +426,48 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     <option value="Infographic">Infographic</option>
                     <option value="Interview">Interview</option>
                 </select>
+                
+                {/* Conditional Fields for Infographic */}
+                {postType === 'Infographic' && (
+                    <>
+                        <label htmlFor="infographicsUrl">Infographics URL <span style={{color: 'red'}}>*</span></label>
+                        <input
+                            id="infographicsUrl"
+                            type="url"
+                            placeholder="Enter Infographics URL"
+                            name="infographicsUrl"
+                            value={infographicsUrl}
+                            onChange={(e) => setInfographicsUrl(e.target.value)}
+                            className={styles.postInput}
+                            required
+                        />
+                    </>
+                )}
+                
+                {/* Conditional Fields for Research Report */}
+                {postType === 'Research Report' && (
+                    <>
+                        <label htmlFor="researchReportsUrl">Research Reports URL <span style={{color: 'red'}}>*</span></label>
+                        <input
+                            id="researchReportsUrl"
+                            type="url"
+                            placeholder="Enter Research Reports URL"
+                            name="researchReportsUrl"
+                            value={researchReportsUrl}
+                            onChange={(e) => setResearchReportsUrl(e.target.value)}
+                            className={styles.postInput}
+                            required
+                        />
+                    </>
+                )}
+                
                 <label htmlFor="isTrending"><b>Is Trending?</b></label>
                 <input
                     id="isTrending"
                     type="checkbox"
                     checked={isTrending}
                     onChange={(e) => setIsTrending(e.target.checked)}
-                    className="post-checkbox"
+                    className={styles.postCheckbox}
                 />
                 <label htmlFor="homePageShow"><b>Show on Home Page?</b></label>
                 <input
@@ -424,7 +475,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     type="checkbox"
                     checked={homePageShow}
                     onChange={(e) => setHomePageShow(e.target.checked)}
-                    className="post-checkbox"
+                    className={styles.postCheckbox}
                 />
               <label htmlFor="Contexts">Contexts <span style={{color: 'red'}}>*</span></label>
                     <Select
@@ -434,7 +485,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                         onChange={handleSelectChange}
                         options={contextOptions}
                         isMulti
-                        className="post-select"
+                        className={styles.postSelect}
                         required
                     />
                 <label htmlFor="includeInContainer"><b>Include in Container?</b></label>
@@ -443,7 +494,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     type="checkbox"
                     checked={includeInContainer}
                     onChange={(e) => setIncludeInContainer(e.target.checked)}
-                    className="post-checkbox"
+                    className={styles.postCheckbox}
                 />
                 <label htmlFor="countries">Countries <span style={{color: 'red'}}>*</span></label>
                 <Select
@@ -453,7 +504,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     onChange={handleCountriesChange}
                     options={countryOptions}
                     isMulti
-                    className="post-select"
+                    className={styles.postSelect}
                     required
                 />
                 <label htmlFor="summary">Summary <span style={{color: 'red'}}>*</span></label>
@@ -461,7 +512,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     id="summary"
                     value={summary}
                     onChange={handleSummaryChange}
-                    className="post-quill-editor"
+                    className={styles.postQuill}
                 />
 
                 <label htmlFor="completeContent"><b>Complete Content</b></label>
@@ -470,9 +521,9 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     placeholder="Complete Content"
                     value={completeContent}
                     onChange={(e) => setCompleteContent(e.target.value)}
-                    className="post-textarea"
+                    className={styles.postTextarea}
                 />
-                <div className="form-group">
+                <div className={styles.formGroup}>
                     <label>Sentiment *</label>
                     <Select
                         value={sentiment}
@@ -483,6 +534,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                             { value: 'Neutral', label: 'Neutral' }
                         ]}
                         placeholder="Select Sentiment"
+                        className={styles.postSelect}
                         isClearable
                         required
                     />
@@ -497,7 +549,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                         isMulti
                         isSearchable
                         placeholder="Search and select primary companies"
-                        className="post-select"
+                        className={styles.postSelect}
                     />
                 </div>
                 <label htmlFor="secondaryCompanies"><b>Secondary Companies</b></label>
@@ -510,7 +562,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                         isMulti
                         isSearchable
                         placeholder="Search and select secondary companies"
-                        className="post-select"
+                        className={styles.postSelect}
                     />
                 </div>
                 <label htmlFor="source">Source <span style={{color: 'red'}}>*</span></label>
@@ -522,7 +574,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                         onChange={handleSourceChange}
                         options={sourceOptions}
                         isMulti
-                        className="post-select"
+                        className={styles.postSelect}
                         required
                     />
                 </div>
@@ -535,19 +587,12 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     isMulti
                     isSearchable
                     placeholder="Enter URL and press Enter"
-                    className="post-select"
+                    className={styles.postSelect}
                     onCreateOption={handleCreateUrl}
                     required
                 />
-                <label htmlFor="generalComment"><b>General Comment</b></label>
-                <textarea
-                    id="generalComment"
-                    placeholder="General Comment"
-                    value={generalComment}
-                    onChange={(e) => setGeneralComment(e.target.value)}
-                    className="post-textarea"
-                />
-                <div className="form-group">
+
+                <div className={styles.formGroup}>
                     <label>Tile Template</label>
                     <Select
                         value={tileTemplateId}
@@ -568,32 +613,8 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                         }}
                     />
                 </div>
-                <button type="submit" className="submit-btn">Save Post</button>
+                <button type="submit" className={styles.submitBtn}>Save Post</button>
             </form>
         </div>
     );
 }
-
-// Add these styles to your CSS file
-const styles = `
-.image-input-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.image-preview {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #f9f9f9;
-}
-
-.image-preview img {
-    object-fit: contain;
-    border-radius: 4px;
-}
-`;

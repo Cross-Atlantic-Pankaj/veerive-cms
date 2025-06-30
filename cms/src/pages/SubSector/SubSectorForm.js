@@ -12,18 +12,15 @@ export default function SubSectorForm({ handleFormSubmit }) {
 
     const [subSectorName, setSubSectorName] = useState('');
     const [sectorId, setSectorId] = useState('');
-    const [generalComment, setGeneralComment] = useState('');
 
     useEffect(() => {
         if (subSectors.editId) {
             const subSector = subSectors.data.find((ele) => ele._id === subSectors.editId);
             setSubSectorName(subSector.subSectorName);
             setSectorId(subSector.sectorId);
-            setGeneralComment(subSector.generalComment);
         } else {
             setSubSectorName('');
             setSectorId('');
-            setGeneralComment('');
         }
     }, [subSectors.editId]);
 
@@ -32,7 +29,6 @@ export default function SubSectorForm({ handleFormSubmit }) {
         const formData = {
             subSectorName,
             sectorId,
-            generalComment,
         };
         if (subSectors.editId) {
             try {
@@ -97,16 +93,6 @@ export default function SubSectorForm({ handleFormSubmit }) {
                             </option>
                         ))}
                     </select>
-                </div>
-                
-                <div>
-                    <label>General Comment</label>
-                    <textarea
-                        placeholder="Enter comment"
-                        value={generalComment}
-                        onChange={(e) => setGeneralComment(e.target.value)}
-                        className={styles.companyTextarea}
-                    />
                 </div>
                 
                 <div className={styles.buttonGroup}>

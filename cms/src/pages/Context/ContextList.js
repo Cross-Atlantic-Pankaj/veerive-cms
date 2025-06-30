@@ -48,6 +48,14 @@ export default function ContextList() {
     // Get the filter parameter from URL
     const filterContextIds = query.get('filterContexts')?.split(',').filter(Boolean) || [];
 
+    // Debug logging for filter parameter
+    console.log('🔍 URL Filter Debug:', {
+        urlParams: location.search,
+        filterContextsParam: query.get('filterContexts'),
+        filterContextIds,
+        filterActive: filterContextIds.length > 0
+    });
+
     // Fetch all contexts when component mounts
     useEffect(() => {
         const fetchAllContexts = async () => {
@@ -206,13 +214,49 @@ export default function ContextList() {
         // Determine which dataset to use
         const isSortingActive = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending';
         const isSearchActive = localSearchQuery.trim().length > 0;
+        const isFilterActive = filterContextIds.length > 0;
         
-        // Use allContexts when searching or when sorting is active (for cross-page sorting)
-        let data = (isSearchActive || isSortingActive) ? allContexts : (contexts.data || []);
+        // When filtering is active, always use client-side mode with all available data
+        let data = [];
+        if (isFilterActive) {
+            // For filtering, use all available data (prefer allContexts, fallback to contexts.data)
+            data = allContexts.length > 0 ? allContexts : (contexts.data || []);
+            console.log('🔍 Using data source for filtering:', {
+                usingAllContexts: allContexts.length > 0,
+                allContextsLength: allContexts.length,
+                contextsDataLength: contexts.data?.length || 0,
+                totalDataLength: data.length
+            });
+        } else {
+            // Normal behavior for search/sort
+            data = (isSearchActive || isSortingActive) ? allContexts : (contexts.data || []);
+        }
         
         // Apply context ID filter if present
         if (filterContextIds.length > 0) {
-            data = data.filter(context => filterContextIds.includes(context._id));
+            console.log('🔍 Filtering contexts:', {
+                filterContextIds,
+                totalContextsBefore: data.length,
+                sampleContextIds: data.slice(0, 5).map(c => ({ id: c._id, title: c.contextTitle?.substring(0, 30) }))
+            });
+            
+            data = data.filter(context => {
+                const contextId = String(context._id);
+                const isMatch = filterContextIds.some(filterId => {
+                    const filterIdStr = String(filterId).trim();
+                    const match = filterIdStr === contextId;
+                    if (match) {
+                        console.log('✅ Found matching context:', context.contextTitle, contextId);
+                    }
+                    return match;
+                });
+                return isMatch;
+            });
+            
+            console.log('🔍 After filtering:', {
+                totalContextsAfter: data.length,
+                matchedContexts: data.map(c => ({ id: c._id, title: c.contextTitle }))
+            });
         }
 
         // Apply search filter using localSearchQuery
@@ -313,7 +357,8 @@ export default function ContextList() {
     // Determine if we're in search mode or sorting mode
     const isSearchMode = localSearchQuery.trim().length > 0;
     const isSortingActive = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending';
-    const isClientSideMode = isSearchMode || isSortingActive;
+    const isFilterMode = filterContextIds.length > 0;
+    const isClientSideMode = isSearchMode || isSortingActive || isFilterMode;
 
     // Calculate pagination for processed data
     const itemsPerPage = 10;
@@ -508,7 +553,14 @@ export default function ContextList() {
         }
     };
 
-    const today = new Date().toISOString().split('T')[0];
+    // Get current date in IST timezone
+    const getCurrentDateInIST = () => {
+        const now = new Date();
+        const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000)); // IST is UTC+5:30
+        return istTime.toISOString().split('T')[0];
+    };
+
+    const currentDateInIST = getCurrentDateInIST();
 
     if (isLoading) return <LoadingSpinner />;
 
@@ -539,19 +591,52 @@ export default function ContextList() {
                     fontWeight: '500'
                 }}>Total Contexts</div>
             </div>
+
+            {/* Filter Status Indicator */}
+            {filterContextIds.length > 0 && (
+                <div style={{
+                    backgroundColor: '#fef3c7',
+                    border: '1px solid #f59e0b',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    margin: '10px 0',
+                    textAlign: 'center',
+                    color: '#92400e'
+                }}>
+                    🔍 Filtering by Context ID(s): <strong>{filterContextIds.join(', ')}</strong>
+                    <br />
+                    <small>Showing contexts that match the selected filter criteria</small>
+                </div>
+            )}
             
             <div className="top-bar">
                 <div className="left-controls">
                     <button className="add-context-btn" onClick={handleAddClick} disabled={userRole === 'User'}>Add Context</button>
+                    {filterContextIds.length > 0 && (
+                        <button 
+                            onClick={() => navigate('/contexts')}
+                            style={{
+                                backgroundColor: '#f59e0b',
+                                color: 'white',
+                                border: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '6px',
+                                marginLeft: '10px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Clear Filter ({filterContextIds.length} ID{filterContextIds.length > 1 ? 's' : ''})
+                        </button>
+                    )}
                 </div>
                 <div className="center-controls">
                     <label>
                         Start Date:
-                        <input type="date" value={downloadStartDate} onChange={e => setDownloadStartDate(e.target.value)} placeholder="dd-mm-yyyy" max={today} />
+                        <input type="date" value={downloadStartDate} onChange={e => setDownloadStartDate(e.target.value)} placeholder="dd-mm-yyyy" max={currentDateInIST} />
                     </label>
                     <label>
                         End Date:
-                        <input type="date" value={downloadEndDate} onChange={e => setDownloadEndDate(e.target.value)} placeholder="dd-mm-yyyy" max={today} />
+                        <input type="date" value={downloadEndDate} onChange={e => setDownloadEndDate(e.target.value)} placeholder="dd-mm-yyyy" max={currentDateInIST} />
                     </label>
                     <button onClick={handleDownloadCSV} disabled={isDownloading} style={{ minWidth: '120px' }}>
                         {isDownloading ? 'Downloading...' : 'Download CSV'}
@@ -633,7 +718,7 @@ export default function ContextList() {
                     <tr>
                         <td colSpan="10" style={{ textAlign: 'center' }}>
                             {filterContextIds.length > 0 
-                                ? 'No matching contexts found for this filter'
+                                ? `No matching contexts found for filter ID(s): ${filterContextIds.join(', ')}`
                                 : localSearchQuery.trim()
                                 ? 'No contexts found matching your search'
                                 : 'No contexts found'}
@@ -645,6 +730,27 @@ export default function ContextList() {
         {isSearchMode ? (
             <div className="pagination">
                 <span>Showing {currentPageData.length} of {totalFilteredItems} results for "{localSearchQuery}"</span>
+                {totalFilteredPages > 1 && (
+                    <>
+                        <button 
+                            onClick={handlePrevPage}
+                            disabled={page === 1}
+                        >
+                            Previous
+                        </button>
+                        <span> Page {page} of {displayTotalPages} </span>
+                        <button 
+                            onClick={handleNextPage}
+                            disabled={page === displayTotalPages || displayTotalPages === 0}
+                        >
+                            Next
+                        </button>
+                    </>
+                )}
+            </div>
+        ) : isFilterMode ? (
+            <div className="pagination">
+                <span>Showing {currentPageData.length} of {totalFilteredItems} filtered contexts</span>
                 {totalFilteredPages > 1 && (
                     <>
                         <button 

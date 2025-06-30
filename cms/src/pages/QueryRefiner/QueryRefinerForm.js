@@ -162,12 +162,11 @@ export default function QueryRefinerForm() {
           </div>
           
           <div>
-            <label>Sub-Sector <span style={{color: 'red'}}>*</span></label>
+            <label>Sub-Sector</label>
             <select 
               className={styles.companySelect} 
               value={subSector} 
               onChange={e => setSubSector(e.target.value)} 
-              required
               disabled={!sector}
             >
               <option value="">Select Sub-Sector</option>

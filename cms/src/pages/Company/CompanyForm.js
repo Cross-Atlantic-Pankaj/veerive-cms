@@ -14,7 +14,6 @@ export default function CompanyForm() {
     const [country, setCountry] = useState(''); // State for selected country
     const [sector, setSector] = useState(''); // Changed from selectedSectors array to single sector
     const [subSector, setSubSector] = useState(''); // Changed from selectedSubSectors array to single subSector
-    const [generalComment, setGeneralComment] = useState(''); // State for general comment
     const [filteredSubSectors, setFilteredSubSectors] = useState([]); // State for filtered sub-sectors based on selected sectors
 
     useEffect(() => {
@@ -30,7 +29,6 @@ export default function CompanyForm() {
                 setCountry(company.country);
                 setSector(company.sectors?.[0] || ''); // Take first sector if exists
                 setSubSector(company.subSectors?.[0] || ''); // Take first subSector if exists
-                setGeneralComment(company.generalComment);
     
                 // Filter sub-sectors based on selected sector
                 if (subSectorsData.data && company.sectors?.[0]) {
@@ -48,7 +46,6 @@ export default function CompanyForm() {
             setCountry('');
             setSector('');
             setSubSector('');
-            setGeneralComment('');
             setFilteredSubSectors([]);
         }
     }, [companies.editId, companies.data, subSectorsData.data]); // Dependencies for effect
@@ -63,7 +60,6 @@ export default function CompanyForm() {
             country,
             sectors: sector ? [sector] : [], // Convert single sector to array
             subSectors: subSector ? [subSector] : [], // Convert single subSector to array
-            generalComment
         };
     
         try {
@@ -106,6 +102,16 @@ export default function CompanyForm() {
     
     const handleBackToList = () => {
         setIsFormVisible(false);
+    };
+
+    const resetForm = () => {
+        setCompanyName('');
+        setParentName('');
+        setWebsite('');
+        setCountry('');
+        setSector('');
+        setSubSector('');
+        setFilteredSubSectors([]);
     };
 
     return (
@@ -193,15 +199,6 @@ export default function CompanyForm() {
                             <option key={subSector._id} value={subSector._id}>{subSector.subSectorName}</option>
                         ))}
                     </select>
-                </div>
-                <div>
-                    <label>General Comment</label>
-                    <textarea
-                        value={generalComment}
-                        onChange={(e) => setGeneralComment(e.target.value)}
-                        placeholder="General Comment"
-                        className={styles.companyTextarea}
-                    />
                 </div>
                 <div className={styles.buttonGroup}>
                     <button type="submit" className={styles.companySubmitBtn}>

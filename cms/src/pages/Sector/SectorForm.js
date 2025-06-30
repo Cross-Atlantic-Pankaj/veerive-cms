@@ -9,16 +9,13 @@ export default function SectorForm({ handleFormSubmit }) {
     const navigate = useNavigate();
 
     const [sectorName, setSectorName] = useState('');
-    const [generalComment, setGeneralComment] = useState('');
 
     useEffect(() => {
         if (sectors.editId) {
             const sector = sectors.data.find((ele) => ele._id === sectors.editId);
             setSectorName(sector.sectorName);
-            setGeneralComment(sector.generalComment);
         } else {
             setSectorName('');
-            setGeneralComment('');
         }
     }, [sectors.editId]);
 
@@ -26,7 +23,6 @@ export default function SectorForm({ handleFormSubmit }) {
         e.preventDefault();
         const formData = {
             sectorName,
-            generalComment,
         };
         if (sectors.editId) {
             try {
@@ -74,16 +70,6 @@ export default function SectorForm({ handleFormSubmit }) {
                             onChange={(e) => setSectorName(e.target.value)}
                             className={styles.companyInput}
                             required
-                        />
-                    </div>
-                    
-                    <div>
-                        <label>General Comment</label>
-                        <textarea
-                            placeholder="Enter comment"
-                            value={generalComment}
-                            onChange={(e) => setGeneralComment(e.target.value)}
-                            className={styles.companyTextarea}
                         />
                     </div>
                     

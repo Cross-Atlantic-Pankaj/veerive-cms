@@ -41,7 +41,6 @@ export default function ContextForm({ handleFormSubmit }) {
     const [homePageShow, setHomePageShow] = useState(false);
     const [bannerImage, setBannerImage] = useState('');
     const [otherImage, setOtherImage] = useState('');
-    const [generalComment, setGeneralComment] = useState('');
     const [dataForTypeNum, setDataForTypeNum] = useState('');
     const [summary, setSummary] = useState('');
     const [postOptions, setPostOptions] = useState([]); // ✅ Store processed post options
@@ -130,7 +129,6 @@ export default function ContextForm({ handleFormSubmit }) {
             setHomePageShow(false);
             setBannerImage('');
             setOtherImage('');
-            setGeneralComment('');
             setDataForTypeNum('');
             setSummary('');
             setHasSlider(false);
@@ -206,7 +204,6 @@ export default function ContextForm({ handleFormSubmit }) {
             setHomePageShow(context.homePageShow || false);
             setBannerImage(context.bannerImage || '');
             setOtherImage(context.otherImage || '');
-            setGeneralComment(context.generalComment || '');
             setDataForTypeNum(context.dataForTypeNum || '');
             setSummary(context.summary || '');
             setHasSlider(context.hasSlider || false);
@@ -332,7 +329,6 @@ export default function ContextForm({ handleFormSubmit }) {
                 homePageShow,
                 bannerImage,
                 otherImage,
-                generalComment,
                 dataForTypeNum,
                 summary,
                 hasSlider,
@@ -793,19 +789,6 @@ useEffect(() => {
                                     value={otherImage}
                                     onChange={(e) => setOtherImage(e.target.value)}
                                     className="context-input"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="field-group">
-                            <div style={{ flex: 1 }}>
-                                <label htmlFor="generalComment">General Comment</label>
-                                <textarea
-                                    id="generalComment"
-                                    placeholder="Enter general comment"
-                                    value={generalComment}
-                                    onChange={(e) => setGeneralComment(e.target.value)}
-                                    className="context-textarea"
                                 />
                             </div>
                         </div>

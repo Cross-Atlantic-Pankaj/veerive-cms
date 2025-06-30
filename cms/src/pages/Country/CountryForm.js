@@ -14,7 +14,6 @@ export default function CountryForm() {
 
     const [countryName, setCountryName] = useState('');
     const [regionId, setRegionId] = useState('');
-    const [generalComment, setGeneralComment] = useState('');
 
     // Fetch country data when editId changes
     useEffect(() => {
@@ -23,7 +22,6 @@ export default function CountryForm() {
                 // Clear form if not in edit mode
                 setCountryName('');
                 setRegionId('');
-                setGeneralComment('');
                 return;
             }
 
@@ -37,7 +35,6 @@ export default function CountryForm() {
                     const country = response.data.country;
                     setCountryName(country.countryName || '');
                     setRegionId(country.regionId || '');
-                    setGeneralComment(country.generalComment || '');
                 }
             } catch (err) {
                 console.error('Error fetching country:', err);
@@ -57,7 +54,6 @@ export default function CountryForm() {
         const formData = {
             countryName,
             regionId,
-            generalComment,
         };
 
         try {
@@ -136,17 +132,6 @@ export default function CountryForm() {
                             </option>
                         ))}
                     </select>
-                </div>
-                
-                <div>
-                    <label>General Comment</label>
-                    <textarea
-                        placeholder="Enter comment"
-                        value={generalComment}
-                        onChange={(e) => setGeneralComment(e.target.value)}
-                        className={styles.companyTextarea}
-                        disabled={isLoading}
-                    />
                 </div>
                 
                 <div className={styles.buttonGroup}>

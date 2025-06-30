@@ -19,7 +19,6 @@ export default function ThemeForm({ handleFormSubmit }) {
     const [isTrending, setIsTrending] = useState(false);
     const [selectedSectors, setSelectedSectors] = useState([]);
     const [selectedSubSectors, setSelectedSubSectors] = useState([]);
-    const [generalComment, setGeneralComment] = useState('');
     const [themeDescription, setThemeDescription] = useState(''); // New state
     const [filteredSubSectors, setFilteredSubSectors] = useState([]);
 
@@ -56,7 +55,6 @@ export default function ThemeForm({ handleFormSubmit }) {
                     const subSector = allSubSectorOptions.find(opt => String(opt.value) === String(id));
                     return subSector || { value: id, label: id };
                 }));
-                setGeneralComment(theme.generalComment || '');
                 setThemeDescription(theme.themeDescription || '');
                 setTrendingScore(theme.trendingScore || 0);
                 setImpactScore(theme.impactScore || 0);
@@ -87,7 +85,6 @@ export default function ThemeForm({ handleFormSubmit }) {
             setIsTrending(false);
             setSelectedSectors([]);
             setSelectedSubSectors([]);
-            setGeneralComment('');
             setThemeDescription('');
             setFilteredSubSectors([]);
             setTrendingScore(0);
@@ -118,7 +115,6 @@ export default function ThemeForm({ handleFormSubmit }) {
             isTrending,
             sectors: selectedSectors.map(s => s.value),
             subSectors: selectedSubSectors.map(s => s.value),
-            generalComment,
             themeDescription, // Include themeDescription
             overallScore: overallScoreCalc,
             trendingScore,
@@ -165,7 +161,7 @@ export default function ThemeForm({ handleFormSubmit }) {
 
     return (
         <div className={styles.companyFormContainer}>
-            <button type="button" className={styles.cancelBtn} style={{ marginBottom: 20 }} onClick={() => { setIsFormVisible(false); navigate('/themes'); }}>
+            <button type="button" className={styles.cancelBtn} style={{ marginBottom: 20 }} onClick={handleHomeNav}>
                 ← Back to Themes
             </button>
             <h2>{themes.editId ? 'Edit Theme' : 'Add Theme'}</h2>
@@ -306,17 +302,6 @@ export default function ThemeForm({ handleFormSubmit }) {
                         isMulti
                         className="theme-select"
                         placeholder="Select sub-sectors..."
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="generalComment"><b>General Comment</b></label>
-                    <textarea
-                        id="generalComment"
-                        placeholder="General Comment"
-                        value={generalComment}
-                        onChange={(e) => setGeneralComment(e.target.value)}
-                        className="theme-textarea"
                     />
                 </div>
 

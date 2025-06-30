@@ -167,6 +167,9 @@ export const ThemeProvider = ({ children }) => {
     // ✅ Handle Form Submission
     const handleFormSubmit = (message) => {
         console.log("Form submitted:", message);
+        // Clear edit state
+        themesDispatch({ type: 'SET_EDIT_ID', payload: null });
+        // Hide the form
         setIsFormVisible(false);
         setSuccessMessage(message);
         setTimeout(() => setSuccessMessage(''), 2000);

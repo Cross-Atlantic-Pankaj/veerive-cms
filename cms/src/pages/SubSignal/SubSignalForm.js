@@ -9,7 +9,6 @@ export default function SubSignalForm({ handleFormSubmit }) {
 
     const [subSignalName, setSubSignalName] = useState('');
     const [signalId, setSignalId] = useState('');
-    const [generalComment, setGeneralComment] = useState('');
     const [signals, setSignals] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoadingSignals, setIsLoadingSignals] = useState(true);
@@ -19,11 +18,9 @@ export default function SubSignalForm({ handleFormSubmit }) {
             const subSignal = subSignals.data.find((ele) => ele._id === subSignals.editId);
             setSubSignalName(subSignal.subSignalName);
             setSignalId(subSignal.signalId);
-            setGeneralComment(subSignal.generalComment);
         } else {
             setSubSignalName('');
             setSignalId('');
-            setGeneralComment('');
         }
     }, [subSignals.editId]);
 
@@ -48,7 +45,7 @@ export default function SubSignalForm({ handleFormSubmit }) {
         e.preventDefault();
         setIsSubmitting(true);
         
-        const formData = { subSignalName, signalId, generalComment };
+        const formData = { subSignalName, signalId };
         
         try {
             if (subSignals.editId) {
@@ -137,22 +134,6 @@ export default function SubSignalForm({ handleFormSubmit }) {
                             </option>
                         ))}
                     </select>
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="generalComment" className={styles.formLabel}>
-                        General Comment
-                    </label>
-                    <textarea
-                        id="generalComment"
-                        placeholder="Enter detailed description or comment about this sub-signal..."
-                        name="generalComment"
-                        value={generalComment}
-                        onChange={(e) => setGeneralComment(e.target.value)}
-                        className={styles.formTextarea}
-                        disabled={isSubmitting}
-                        rows={4}
-                    />
                 </div>
 
                 <div className={styles.formActions}>

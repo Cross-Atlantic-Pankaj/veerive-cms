@@ -15,14 +15,17 @@ const postSchema = new Schema ({
     sentiment: { type: String, enum: ['Positive', 'Negative', 'Neutral'], required: true},
     primaryCompanies: [{ type: Schema.Types.ObjectId, ref: 'Company', required: false}],
     secondaryCompanies: [{ type: Schema.Types.ObjectId, ref: 'Company', required: false}],
+    generalComment: { type: String, required: false },
     // source: { type: String, ref: 'Source', required: true},
     // sourceUrl: {type: String, required: true},
     source: [{ type: Schema.Types.ObjectId, ref: 'Source', required: true }], // ✅ Now an array
     sourceUrls: [{ type: String, required: true }], // ✅ Now an array
 
-    tileTemplateId: { type: Schema.Types.ObjectId, ref: 'TileTemplate', required: false },
+    // Google Drive links for specific post types
+    infographicsUrl: { type: String, required: false }, // Google Drive link for Infographic posts
+    researchReportsUrl: { type: String, required: false }, // Google Drive link for Research Report posts
 
-    generalComment: { type: String, required: false },
+    tileTemplateId: { type: Schema.Types.ObjectId, ref: 'TileTemplate', required: false },
 
     seoData: {
       seoURL: { type: String, required: false }, 
