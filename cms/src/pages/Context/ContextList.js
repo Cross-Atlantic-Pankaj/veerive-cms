@@ -26,7 +26,7 @@ export default function ContextList() {
     const userRole = state.user?.role;
     
     // Local state to manage the search query and sorting configuration
-    const [sortConfig, setSortConfig] = useState({ key: 'contextTitle', direction: 'ascending' });
+    const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'descending' });
     const [localSearchQuery, setLocalSearchQuery] = useState(''); // Local search state
     const [contextsData, setContextsData] = useState([]); // ✅ New local state for rendering
     const [downloadStartDate, setDownloadStartDate] = useState('');
@@ -99,7 +99,7 @@ export default function ContextList() {
     
             try {
                 // If sorting is active, fetch all contexts for proper cross-page sorting
-                const needsAllData = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending';
+                const needsAllData = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending' || sortConfig.key === 'date';
                 const apiUrl = needsAllData 
                     ? `/api/admin/contexts/all`
                     : `/api/admin/contexts?page=${page}&limit=10`;
@@ -356,7 +356,7 @@ export default function ContextList() {
 
     // Determine if we're in search mode or sorting mode
     const isSearchMode = localSearchQuery.trim().length > 0;
-    const isSortingActive = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending';
+    const isSortingActive = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending' || sortConfig.key === 'date';
     const isFilterMode = filterContextIds.length > 0;
     const isClientSideMode = isSearchMode || isSortingActive || isFilterMode;
 

@@ -123,10 +123,37 @@ postsCltr.create = async (req, res) => {
         let post = new Post(formattedPost);
         await post.save();
 
+        // ✅ Automatically tag the post to contexts and save context
+        if (req.body.contexts && Array.isArray(req.body.contexts) && req.body.contexts.length > 0) {
+            try {
+                // Update each context with the new post
+                const contextUpdates = req.body.contexts.map(contextId => 
+                    Context.findByIdAndUpdate(
+                        contextId,
+                        { 
+                            $addToSet: { 
+                                posts: { 
+                                    postId: post._id, 
+                                    includeInContainer: req.body.includeInContainer || true 
+                                } 
+                            } 
+                        },
+                        { new: true }
+                    )
+                );
+
+                await Promise.all(contextUpdates);
+                console.log(`✅ Successfully tagged post ${post._id} to ${req.body.contexts.length} contexts`);
+            } catch (contextError) {
+                console.error("❌ Error updating contexts with post:", contextError);
+                // Don't fail the post creation if context update fails
+            }
+        }
+
         // ✅ Populate contexts so frontend sees `contextTitle`
         post = await post.populate("contexts", "contextTitle _id");
 
-        res.status(201).json({ success: true, message: "Post created successfully.", post });
+        res.status(201).json({ success: true, message: "Post created successfully and tagged to contexts.", post });
 
     } catch (err) {
         console.error("❌ Error creating post:", err);
@@ -169,9 +196,44 @@ postsCltr.update = async (req, res) => {
 
         const updatedPost = await Post.findByIdAndUpdate(id, updatedData, { new: true });
 
+        // ✅ Handle context updates when post contexts change
+        if (body.contexts && Array.isArray(body.contexts)) {
+            try {
+                // First, remove this post from all contexts
+                await Context.updateMany(
+                    { 'posts.postId': id },
+                    { $pull: { posts: { postId: id } } }
+                );
+
+                // Then add the post to the new contexts
+                if (body.contexts.length > 0) {
+                    const contextUpdates = body.contexts.map(contextId => 
+                        Context.findByIdAndUpdate(
+                            contextId,
+                            { 
+                                $addToSet: { 
+                                    posts: { 
+                                        postId: id, 
+                                        includeInContainer: body.includeInContainer || true 
+                                    } 
+                                } 
+                            },
+                            { new: true }
+                        )
+                    );
+
+                    await Promise.all(contextUpdates);
+                    console.log(`✅ Successfully updated post ${id} contexts: removed from all, added to ${body.contexts.length} contexts`);
+                }
+            } catch (contextError) {
+                console.error("❌ Error updating contexts with post:", contextError);
+                // Don't fail the post update if context update fails
+            }
+        }
+
         res.json({
             success: true,
-            message: "Post updated successfully.",
+            message: "Post updated successfully and contexts synchronized.",
             updatedPost
         });
 
