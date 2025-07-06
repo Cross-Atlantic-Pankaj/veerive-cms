@@ -61,14 +61,14 @@ export default function Login() {
                         onChange={(e) => setEmail(e.target.value)}
                     />
                     <div style={{ position: 'relative' }}>
-                        <input
+                    <input
                             type={showPassword ? 'text' : 'password'}
-                            placeholder="Enter password"
-                            className="login-input"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter password"
+                        className="login-input"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                             style={{ paddingRight: '2.5em' }}
-                        />
+                    />
                         <span
                             onClick={() => setShowPassword((prev) => !prev)}
                             style={{

@@ -6,6 +6,7 @@ import Company from '../models/company-model.js';
 import Source from '../models/source-model.js';
 import { Country, Region } from '../models/geography-model.js';
 import PostType from '../models/postType-model.js';
+import crypto from 'crypto';
 
 
 const contextsCltr = {}
@@ -116,12 +117,99 @@ contextsCltr.show = async (req, res) => {
 
 contextsCltr.postContext = async (req, res) => {
     const { postId } = req.params;
-    console.log(req.params)
+    console.log('Fetching contexts for post ID:', postId);
     try {
         const contexts = await Context.find({ 'posts.postId': postId });
-        res.json(contexts);
+        console.log(`Found ${contexts.length} contexts for post ID:`, postId);
+        res.json({ success: true, contexts });
     } catch (error) {
-        res.status(500).send('Server error');
+        console.error('Error fetching contexts for post:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+};
+
+// Secure endpoint - POST request with postId in body instead of URL
+contextsCltr.getContextsByPost = async (req, res) => {
+    const { postId } = req.body;
+    console.log('Fetching contexts for post (secure)');
+    try {
+        if (!postId) {
+            return res.status(400).json({ success: false, error: 'Post ID is required' });
+        }
+        
+        const contexts = await Context.find({ 'posts.postId': postId });
+        console.log(`Found ${contexts.length} contexts for post`);
+        res.json({ success: true, contexts });
+    } catch (error) {
+        console.error('Error fetching contexts for post:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+};
+
+// Temporary session storage for secure filtering
+const filterSessions = new Map();
+
+// Create a secure filter session
+contextsCltr.createFilterSession = async (req, res) => {
+    const { contextIds } = req.body;
+    console.log('Creating secure filter session');
+    try {
+        if (!contextIds || !Array.isArray(contextIds) || contextIds.length === 0) {
+            return res.status(400).json({ success: false, error: 'Context IDs are required' });
+        }
+        
+        // Generate a secure session token
+        const sessionToken = crypto.randomBytes(32).toString('hex');
+        
+        // Store the context IDs with the session token (expires in 10 minutes)
+        filterSessions.set(sessionToken, {
+            contextIds,
+            expires: Date.now() + 10 * 60 * 1000 // 10 minutes
+        });
+        
+        console.log(`Created filter session for ${contextIds.length} contexts`);
+        res.json({ success: true, sessionToken });
+    } catch (error) {
+        console.error('Error creating filter session:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+};
+
+// Get contexts by filter session
+contextsCltr.getContextsByFilterSession = async (req, res) => {
+    const { sessionToken } = req.params;
+    console.log('Retrieving contexts by filter session');
+    try {
+        if (!sessionToken) {
+            return res.status(400).json({ success: false, error: 'Session token is required' });
+        }
+        
+        const session = filterSessions.get(sessionToken);
+        if (!session) {
+            return res.status(404).json({ success: false, error: 'Invalid or expired session' });
+        }
+        
+        // Check if session has expired
+        if (Date.now() > session.expires) {
+            filterSessions.delete(sessionToken);
+            return res.status(404).json({ success: false, error: 'Session expired' });
+        }
+        
+        // Fetch contexts by IDs
+        const contexts = await Context.find({ _id: { $in: session.contextIds } });
+        
+        // Clean up expired sessions periodically
+        for (const [token, sessionData] of filterSessions.entries()) {
+            if (Date.now() > sessionData.expires) {
+                filterSessions.delete(token);
+            }
+        }
+        
+        console.log(`Retrieved ${contexts.length} contexts from filter session`);
+        res.json({ success: true, contexts });
+    } catch (error) {
+        console.error('Error retrieving contexts by filter session:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
     }
 };
 

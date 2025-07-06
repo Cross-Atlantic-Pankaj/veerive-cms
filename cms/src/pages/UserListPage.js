@@ -393,7 +393,7 @@ const UserManagementPage = () => {
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      {user.email !== 'info@veerive.com' && (state.user.role === 'Admin' || state.user.role === 'SuperAdmin') && (
+                    {user.email !== 'info@veerive.com' && (state.user.role === 'Admin' || state.user.role === 'SuperAdmin') && (
                         <>
                           <button
                             className={`${styles.actionButton} ${styles.editButton}`}
@@ -402,15 +402,15 @@ const UserManagementPage = () => {
                           >
                             ✏️ Edit
                           </button>
-                          <button
-                            className={`${styles.actionButton} ${styles.deleteButton}`}
-                            onClick={() => handleDeleteClick(user._id, user.name, user.email)}
+                      <button
+                        className={`${styles.actionButton} ${styles.deleteButton}`}
+                        onClick={() => handleDeleteClick(user._id, user.name, user.email)}
                             disabled={editingUser !== null}
-                          >
-                            🗑️ Delete
-                          </button>
+                      >
+                        🗑️ Delete
+                      </button>
                         </>
-                      )}
+                    )}
                     </div>
                   </td>
                 </tr>

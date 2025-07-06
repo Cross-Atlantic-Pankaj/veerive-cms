@@ -385,58 +385,50 @@ export default function PostList() {
         }
     };
 
-    const handleShowPostContexts = (postContexts) => {
-        console.log('Raw post contexts:', postContexts); // Debug log
-
-        if (!postContexts || (!Array.isArray(postContexts) && typeof postContexts !== 'object') || 
-            (Array.isArray(postContexts) && postContexts.length === 0)) {
-            toast.info("No contexts associated with this post");
-            return;
-        }
-
-        let contextIds = [];
-
-        // Handle if postContexts is a single object
-        if (!Array.isArray(postContexts)) {
-            postContexts = [postContexts];
-        }
-
-        // Extract context IDs
-        contextIds = postContexts.map(ctx => {
-            console.log('Processing context:', ctx); // Debug log
+    const handleShowPostContexts = async (postId) => {
+        try {
+            console.log('Fetching contexts for post'); // Debug log without exposing ID
             
-            if (!ctx) return null;
-            
-            // If it's already a context object with _id
-            if (ctx._id) {
-                return ctx._id;
-            }
-            // If it's a string ID
-            else if (typeof ctx === 'string') {
-                return ctx;
-            }
-            // If it's an object with value (from select)
-            else if (ctx.value) {
-                return ctx.value;
-            }
-            else {
-                console.log('Unhandled context format:', ctx);
-                return null;
-            }
-        }).filter(id => id !== null);
+            // Query the context collection to find all contexts that contain this post ID
+            const response = await axios.post(`/api/admin/contexts/by-post`, {
+                postId: postId
+            }, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            });
 
-        console.log('Context IDs:', contextIds); // Debug log
+            if (response.data.success && response.data.contexts) {
+                const contextTitles = response.data.contexts.map(ctx => ctx.contextTitle);
+                
+                console.log('Found contexts:', contextTitles.length); // Debug log without exposing IDs
 
-        if (contextIds.length === 0) {
-            toast.info("No valid contexts found for this post");
-            return;
+                if (contextTitles.length === 0) {
+                    toast.info("No contexts associated with this post");
+                    return;
+                }
+
+                // Generate a secure session token for filtering
+                const filterResponse = await axios.post(`/api/admin/contexts/create-filter-session`, {
+                    contextIds: response.data.contexts.map(ctx => ctx._id)
+                }, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                });
+
+                if (filterResponse.data.success && filterResponse.data.sessionToken) {
+                    // Navigate using secure session token instead of ObjectIDs
+                    window.open(`/contexts?filterSession=${filterResponse.data.sessionToken}`, '_blank');
+                    
+                    // Show a toast with the count
+                    toast.success(`Opening ${contextTitles.length} context(s) in new tab`);
+                } else {
+                    toast.error("Failed to create secure filter session");
+                }
+            } else {
+                toast.info("No contexts associated with this post");
+            }
+        } catch (error) {
+            console.error('Error fetching contexts for post:', error);
+            toast.error("Failed to fetch contexts for this post");
         }
-
-        // Navigate directly to contexts page with the filter
-        window.open(`/contexts?filterContexts=${contextIds.join(',')}`, '_blank');
-        
-        // Show a toast with the count
-        toast.success(`Opening ${contextIds.length} context(s) in new tab`);
     };
 
     // Get current date in IST timezone
@@ -550,7 +542,7 @@ export default function PostList() {
                                         className="show-contexts-btn" 
                                         onClick={() => {
                                             console.log('Post data:', post); // Debug log
-                                            handleShowPostContexts(post.contexts);
+                                            handleShowPostContexts(post._id);
                                         }}
                                     >
                                         Show Post Contexts

@@ -34,6 +34,7 @@ export default function ContextList() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [postsMap, setPostsMap] = useState({}); // Store post ID to title mapping
     const [allContexts, setAllContexts] = useState([]); // Store all contexts
+    const [secureFilterContexts, setSecureFilterContexts] = useState([]); // Store contexts from secure filter session
     const [confirmationModal, setConfirmationModal] = useState({
         isOpen: false,
         title: '',
@@ -45,15 +46,18 @@ export default function ContextList() {
     const query = useQuery();
     const navigate = useNavigate();
 
-    // Get the filter parameter from URL
+    // Get the filter parameters from URL
     const filterContextIds = query.get('filterContexts')?.split(',').filter(Boolean) || [];
+    const filterSessionToken = query.get('filterSession');
 
     // Debug logging for filter parameter
     console.log('🔍 URL Filter Debug:', {
         urlParams: location.search,
         filterContextsParam: query.get('filterContexts'),
+        filterSessionParam: query.get('filterSession'),
         filterContextIds,
-        filterActive: filterContextIds.length > 0
+        filterSessionToken,
+        filterActive: filterContextIds.length > 0 || !!filterSessionToken
     });
 
     // Fetch all contexts when component mounts
@@ -73,6 +77,42 @@ export default function ContextList() {
         };
         fetchAllContexts();
     }, []);
+
+    // Fetch contexts from secure filter session
+    useEffect(() => {
+        const fetchSecureFilterContexts = async () => {
+            if (!filterSessionToken) {
+                setSecureFilterContexts([]);
+                return;
+            }
+
+            try {
+                console.log('🔒 Fetching contexts from secure filter session');
+                const response = await axios.get(`/api/admin/contexts/filter-session/${filterSessionToken}`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+                
+                if (response.data.success) {
+                    setSecureFilterContexts(response.data.contexts || []);
+                    console.log('🔒 Loaded secure filter contexts:', response.data.contexts?.length || 0);
+                } else {
+                    console.error('Failed to fetch secure filter contexts:', response.data.error);
+                    toast.error('Invalid or expired filter session');
+                    setSecureFilterContexts([]);
+                    // Remove the invalid session token from URL
+                    navigate('/contexts', { replace: true });
+                }
+            } catch (err) {
+                console.error('Error fetching secure filter contexts:', err);
+                toast.error('Failed to load filtered contexts');
+                setSecureFilterContexts([]);
+                // Remove the invalid session token from URL
+                navigate('/contexts', { replace: true });
+            }
+        };
+
+        fetchSecureFilterContexts();
+    }, [filterSessionToken, navigate]);
 
     useEffect(() => {
         // ✅ Update local state whenever contexts are updated
@@ -215,11 +255,19 @@ export default function ContextList() {
         const isSortingActive = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending';
         const isSearchActive = localSearchQuery.trim().length > 0;
         const isFilterActive = filterContextIds.length > 0;
+        const isSecureFilterActive = filterSessionToken && secureFilterContexts.length > 0;
         
         // When filtering is active, always use client-side mode with all available data
         let data = [];
-        if (isFilterActive) {
-            // For filtering, use all available data (prefer allContexts, fallback to contexts.data)
+        if (isSecureFilterActive) {
+            // For secure filtering, use the contexts from the secure filter session
+            data = secureFilterContexts;
+            console.log('🔒 Using secure filter contexts:', {
+                secureFilterContextsLength: secureFilterContexts.length,
+                totalDataLength: data.length
+            });
+        } else if (isFilterActive) {
+            // For regular filtering, use all available data (prefer allContexts, fallback to contexts.data)
             data = allContexts.length > 0 ? allContexts : (contexts.data || []);
             console.log('🔍 Using data source for filtering:', {
                 usingAllContexts: allContexts.length > 0,
@@ -232,8 +280,8 @@ export default function ContextList() {
             data = (isSearchActive || isSortingActive) ? allContexts : (contexts.data || []);
         }
         
-        // Apply context ID filter if present
-        if (filterContextIds.length > 0) {
+        // Apply context ID filter if present (only for regular filtering, not secure filtering)
+        if (filterContextIds.length > 0 && !isSecureFilterActive) {
             console.log('🔍 Filtering contexts:', {
                 filterContextIds,
                 totalContextsBefore: data.length,
@@ -246,7 +294,7 @@ export default function ContextList() {
                     const filterIdStr = String(filterId).trim();
                     const match = filterIdStr === contextId;
                     if (match) {
-                        console.log('✅ Found matching context:', context.contextTitle, contextId);
+                        console.log('✅ Found matching context:', context.contextTitle, 'ID hidden for security');
                     }
                     return match;
                 });
@@ -255,7 +303,7 @@ export default function ContextList() {
             
             console.log('🔍 After filtering:', {
                 totalContextsAfter: data.length,
-                matchedContexts: data.map(c => ({ id: c._id, title: c.contextTitle }))
+                matchedContexts: data.map(c => ({ title: c.contextTitle })) // Don't log IDs for security
             });
         }
 
@@ -352,13 +400,14 @@ export default function ContextList() {
         }
 
         return data;
-    }, [allContexts, contexts.data, localSearchQuery, sortConfig, filterContextIds, sectors.data, subSectors.data, signals.data, allThemes]);
+    }, [allContexts, contexts.data, localSearchQuery, sortConfig, filterContextIds, secureFilterContexts, filterSessionToken, sectors.data, subSectors.data, signals.data, allThemes]);
 
     // Determine if we're in search mode or sorting mode
     const isSearchMode = localSearchQuery.trim().length > 0;
     const isSortingActive = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending' || sortConfig.key === 'date';
     const isFilterMode = filterContextIds.length > 0;
-    const isClientSideMode = isSearchMode || isSortingActive || isFilterMode;
+    const isSecureFilterMode = filterSessionToken && secureFilterContexts.length > 0;
+    const isClientSideMode = isSearchMode || isSortingActive || isFilterMode || isSecureFilterMode;
 
     // Calculate pagination for processed data
     const itemsPerPage = 10;
@@ -593,30 +642,38 @@ export default function ContextList() {
             </div>
 
             {/* Filter Status Indicator */}
-            {filterContextIds.length > 0 && (
+            {(filterContextIds.length > 0 || filterSessionToken) && (
                 <div style={{
-                    backgroundColor: '#fef3c7',
-                    border: '1px solid #f59e0b',
+                    backgroundColor: filterSessionToken ? '#dcfce7' : '#fef3c7',
+                    border: `1px solid ${filterSessionToken ? '#16a34a' : '#f59e0b'}`,
                     borderRadius: '8px',
                     padding: '12px',
                     margin: '10px 0',
                     textAlign: 'center',
-                    color: '#92400e'
+                    color: filterSessionToken ? '#166534' : '#92400e'
                 }}>
-                    🔍 Filtering by Context ID(s): <strong>{filterContextIds.join(', ')}</strong>
-                    <br />
-                    <small>Showing contexts that match the selected filter criteria</small>
+                    {filterSessionToken ? (
+                        <>
+                            🔍 <strong>{secureFilterContexts.length} context{secureFilterContexts.length !== 1 ? 's' : ''} found</strong>
+                        </>
+                    ) : (
+                        <>
+                            🔍 Filtering by Context ID(s): <strong>*** hidden for security ***</strong>
+                            <br />
+                            <small>Showing contexts that match the selected filter criteria</small>
+                        </>
+                    )}
                 </div>
             )}
             
             <div className="top-bar">
                 <div className="left-controls">
                     <button className="add-context-btn" onClick={handleAddClick} disabled={userRole === 'User'}>Add Context</button>
-                    {filterContextIds.length > 0 && (
+                    {(filterContextIds.length > 0 || filterSessionToken) && (
                         <button 
                             onClick={() => navigate('/contexts')}
                             style={{
-                                backgroundColor: '#f59e0b',
+                                backgroundColor: filterSessionToken ? '#16a34a' : '#f59e0b',
                                 color: 'white',
                                 border: 'none',
                                 padding: '8px 16px',
@@ -625,7 +682,11 @@ export default function ContextList() {
                                 cursor: 'pointer'
                             }}
                         >
-                            Clear Filter ({filterContextIds.length} ID{filterContextIds.length > 1 ? 's' : ''})
+                            {filterSessionToken ? (
+                                `Clear Secure Filter (${secureFilterContexts.length} contexts)`
+                            ) : (
+                                `Clear Filter (${filterContextIds.length} ID${filterContextIds.length > 1 ? 's' : ''})`
+                            )}
                         </button>
                     )}
                 </div>
@@ -717,8 +778,10 @@ export default function ContextList() {
                 ) : (
                     <tr>
                         <td colSpan="10" style={{ textAlign: 'center' }}>
-                            {filterContextIds.length > 0 
-                                ? `No matching contexts found for filter ID(s): ${filterContextIds.join(', ')}`
+                            {filterSessionToken
+                                ? 'No matching contexts found in secure filter session'
+                                : filterContextIds.length > 0 
+                                ? 'No matching contexts found for selected filter'
                                 : localSearchQuery.trim()
                                 ? 'No contexts found matching your search'
                                 : 'No contexts found'}
@@ -730,6 +793,27 @@ export default function ContextList() {
         {isSearchMode ? (
             <div className="pagination">
                 <span>Showing {currentPageData.length} of {totalFilteredItems} results for "{localSearchQuery}"</span>
+                {totalFilteredPages > 1 && (
+                    <>
+                        <button 
+                            onClick={handlePrevPage}
+                            disabled={page === 1}
+                        >
+                            Previous
+                        </button>
+                        <span> Page {page} of {displayTotalPages} </span>
+                        <button 
+                            onClick={handleNextPage}
+                            disabled={page === displayTotalPages || displayTotalPages === 0}
+                        >
+                            Next
+                        </button>
+                    </>
+                )}
+            </div>
+        ) : isSecureFilterMode ? (
+            <div className="pagination">
+                <span>Showing {currentPageData.length} of {totalFilteredItems} secure filtered contexts</span>
                 {totalFilteredPages > 1 && (
                     <>
                         <button 

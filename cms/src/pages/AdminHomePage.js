@@ -28,6 +28,7 @@ const AdminHomePage = () => {
             {/* Animated background circles */}
             <div className={styles.backgroundCircle1}></div>
             <div className={styles.backgroundCircle2}></div>
+            <div className={styles.backgroundCircle3}></div>
             
             <div className={styles.welcomeCard}>
                 <h1 className={styles.welcomeTitle}>

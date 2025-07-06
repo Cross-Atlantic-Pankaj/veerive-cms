@@ -66,7 +66,7 @@ export default function ClarificationGuidanceForm() {
   // Reset sub-sector when sector changes (only for new records)
   useEffect(() => {
     if (!isEdit) {
-      setSubSector('');
+    setSubSector('');
     }
   }, [sector, isEdit]);
 

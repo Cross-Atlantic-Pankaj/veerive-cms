@@ -188,7 +188,11 @@ const HeaderComponent = () => {
     return (
         <StyledAppBar position="sticky">
             <StyledToolbar>
-                <LogoText variant="h5" sx={{ flexGrow: 1 }}>
+            <LogoText 
+                    variant="h5" 
+                    sx={{ flexGrow: 1 }}
+                    onClick={() => navigate('/admin-home')}
+                >
                     Veerive CMS
                 </LogoText>
                 
