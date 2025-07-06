@@ -136,6 +136,7 @@ app.put('/api/users/update-email', authenticateUser, checkSchema(updateEmailSche
 
 app.get('/api/users/account', authenticateUser,checkPasswordExpiry, usersCltr.account);
 app.get('/api/users/list', authenticateUser, usersCltr.list);
+app.put('/api/users/update/:id', authenticateUser, authorizeUser(['Admin']), usersCltr.updateUser);
 app.delete('/api/users/:id', authenticateUser, authorizeUser(['Admin']), usersCltr.destroy);
 app.put('/api/users/change-role/:id', authenticateUser, authorizeUser(['Admin']), usersCltr.changeRole);
 

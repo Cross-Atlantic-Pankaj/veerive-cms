@@ -9,6 +9,7 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState(''); // State to store error messages
     const [remember, setRemember] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         const savedEmail = localStorage.getItem('rememberedEmail');
@@ -59,13 +60,32 @@ export default function Login() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                     />
-                    <input
-                        type="password"
-                        placeholder="Enter password"
-                        className="login-input"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
+                    <div style={{ position: 'relative' }}>
+                        <input
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Enter password"
+                            className="login-input"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            style={{ paddingRight: '2.5em' }}
+                        />
+                        <span
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            style={{
+                                position: 'absolute',
+                                right: '10px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                cursor: 'pointer',
+                                fontSize: '1.2em',
+                                userSelect: 'none',
+                            }}
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            tabIndex={0}
+                        >
+                            {showPassword ? '🙈' : '👁️'}
+                        </span>
+                    </div>
                     <div className="remember-me-container">
                         <input
                             type="checkbox"

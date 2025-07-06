@@ -346,6 +346,81 @@ usersCltr.destroy = async (req, res) => {
     }
 };
 
+usersCltr.updateUser = async (req, res) => {
+    const { name, email, role, password } = req.body;
+    const id = req.params.id; // ID of the target user
+
+    try {
+        // Prevent updating own account through this route
+        if (id === req.user.userId) {
+            return res.status(400).json({ error: 'You cannot update your own account through this route. Use the settings page instead.' });
+        }
+
+        // Validate required fields
+        if (!email || !role) {
+            return res.status(400).json({ error: 'Email and role are required.' });
+        }
+
+        // Validate the role
+        if (!['Moderator', 'User', 'Admin'].includes(role)) {
+            return res.status(400).json({ error: 'Invalid role provided. Only Moderator, User, or Admin roles are allowed.' });
+        }
+
+        // Retrieve the target user
+        const targetUser = await User.findById(id);
+        if (!targetUser) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        // Prevent updating SuperAdmin
+        if (targetUser.role === 'SuperAdmin' || targetUser.email === 'info@veerive.com') {
+            return res.status(400).json({ error: 'Cannot update a SuperAdmin account.' });
+        }
+
+        // If the requester is not SuperAdmin, prevent updating Admin accounts
+        if (req.user.role !== 'SuperAdmin' && targetUser.role === 'Admin') {
+            return res.status(400).json({ error: 'Cannot update an Admin account.' });
+        }
+
+        // Check if email is being changed and if it's already taken
+        if (email !== targetUser.email) {
+            const existingUser = await User.findOne({ email });
+            if (existingUser) {
+                return res.status(400).json({ error: 'Email address is already in use.' });
+            }
+        }
+
+        // Update user fields
+        targetUser.name = name || '';
+        targetUser.email = email;
+        targetUser.role = role;
+
+        // Update password if provided
+        if (password && password.trim() !== '') {
+            if (password.length < 6) {
+                return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+            }
+            targetUser.password = password; // Store as plain text (consistent with current system)
+            targetUser.lastPasswordUpdate = Date.now();
+        }
+
+        await targetUser.save();
+
+        res.status(200).json({
+            message: 'User updated successfully.',
+            user: {
+                _id: targetUser._id,
+                name: targetUser.name,
+                email: targetUser.email,
+                role: targetUser.role
+            }
+        });
+    } catch (err) {
+        console.error('Error updating user:', err);
+        res.status(500).json({ error: 'Something went wrong.' });
+    }
+};
+
 usersCltr.changeRole = async (req, res) => {
     const { role } = req.body; // The desired role
     const id = req.params.id; // ID of the target user

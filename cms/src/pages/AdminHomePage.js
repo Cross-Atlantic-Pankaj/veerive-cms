@@ -8,6 +8,18 @@ const AdminHomePage = () => {
     const [dateTime, setDateTime] = useState(new Date());
 
     useEffect(() => {
+        // Prevent scrolling on HomePage
+        const originalOverflow = document.body.style.overflow;
+        const originalHeight = document.body.style.height;
+        document.body.style.overflow = 'hidden';
+        document.body.style.height = '100vh';
+        return () => {
+            document.body.style.overflow = originalOverflow;
+            document.body.style.height = originalHeight;
+        };
+    }, []);
+
+    useEffect(() => {
         const timer = setInterval(() => setDateTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);

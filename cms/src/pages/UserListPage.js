@@ -16,9 +16,11 @@ const UserManagementPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [isEditingUser, setIsEditingUser] = useState(false);
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
+  const [alertState, setAlertState] = useState({ open: false, message: '', severity: 'success' });
   const [confirmationModal, setConfirmationModal] = useState({
     isOpen: false,
     title: '',
@@ -46,8 +48,8 @@ const UserManagementPage = () => {
   }, []);
 
   useEffect(() => {
-    if (error) alert(error);
-    if (success) alert(success);
+    if (error) console.error(error);
+    if (success) console.log(success);
   }, [error, success]);
 
   // Only SuperAdmin can access
@@ -95,6 +97,70 @@ const UserManagementPage = () => {
     }
   };
 
+  // Handle edit user
+  const handleEditClick = (user) => {
+    setEditingUser({
+      _id: user._id,
+      name: user.name || '',
+      email: user.email,
+      role: user.role,
+      password: '' // Empty for edit mode
+    });
+  };
+
+  // Handle edit user submission
+  const handleEditUser = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    
+    if (!editingUser.email || !editingUser.role) {
+      setError('Email and role are required.');
+      return;
+    }
+
+    if (editingUser.password && editingUser.password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    setIsEditingUser(true);
+    try {
+      const updateData = {
+        name: editingUser.name,
+        email: editingUser.email,
+        role: editingUser.role
+      };
+
+      // Only include password if it's provided
+      if (editingUser.password) {
+        updateData.password = editingUser.password;
+      }
+
+      const response = await axios.put(`/api/users/update/${editingUser._id}`, updateData, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      
+      setSuccess('User updated successfully!');
+      setEditingUser(null);
+      fetchUsers();
+      toast.success('User updated successfully!');
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || 'Failed to update user.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsEditingUser(false);
+    }
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setEditingUser(null);
+    setError('');
+    setSuccess('');
+  };
+
   // Handle role change
   const handleRoleChange = async (userId, newRole) => {
     if (newRole === 'SuperAdmin') return; // Prevent assigning SuperAdmin
@@ -102,10 +168,10 @@ const UserManagementPage = () => {
       await axios.put(`/api/users/change-role/${userId}`, { role: newRole }, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      setAlert({ open: true, message: 'Role updated successfully.', severity: 'success' });
+      setAlertState({ open: true, message: 'Role updated successfully.', severity: 'success' });
       fetchUsers();
     } catch (err) {
-      setAlert({ open: true, message: 'Failed to update role.', severity: 'error' });
+      setAlertState({ open: true, message: 'Failed to update role.', severity: 'error' });
     }
   };
 
@@ -126,10 +192,10 @@ const UserManagementPage = () => {
       await axios.delete(`/api/users/${userId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      setAlert({ open: true, message: 'User deleted successfully.', severity: 'success' });
+      setAlertState({ open: true, message: 'User deleted successfully.', severity: 'success' });
       fetchUsers();
     } catch (err) {
-      setAlert({ open: true, message: 'Failed to delete user.', severity: 'error' });
+      setAlertState({ open: true, message: 'Failed to delete user.', severity: 'error' });
     } finally {
       setConfirmationModal(prev => ({ ...prev, isOpen: false }));
     }
@@ -217,6 +283,67 @@ const UserManagementPage = () => {
         {success && <AlertComponent open={!!success} message={success} severity="success" onClose={() => setSuccess('')} />}
       </div>
 
+      {/* Edit User Form */}
+      {editingUser && (
+        <div className={styles.createUserCard} style={{ backgroundColor: '#f0f8ff', border: '2px solid #4CAF50' }}>
+          <h3 className={styles.createUserTitle}>Edit User</h3>
+          <form onSubmit={handleEditUser} className={styles.createUserForm}>
+            <input
+              type="text"
+              placeholder="Full Name (Optional)"
+              value={editingUser.name}
+              onChange={e => setEditingUser({ ...editingUser, name: e.target.value })}
+              className={styles.formInput}
+              disabled={isEditingUser}
+            />
+            <input
+              type="email"
+              placeholder="Email Address *"
+              value={editingUser.email}
+              onChange={e => setEditingUser({ ...editingUser, email: e.target.value })}
+              className={styles.formInput}
+              required
+              disabled={isEditingUser}
+            />
+            <input
+              type="password"
+              placeholder="New Password (leave blank to keep current)"
+              value={editingUser.password}
+              onChange={e => setEditingUser({ ...editingUser, password: e.target.value })}
+              className={styles.formInput}
+              disabled={isEditingUser}
+            />
+            <select
+              value={editingUser.role}
+              onChange={e => setEditingUser({ ...editingUser, role: e.target.value })}
+              className={styles.formSelect}
+              required
+              disabled={isEditingUser}
+            >
+              <option value="User">User</option>
+              <option value="Admin">Admin</option>
+            </select>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button 
+                type="submit" 
+                className={styles.createButton}
+                disabled={isEditingUser}
+              >
+                {isEditingUser ? '⏳ Updating...' : '💾 Update User'}
+              </button>
+              <button 
+                type="button" 
+                onClick={handleCancelEdit}
+                className={styles.cancelButton}
+                disabled={isEditingUser}
+              >
+                ❌ Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* Search */}
       <div style={{ marginBottom: 16 }}>
         <input
@@ -265,14 +392,26 @@ const UserManagementPage = () => {
                     )}
                   </td>
                   <td>
-                    {user.email !== 'info@veerive.com' && (state.user.role === 'Admin' || state.user.role === 'SuperAdmin') && (
-                      <button
-                        className={`${styles.actionButton} ${styles.deleteButton}`}
-                        onClick={() => handleDeleteClick(user._id, user.name, user.email)}
-                      >
-                        🗑️ Delete
-                      </button>
-                    )}
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {user.email !== 'info@veerive.com' && (state.user.role === 'Admin' || state.user.role === 'SuperAdmin') && (
+                        <>
+                          <button
+                            className={`${styles.actionButton} ${styles.editButton}`}
+                            onClick={() => handleEditClick(user)}
+                            disabled={editingUser !== null}
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            className={`${styles.actionButton} ${styles.deleteButton}`}
+                            onClick={() => handleDeleteClick(user._id, user.name, user.email)}
+                            disabled={editingUser !== null}
+                          >
+                            🗑️ Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -282,10 +421,10 @@ const UserManagementPage = () => {
       )}
 
       <AlertComponent 
-        open={alert.open} 
-        message={alert.message} 
-        severity={alert.severity} 
-        onClose={() => setAlert({ ...alert, open: false })} 
+        open={alertState.open} 
+        message={alertState.message} 
+        severity={alertState.severity} 
+        onClose={() => setAlertState({ ...alertState, open: false })} 
       />
       
       <ConfirmationModal
