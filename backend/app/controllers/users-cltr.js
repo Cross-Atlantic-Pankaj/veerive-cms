@@ -3,6 +3,7 @@ import { validationResult } from "express-validator";
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import bcryptjs from 'bcryptjs';
 
 const usersCltr = {};
 
@@ -177,9 +178,8 @@ usersCltr.resetPassword = async (req, res) => {
             return res.status(400).json({ error: 'Invalid or expired reset token.' });
         }
 
-        const salt = await bcryptjs.genSalt();
-        const hash = await bcryptjs.hash(newPassword, salt);
-        user.password = hash;
+        // Store new password as plain text (to maintain consistency with current system)
+        user.password = newPassword;
         user.resetToken = undefined;
         user.resetTokenExpiration = undefined;
         user.lastPasswordUpdate = Date.now(); // Reset password update time
@@ -208,14 +208,13 @@ usersCltr.updatePassword = async (req, res) => {
             return res.status(404).json({ error: 'User not found.' });
         }
 
-        const isValid = await bcryptjs.compare(currentPassword, user.password);
-        if (!isValid) {
+        // Check if current password matches (plain text comparison since passwords are stored as plain text)
+        if (currentPassword !== user.password) {
             return res.status(400).json({ error: 'Current password is incorrect.' });
         }
 
-        const salt = await bcryptjs.genSalt();
-        const hash = await bcryptjs.hash(newPassword, salt);
-        user.password = hash;
+        // Store new password as plain text (to maintain consistency with current system)
+        user.password = newPassword;
         user.lastPasswordUpdate = Date.now(); // Update last password change date
         await user.save();
 

@@ -66,7 +66,7 @@ export default function ClarificationGuidanceForm() {
         title,
         clarificationNote,
         sector,
-        subSector
+        ...(subSector && { subSector })
       };
 
       if (isEdit) {

@@ -2,7 +2,15 @@ import QueryRefiner from '../models/queryRefiner.js';
 
 export const createQueryRefiner = async (req, res) => {
   try {
-    const doc = new QueryRefiner(req.body);
+    // Preprocess the data to handle empty subSector
+    const data = { ...req.body };
+    
+    // Remove subSector if it's empty, null, or undefined
+    if (!data.subSector || data.subSector === '' || data.subSector === null || data.subSector === undefined) {
+      delete data.subSector;
+    }
+    
+    const doc = new QueryRefiner(data);
     await doc.save();
     res.status(201).json(doc);
   } catch (err) {
@@ -72,8 +80,16 @@ export const getOneQueryRefiner = async (req, res) => {
 export const updateQueryRefiner = async (req, res) => {
   try {
     const id = req.params.id;
-    const body = req.body;
-    const refiner = await QueryRefiner.findByIdAndUpdate(id, body, { new: true })
+    
+    // Preprocess the data to handle empty subSector
+    const data = { ...req.body };
+    
+    // Remove subSector if it's empty, null, or undefined
+    if (!data.subSector || data.subSector === '' || data.subSector === null || data.subSector === undefined) {
+      delete data.subSector;
+    }
+    
+    const refiner = await QueryRefiner.findByIdAndUpdate(id, data, { new: true })
       .populate('sector')
       .populate('subSector');
     

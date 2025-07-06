@@ -2,7 +2,15 @@ import ClarificationGuidance from '../models/clarificationGuidance.js';
 
 export const createClarificationGuidance = async (req, res) => {
   try {
-    const doc = new ClarificationGuidance(req.body);
+    // Preprocess the data to handle empty subSector
+    const data = { ...req.body };
+    
+    // Remove subSector if it's empty, null, or undefined
+    if (!data.subSector || data.subSector === '' || data.subSector === null || data.subSector === undefined) {
+      delete data.subSector;
+    }
+    
+    const doc = new ClarificationGuidance(data);
     await doc.save();
     res.status(201).json(doc);
   } catch (err) {
@@ -68,9 +76,17 @@ export const getOneClarificationGuidance = async (req, res) => {
 
 export const updateClarificationGuidance = async (req, res) => {
   try {
+    // Preprocess the data to handle empty subSector
+    const data = { ...req.body };
+    
+    // Remove subSector if it's empty, null, or undefined
+    if (!data.subSector || data.subSector === '' || data.subSector === null || data.subSector === undefined) {
+      delete data.subSector;
+    }
+    
     const guidance = await ClarificationGuidance.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      data,
       { new: true, runValidators: true }
     ).populate('sector').populate('subSector');
     

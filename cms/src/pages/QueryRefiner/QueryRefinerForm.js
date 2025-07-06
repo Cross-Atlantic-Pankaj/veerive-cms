@@ -69,7 +69,7 @@ export default function QueryRefinerForm() {
         moduleDescription,
         promptGuidance,
         sector,
-        subSector
+        ...(subSector && { subSector })
       };
 
       if (isEditing) {
