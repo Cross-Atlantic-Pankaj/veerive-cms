@@ -52,10 +52,23 @@ export default function ClarificationGuidanceForm() {
     }
   }, [id, isEdit]);
 
-  // Reset sub-sector when sector changes
+  // Ensure sub-sector is set when data is loaded in edit mode
   useEffect(() => {
-    setSubSector('');
-  }, [sector]);
+    if (isEdit && subSectors?.data?.length > 0 && subSector) {
+      const subSectorExists = subSectors.data.find(ss => ss._id === subSector);
+      if (!subSectorExists) {
+        console.log('Sub-sector not found in data, resetting...');
+        setSubSector('');
+      }
+    }
+  }, [subSectors?.data, isEdit, subSector]);
+
+  // Reset sub-sector when sector changes (only for new records)
+  useEffect(() => {
+    if (!isEdit) {
+      setSubSector('');
+    }
+  }, [sector, isEdit]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,6 +108,20 @@ export default function ClarificationGuidanceForm() {
   };
 
   const filteredSubSectors = subSectors?.data?.filter(ss => ss.sectorId === sector) || [];
+
+  // Ensure the selected subSector is in the options when editing
+  const subSectorOption = subSectors?.data?.find(ss => ss._id === subSector);
+  const subSectorOptions = filteredSubSectors.slice();
+  if (subSector && subSectorOption && !filteredSubSectors.some(ss => ss._id === subSector)) {
+    subSectorOptions.push(subSectorOption);
+  }
+
+  // Debug logging
+  console.log('SubSectors data:', subSectors?.data);
+  console.log('Selected sector:', sector);
+  console.log('Selected subSector:', subSector);
+  console.log('Filtered subSectors:', filteredSubSectors);
+  console.log('SubSector options:', subSectorOptions);
 
   // Check if sectors data exists and has items
   const sectorOptions = sectors?.data || [];
@@ -171,8 +198,8 @@ export default function ClarificationGuidanceForm() {
               disabled={!sector}
             >
               <option value="">Select Sub-Sector</option>
-              {filteredSubSectors.map(ss => (
-                <option key={ss._id} value={ss._id}>{ss.name || ss.subSectorName}</option>
+              {subSectorOptions.map(ss => (
+                <option key={ss._id} value={ss._id}>{ss.subSectorName}</option>
               ))}
             </select>
           </div>

@@ -95,6 +95,13 @@ export default function QueryRefinerForm() {
 
   const filteredSubSectors = subSectors?.data?.filter(ss => ss.sectorId === sector) || [];
 
+  // Ensure the selected subSector is in the options when editing
+  const subSectorOption = subSectors?.data?.find(ss => ss._id === subSector);
+  const subSectorOptions = filteredSubSectors.slice();
+  if (subSector && subSectorOption && !filteredSubSectors.some(ss => ss._id === subSector)) {
+    subSectorOptions.push(subSectorOption);
+  }
+
   // Check if sectors data exists and has items
   const sectorOptions = sectors?.data || [];
   console.log('Available sector options:', sectorOptions);
@@ -170,8 +177,8 @@ export default function QueryRefinerForm() {
               disabled={!sector}
             >
               <option value="">Select Sub-Sector</option>
-              {filteredSubSectors.map(ss => (
-                <option key={ss._id} value={ss._id}>{ss.name || ss.subSectorName}</option>
+              {subSectorOptions.map(ss => (
+                <option key={ss._id} value={ss._id}>{ss.subSectorName}</option>
               ))}
             </select>
           </div>
