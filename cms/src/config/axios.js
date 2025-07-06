@@ -27,7 +27,7 @@ import axios from 'axios';
 const baseURL =
   process.env.NODE_ENV === 'development'
     ? 'http://localhost:3050' // Backend running locally
-    : 'backend-cms-blue.vercel.app'; // Deployed backend
+    : 'https://backend-cms-blue.vercel.app'; // Deployed backend
 
 const axiosInstance = axios.create({
   baseURL,
