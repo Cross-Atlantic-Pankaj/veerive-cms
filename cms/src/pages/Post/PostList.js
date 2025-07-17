@@ -402,9 +402,9 @@ export default function PostList() {
                 console.log('Found contexts:', contextTitles.length); // Debug log without exposing IDs
 
                 if (contextTitles.length === 0) {
-                    toast.info("No contexts associated with this post");
-                    return;
-                }
+            toast.info("No contexts associated with this post");
+            return;
+        }
 
                 // Generate a secure session token for filtering
                 const filterResponse = await axios.post(`/api/admin/contexts/create-filter-session`, {

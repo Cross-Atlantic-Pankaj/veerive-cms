@@ -174,7 +174,7 @@ export default function ContextForm({ handleFormSubmit }) {
             setSelectedSignalSubCategories(context.signalSubCategories || []);
             setSelectedThemes(
                 (context.themes || []).map(themeId => {
-                    const matchedTheme = allThemes.find(theme => theme._id === themeId);
+                    const matchedTheme = (allThemes || []).find(theme => theme._id === themeId);
                     return {
                         value: themeId,
                         label: matchedTheme ? matchedTheme.themeTitle : 'Unknown Theme'
@@ -183,7 +183,7 @@ export default function ContextForm({ handleFormSubmit }) {
             );
             setSelectedTileTemplates(
                 (context.tileTemplates || []).map(templateId => {
-                    const matchedTemplate = tileTemplates.find(template => template._id === templateId);
+                    const matchedTemplate = (tileTemplates || []).find(template => template._id === templateId);
                     return {
                         value: templateId,
                         label: matchedTemplate ? matchedTemplate.name : 'Unknown Template'
@@ -224,11 +224,12 @@ export default function ContextForm({ handleFormSubmit }) {
         }
     }, [editIdFromQuery, contexts.editId, contexts.data, posts, allThemes, tileTemplates]);
 
-    const filteredSubSectors = subSectorsData.data.filter(subSector =>
+    // ✅ Safe filtering with null/undefined checks
+    const filteredSubSectors = (subSectorsData?.data || []).filter(subSector =>
         selectedSectors.includes(subSector.sectorId)
     );
 
-    const filteredSignalSubCategories = subSignalsData.data.filter(subSignal =>
+    const filteredSignalSubCategories = (subSignalsData?.data || []).filter(subSignal =>
         selectedSignalCategories.includes(subSignal.signalId)
     );
 
@@ -267,6 +268,18 @@ export default function ContextForm({ handleFormSubmit }) {
         return;
     }
 
+    // ✅ Add validation for required Sectors
+    if (!selectedSectors || selectedSectors.length === 0) {
+        toast.warn("⚠️ At least one Sector is required.");
+        return;
+    }
+
+    // ✅ Add validation for required Signal Categories  
+    if (!selectedSignalCategories || selectedSignalCategories.length === 0) {
+        toast.warn("⚠️ At least one Signal Category is required.");
+        return;
+    }
+
 
     
         try {
@@ -279,34 +292,57 @@ export default function ContextForm({ handleFormSubmit }) {
                 : []; // Ensures an empty array if no posts are selected
 
     
-            // Step 1: Fetch existing contexts tagged to each selected post
-            const existingContextUpdates = await Promise.all(
+            // ✅ Step 1: Safely fetch existing contexts tagged to each selected post
+            console.log("🔄 Starting Step 1: Fetching existing contexts for posts...");
+            const existingContextUpdates = selectedPosts.length > 0 ? await Promise.all(
                 selectedPosts.map(async (post) => {
-                    const postId = post.value;
-                    const response = await axios.get(`/api/admin/posts/${postId}/contexts`, {
-                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-                    });
-                    return response.data; // tagged contexts for the post
+                    try {
+                        const postId = post.value;
+                        console.log(`Fetching contexts for post: ${postId}`);
+                        const response = await axios.get(`/api/admin/posts/${postId}/contexts`, {
+                            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                        });
+                        return response.data || []; // tagged contexts for the post
+                    } catch (error) {
+                        console.error(`❌ Error fetching contexts for post ${post.value}:`, error);
+                        return []; // Return empty array on error
+                    }
                 })
-            );
+            ) : [];
+            console.log("✅ Step 1 completed");
     
-            // Step 2: Update contexts with merged posts
-            for (const taggedContexts of existingContextUpdates) {
-                for (const taggedContext of taggedContexts) {
-                    // Merge existing posts with new selected posts
-                    const existingPosts = taggedContext.posts || [];
-                    const mergedPosts = [...existingPosts, ...updatedPosts];
-    
-                    // Remove duplicates
-                    const uniquePosts = Array.from(
-                        new Map(mergedPosts.map(post => [post.postId, post])).values()
-                    );
-    
-                    // Update the context with the new list of posts
-                    await axios.put(`/api/admin/contexts/${taggedContext._id}`, {
-                        posts: uniquePosts,
-                    }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+            // ✅ Step 2: Safely update contexts with merged posts
+            console.log("🔄 Starting Step 2: Updating contexts with merged posts...");
+            try {
+                for (const taggedContexts of existingContextUpdates) {
+                    if (Array.isArray(taggedContexts)) {
+                        for (const taggedContext of taggedContexts) {
+                            try {
+                                // Merge existing posts with new selected posts
+                                const existingPosts = taggedContext.posts || [];
+                                const mergedPosts = [...existingPosts, ...updatedPosts];
+        
+                                // Remove duplicates
+                                const uniquePosts = Array.from(
+                                    new Map(mergedPosts.map(post => [post.postId, post])).values()
+                                );
+        
+                                // Update the context with the new list of posts
+                                await axios.put(`/api/admin/contexts/${taggedContext._id}`, {
+                                    posts: uniquePosts,
+                                }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                                console.log(`✅ Updated context ${taggedContext._id}`);
+                            } catch (contextUpdateError) {
+                                console.error(`❌ Error updating context ${taggedContext._id}:`, contextUpdateError);
+                                // Continue with other contexts even if one fails
+                            }
+                        }
+                    }
                 }
+                console.log("✅ Step 2 completed");
+            } catch (step2Error) {
+                console.error("❌ Error in Step 2:", step2Error);
+                // Don't let Step 2 errors break the main context save
             }
     
             // Step 3: Save or update the current context
@@ -320,10 +356,14 @@ export default function ContextForm({ handleFormSubmit }) {
                 subSectors: selectedSubSectors,
                 signalCategories: selectedSignalCategories,
                 signalSubCategories: selectedSignalSubCategories,
-                // themes: selectedThemes.map(theme => theme.value),
-                //themes: selectedThemes.length > 0 ? selectedThemes.map(theme => theme.value) : [], // ✅ Allow empty array
-                themes: selectedThemes.map(theme => theme.value), // ✅ Use formatted themes
-                tileTemplates: selectedTileTemplates.map(template => template.value),
+                // ✅ Safe mapping for themes - handle case where theme.value might be undefined
+                themes: selectedThemes && Array.isArray(selectedThemes) 
+                    ? selectedThemes.map(theme => theme?.value).filter(Boolean)
+                    : [],
+                // ✅ Safe mapping for tile templates
+                tileTemplates: selectedTileTemplates && Array.isArray(selectedTileTemplates) 
+                    ? selectedTileTemplates.map(template => template?.value).filter(Boolean)
+                    : [],
                 posts: updatedPosts,
                 bannerShow,
                 homePageShow,
@@ -348,20 +388,68 @@ export default function ContextForm({ handleFormSubmit }) {
                 const response = await axios.put(`/api/admin/contexts/${contexts.editId}`, formData, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                 });
-                contextsDispatch({ type: 'UPDATE_CONTEXT', payload: response.data });
-                handleFormSubmit('Context updated successfully');
-                toast.success("✅ Context updated successfully!"); // ✅ Show success toast
-                await fetchPosts(); // ✅ Fetch latest posts after adding a new one
-                //await fetchAllPosts();
+                console.log("✅ PUT Response received:", response.status, response.data);
+                
+                try {
+                    contextsDispatch({ type: 'UPDATE_CONTEXT', payload: response.data });
+                    console.log("✅ Context dispatch successful");
+                } catch (dispatchError) {
+                    console.error("❌ Error in contextsDispatch:", dispatchError);
+                }
+                
+                try {
+                    handleFormSubmit('Context updated successfully');
+                    console.log("✅ handleFormSubmit called successfully");
+                } catch (formSubmitError) {
+                    console.error("❌ Error in handleFormSubmit:", formSubmitError);
+                }
+                
+                toast.success("✅ Context updated successfully!");
+                
+                try {
+                    if (fetchPosts && typeof fetchPosts === 'function') {
+                        await fetchPosts();
+                        console.log("✅ fetchPosts completed");
+                    } else {
+                        console.warn("⚠️ fetchPosts is not available or not a function");
+                    }
+                } catch (fetchError) {
+                    console.error("❌ Error in fetchPosts:", fetchError);
+                    // Don't let fetchPosts error break the success flow
+                }
             } else {
                 const response = await axios.post('/api/admin/contexts', formData, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                 });
-                contextsDispatch({ type: 'ADD_CONTEXT', payload: response.data });
-                handleFormSubmit('Context added successfully');
-                toast.success("✅ Context added successfully!"); // ✅ Show success toast
-                 await fetchPosts(); // ✅ Fetch latest posts after adding a new one
-                //await fetchAllPosts();
+                console.log("✅ POST Response received:", response.status, response.data);
+                
+                try {
+                    contextsDispatch({ type: 'ADD_CONTEXT', payload: response.data });
+                    console.log("✅ Context dispatch successful");
+                } catch (dispatchError) {
+                    console.error("❌ Error in contextsDispatch:", dispatchError);
+                }
+                
+                try {
+                    handleFormSubmit('Context added successfully');
+                    console.log("✅ handleFormSubmit called successfully");
+                } catch (formSubmitError) {
+                    console.error("❌ Error in handleFormSubmit:", formSubmitError);
+                }
+                
+                toast.success("✅ Context added successfully!");
+                
+                try {
+                    if (fetchPosts && typeof fetchPosts === 'function') {
+                        await fetchPosts();
+                        console.log("✅ fetchPosts completed");
+                    } else {
+                        console.warn("⚠️ fetchPosts is not available or not a function");
+                    }
+                } catch (fetchError) {
+                    console.error("❌ Error in fetchPosts:", fetchError);
+                    // Don't let fetchPosts error break the success flow
+                }
             }
         } catch (err) {
             console.error('Error submitting form:', err);
@@ -397,14 +485,14 @@ export default function ContextForm({ handleFormSubmit }) {
     //     value: theme._id,
     //     label: theme.themeTitle
     // }));
-    // Convert allThemes into a format suitable for react-select
-const themeOptions = allThemes.map(theme => ({
+    // ✅ Convert allThemes into a format suitable for react-select with safe mapping
+const themeOptions = (allThemes || []).map(theme => ({
     value: theme._id,
     label: theme.themeTitle
 }));
 
-// Convert tileTemplates into a format suitable for react-select
-const tileTemplateOptions = tileTemplates.map(template => ({
+// ✅ Convert tileTemplates into a format suitable for react-select with safe mapping
+const tileTemplateOptions = (tileTemplates || []).map(template => ({
     value: template._id,
     label: template.name
 }));
@@ -565,9 +653,9 @@ useEffect(() => {
                                 <Select
                                     id="sectors"
                                     isMulti
-                                    options={sectorsData.data.map(sector => ({ value: sector._id, label: sector.sectorName }))}
-                                    value={selectedSectors.map(sectorId => ({ value: sectorId, label: sectorsData.data.find(sector => sector._id === sectorId)?.sectorName || '' }))}
-                                    onChange={(selectedOptions) => setSelectedSectors(selectedOptions.map(option => option.value))}
+                                    options={(sectorsData?.data || []).map(sector => ({ value: sector._id, label: sector.sectorName }))}
+                                    value={selectedSectors.map(sectorId => ({ value: sectorId, label: (sectorsData?.data || []).find(sector => sector._id === sectorId)?.sectorName || '' }))}
+                                    onChange={(selectedOptions) => setSelectedSectors((selectedOptions || []).map(option => option.value))}
                                     className="context-select"
                                 />
                             </div>
@@ -582,9 +670,9 @@ useEffect(() => {
                                     }))}
                                     value={selectedSubSectors.map(subSectorId => ({
                                         value: subSectorId,
-                                        label: subSectorsData.data.find(subSector => subSector._id === subSectorId)?.subSectorName || ''
+                                        label: (subSectorsData?.data || []).find(subSector => subSector._id === subSectorId)?.subSectorName || ''
                                     }))}
-                                    onChange={(selectedOptions) => setSelectedSubSectors(selectedOptions.map(option => option.value))}
+                                    onChange={(selectedOptions) => setSelectedSubSectors((selectedOptions || []).map(option => option.value))}
                                     className="context-select"
                                 />
                             </div>
@@ -596,15 +684,15 @@ useEffect(() => {
                                 <Select
                                     id="signalCategories"
                                     isMulti
-                                    options={signalsData.data.map(signal => ({
+                                    options={(signalsData?.data || []).map(signal => ({
                                         value: signal._id,
                                         label: signal.signalName
                                     }))}
                                     value={selectedSignalCategories.map(signalId => ({
                                         value: signalId,
-                                        label: signalsData.data.find(signal => signal._id === signalId)?.signalName || ''
+                                        label: (signalsData?.data || []).find(signal => signal._id === signalId)?.signalName || ''
                                     }))}
-                                    onChange={(selectedOptions) => setSelectedSignalCategories(selectedOptions.map(option => option.value))}
+                                    onChange={(selectedOptions) => setSelectedSignalCategories((selectedOptions || []).map(option => option.value))}
                                     className="context-select"
                                 />
                             </div>
@@ -619,9 +707,9 @@ useEffect(() => {
                                     }))}
                                     value={selectedSignalSubCategories.map(subSignalId => ({
                                         value: subSignalId,
-                                        label: subSignalsData.data.find(subSignal => subSignal._id === subSignalId)?.subSignalName || ''
+                                        label: (subSignalsData?.data || []).find(subSignal => subSignal._id === subSignalId)?.subSignalName || ''
                                     }))}
-                                    onChange={(selectedOptions) => setSelectedSignalSubCategories(selectedOptions.map(option => option.value))}
+                                    onChange={(selectedOptions) => setSelectedSignalSubCategories((selectedOptions || []).map(option => option.value))}
                                     className="context-select"
                                 />
                             </div>

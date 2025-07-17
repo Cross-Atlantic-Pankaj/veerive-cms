@@ -463,13 +463,76 @@ export default function ContextList() {
             });
 
             if (response.status === 200) {
-                contextsDispatch({ type: 'REMOVE_CONTEXT', payload: id });
+                // ✅ Refresh the page data after deletion to get latest data from server
+                await refreshContextData();
+                
+                // ✅ Check if current page is now empty and adjust pagination
+                const currentPageItemsCount = currentPageData.length;
+                if (currentPageItemsCount === 1 && page > 1) {
+                    // If we just deleted the last item on this page and we're not on page 1, go to previous page
+                    const newPage = page - 1;
+                    setPage(newPage);
+                    localStorage.setItem('contextPage', newPage);
+                }
+                
                 toast.success('Context removed successfully!');
             }
         } catch (error) {
             toast.error('Failed to delete context. Please try again.');
         } finally {
             setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+        }
+    };
+
+    // ✅ Function to refresh all context data after operations
+    const refreshContextData = async () => {
+        try {
+            // Refresh all contexts data
+            const allContextsResponse = await axios.get('/api/admin/contexts/all', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (allContextsResponse.data.success) {
+                setAllContexts(allContextsResponse.data.contexts || []);
+            }
+
+            // Refresh paginated contexts data
+            const needsAllData = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending' || sortConfig.key === 'date';
+            const apiUrl = needsAllData 
+                ? `/api/admin/contexts/all`
+                : `/api/admin/contexts?page=${page}&limit=10`;
+
+            const response = await axios.get(apiUrl, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+            });
+
+            if (response.data.success) {
+                const contextsData = response.data.contexts || [];
+                
+                if (needsAllData) {
+                    const totalItems = contextsData.length;
+                    const calculatedTotalPages = Math.ceil(totalItems / 10);
+                    
+                    contextsDispatch({ 
+                        type: "SET_CONTEXTS", 
+                        payload: { 
+                            contexts: contextsData, 
+                            totalPages: calculatedTotalPages, 
+                            page: page
+                        } 
+                    });
+                } else {
+                    contextsDispatch({ 
+                        type: "SET_CONTEXTS", 
+                        payload: { 
+                            contexts: contextsData, 
+                            totalPages: response.data.totalPages || 1, 
+                            page: response.data.page || 1
+                        } 
+                    });
+                }
+            }
+        } catch (err) {
+            console.error("❌ Error refreshing context data:", err);
         }
     };
 
@@ -659,8 +722,8 @@ export default function ContextList() {
                     ) : (
                         <>
                             🔍 Filtering by Context ID(s): <strong>*** hidden for security ***</strong>
-                            <br />
-                            <small>Showing contexts that match the selected filter criteria</small>
+                    <br />
+                    <small>Showing contexts that match the selected filter criteria</small>
                         </>
                     )}
                 </div>
