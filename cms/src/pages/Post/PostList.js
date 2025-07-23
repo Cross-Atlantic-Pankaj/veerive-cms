@@ -385,47 +385,116 @@ export default function PostList() {
 
     const handleShowPostContexts = async (postId) => {
         try {
-            console.log('Fetching contexts for post'); // Debug log without exposing ID
+            console.log('🔄 Starting handleShowPostContexts for post ID:', postId);
+            
+            // Validate postId
+            if (!postId) {
+                console.error('❌ No postId provided');
+                toast.error("Invalid post ID");
+                return;
+            }
+
+            // Validate token
+            const token = localStorage.getItem("token");
+            if (!token) {
+                console.error('❌ No authentication token found');
+                toast.error("Authentication required. Please login again.");
+                return;
+            }
+
+            console.log('🔍 Fetching contexts for post...');
             
             // Query the context collection to find all contexts that contain this post ID
             const response = await axios.post(`/api/admin/contexts/by-post`, {
                 postId: postId
             }, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                headers: { 
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 10000 // 10 second timeout
+            });
+
+            console.log('📡 First API response:', {
+                status: response.status,
+                success: response.data?.success,
+                contextCount: response.data?.contexts?.length || 0
             });
 
             if (response.data.success && response.data.contexts) {
                 const contextTitles = response.data.contexts.map(ctx => ctx.contextTitle);
                 
-                console.log('Found contexts:', contextTitles.length); // Debug log without exposing IDs
+                console.log('✅ Found contexts:', contextTitles.length);
 
                 if (contextTitles.length === 0) {
-            toast.info("No contexts associated with this post");
-            return;
-        }
+                    toast.info("No contexts associated with this post");
+                    return;
+                }
 
                 // Generate a secure session token for filtering
+                console.log('🔒 Creating secure filter session...');
                 const filterResponse = await axios.post(`/api/admin/contexts/create-filter-session`, {
                     contextIds: response.data.contexts.map(ctx => ctx._id)
                 }, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                    headers: { 
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000 // 10 second timeout
+                });
+
+                console.log('📡 Second API response:', {
+                    status: filterResponse.status,
+                    success: filterResponse.data?.success,
+                    hasSessionToken: !!filterResponse.data?.sessionToken
                 });
 
                 if (filterResponse.data.success && filterResponse.data.sessionToken) {
                     // Navigate using secure session token instead of ObjectIDs
-                    window.open(`/contexts?filterSession=${filterResponse.data.sessionToken}`, '_blank');
+                    const url = `/contexts?filterSession=${filterResponse.data.sessionToken}`;
+                    console.log('🚀 Opening URL:', url);
+                    window.open(url, '_blank');
                     
                     // Show a toast with the count
                     toast.success(`Opening ${contextTitles.length} context(s) in new tab`);
                 } else {
+                    console.error('❌ Filter session creation failed:', filterResponse.data);
                     toast.error("Failed to create secure filter session");
                 }
             } else {
+                console.log('ℹ️ No contexts found or API returned unexpected format');
+                console.log('Full response:', response.data);
                 toast.info("No contexts associated with this post");
             }
         } catch (error) {
-            console.error('Error fetching contexts for post:', error);
-            toast.error("Failed to fetch contexts for this post");
+            console.error('❌ Error in handleShowPostContexts:', {
+                message: error.message,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                config: {
+                    url: error.config?.url,
+                    method: error.config?.method,
+                    timeout: error.config?.timeout
+                }
+            });
+
+            // More specific error messages
+            if (error.code === 'ECONNABORTED') {
+                toast.error("Request timeout. Please try again.");
+            } else if (error.response?.status === 401) {
+                toast.error("Authentication failed. Please login again.");
+            } else if (error.response?.status === 403) {
+                toast.error("Permission denied. Contact administrator.");
+            } else if (error.response?.status === 404) {
+                toast.error("API endpoint not found. Check server configuration.");
+            } else if (error.response?.status >= 500) {
+                toast.error("Server error. Please try again later.");
+            } else if (!navigator.onLine) {
+                toast.error("No internet connection. Please check your network.");
+            } else {
+                toast.error(`Failed to fetch contexts: ${error.message || 'Unknown error'}`);
+            }
         }
     };
 

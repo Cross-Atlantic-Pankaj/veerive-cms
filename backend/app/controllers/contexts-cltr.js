@@ -131,18 +131,35 @@ contextsCltr.postContext = async (req, res) => {
 // Secure endpoint - POST request with postId in body instead of URL
 contextsCltr.getContextsByPost = async (req, res) => {
     const { postId } = req.body;
-    console.log('Fetching contexts for post (secure)');
+    console.log('🔍 Fetching contexts for post (secure), postId:', postId);
     try {
         if (!postId) {
+            console.error('❌ No postId provided in request body');
             return res.status(400).json({ success: false, error: 'Post ID is required' });
         }
+
+        // Validate ObjectId format
+        if (!postId.match(/^[0-9a-fA-F]{24}$/)) {
+            console.error('❌ Invalid postId format:', postId);
+            return res.status(400).json({ success: false, error: 'Invalid Post ID format' });
+        }
         
+        console.log('🔄 Searching for contexts with postId:', postId);
         const contexts = await Context.find({ 'posts.postId': postId });
-        console.log(`Found ${contexts.length} contexts for post`);
+        console.log(`✅ Found ${contexts.length} contexts for post`);
+        
+        if (contexts.length > 0) {
+            console.log('📋 Context details:', contexts.map(ctx => ({ 
+                id: ctx._id, 
+                title: ctx.contextTitle,
+                postsCount: ctx.posts?.length || 0 
+            })));
+        }
+        
         res.json({ success: true, contexts });
     } catch (error) {
-        console.error('Error fetching contexts for post:', error);
-        res.status(500).json({ success: false, error: 'Server error' });
+        console.error('❌ Error fetching contexts for post:', error);
+        res.status(500).json({ success: false, error: 'Server error', details: error.message });
     }
 };
 
@@ -152,10 +169,18 @@ const filterSessions = new Map();
 // Create a secure filter session
 contextsCltr.createFilterSession = async (req, res) => {
     const { contextIds } = req.body;
-    console.log('Creating secure filter session');
+    console.log('🔒 Creating secure filter session for contextIds:', contextIds?.length || 0);
     try {
         if (!contextIds || !Array.isArray(contextIds) || contextIds.length === 0) {
-            return res.status(400).json({ success: false, error: 'Context IDs are required' });
+            console.error('❌ Invalid or empty contextIds array');
+            return res.status(400).json({ success: false, error: 'Context IDs are required and must be a non-empty array' });
+        }
+
+        // Validate all context IDs are valid ObjectId format
+        const invalidIds = contextIds.filter(id => !id || !id.match(/^[0-9a-fA-F]{24}$/));
+        if (invalidIds.length > 0) {
+            console.error('❌ Invalid context ID format(s):', invalidIds);
+            return res.status(400).json({ success: false, error: 'Invalid Context ID format(s)' });
         }
         
         // Generate a secure session token
@@ -167,11 +192,13 @@ contextsCltr.createFilterSession = async (req, res) => {
             expires: Date.now() + 10 * 60 * 1000 // 10 minutes
         });
         
-        console.log(`Created filter session for ${contextIds.length} contexts`);
+        console.log(`✅ Created filter session ${sessionToken.substring(0, 8)}... for ${contextIds.length} contexts`);
+        console.log('📋 Session will expire at:', new Date(Date.now() + 10 * 60 * 1000).toISOString());
+        
         res.json({ success: true, sessionToken });
     } catch (error) {
-        console.error('Error creating filter session:', error);
-        res.status(500).json({ success: false, error: 'Server error' });
+        console.error('❌ Error creating filter session:', error);
+        res.status(500).json({ success: false, error: 'Server error', details: error.message });
     }
 };
 
