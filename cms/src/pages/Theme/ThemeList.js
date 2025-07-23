@@ -177,12 +177,20 @@ export default function ThemeList() {
 
     const handleRemove = async (id) => {
         try {
-            await axios.delete(`/api/admin/themes/${id}`, { 
+            const response = await axios.delete(`/api/admin/themes/${id}`, { 
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
             });
-            fetchAllThemes();
+            
+            if (response.data.success) {
+                toast.success(response.data.message || 'Theme deleted successfully!');
+                await fetchAllThemes(); // Refresh the themes list
+            } else {
+                toast.error('Failed to delete theme');
+            }
         } catch (err) {
-            alert(err.message);
+            console.error('Error deleting theme:', err);
+            const errorMessage = err.response?.data?.message || err.message || 'Failed to delete theme';
+            toast.error(errorMessage);
         } finally {
             setConfirmationModal(prev => ({ ...prev, isOpen: false }));
         }

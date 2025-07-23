@@ -49,12 +49,30 @@ themesCltr.delete = async (req, res) => {
         let theme
         const id = req.params.id
         
-        theme = await Theme.findByIdAndDelete(id)
+        // First, find the theme to get its details
+        theme = await Theme.findById(id)
         
         if(!theme){
             return res.status(404).json({ message: 'Theme not found' })
         }
-        return res.json(theme)
+
+        // Remove the theme from all contexts that reference it
+        const Context = (await import('../models/context-model.js')).default;
+        await Context.updateMany(
+            { themes: id },
+            { $pull: { themes: id } }
+        );
+
+        console.log(`✅ Removed theme ${theme.themeTitle} from all contexts`);
+
+        // Now delete the theme
+        await Theme.findByIdAndDelete(id)
+        
+        return res.json({
+            success: true,
+            message: "Theme deleted successfully and removed from all contexts",
+            theme: theme
+        })
 
     }catch(err){
         console.log(err)
