@@ -125,10 +125,17 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
     }, []);
     
     useEffect(() => {
-        if (posts.editId && posts.data.length > 0) {
+        console.log("🔄 PostForm useEffect triggered:", {
+            editId: posts.editId,
+            dataLength: posts.data.length,
+            hasEditId: !!posts.editId
+        });
+        
+        if (posts.editId) {
             const post = posts.data.find((ele) => ele._id === posts.editId);
     
             if (post) {
+                console.log("✅ Found post for editing:", post.postTitle);
                 console.log("Editing Post Data:", post);
                 console.log("Editing Post Contexts:", post.contexts);
             
@@ -201,9 +208,13 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                 } else {
                     setTileTemplateId(null);
                 }
+            } else {
+                console.log("❌ Post not found in data for editId:", posts.editId);
+                console.log("Available posts:", posts.data.map(p => ({ id: p._id, title: p.postTitle })));
             }
         } else {
             // Reset form for new post
+            console.log("🔄 Resetting form for new post");
             resetForm();
         }
     }, [posts.editId, posts.data, contexts, tileTemplates, companies.data, sources.data]); 

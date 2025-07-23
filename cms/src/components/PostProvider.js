@@ -27,6 +27,18 @@ const postReducer = (state, action) => {
                         : ele
                 ).sort((a, b) => new Date(b.date) - new Date(a.date)), // ✅ Ensure sorting after update
             };
+        case 'REFRESH_POST_DATA': 
+            return {
+                ...state,
+                // Keep editId unchanged
+                data: state.data.some(ele => ele._id === action.payload._id)
+                    ? state.data.map((ele) =>
+                        ele._id === action.payload._id
+                            ? { ...action.payload, contexts: action.payload.contexts || [] }
+                            : ele
+                    ).sort((a, b) => new Date(b.date) - new Date(a.date))
+                    : [action.payload, ...state.data].sort((a, b) => new Date(b.date) - new Date(a.date))
+            };
         default:
             return state;
     }
@@ -109,6 +121,47 @@ export const PostProvider = ({ children }) => {
             console.error("❌ Error fetching all posts:", err);
         }
     };
+
+    // ✅ New function to fetch a single post for editing
+    const fetchSinglePost = async (postId) => {
+        const token = localStorage.getItem("token");
+    
+        if (!token) {
+            console.error("❌ No token found, user might be logged out.");
+            return null;
+        }
+    
+        try {
+            console.log("🔍 Fetching single post for edit:", postId);
+            const response = await axios.get(`/api/admin/posts/${postId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            
+            if (response.data.success) {
+                const post = response.data.post;
+                console.log("✅ Successfully fetched post for edit:", post.postTitle);
+                
+                // Convert populated objects back to IDs for form compatibility
+                const formattedPost = {
+                    ...post,
+                    contexts: Array.isArray(post.contexts) ? post.contexts.map(ctx => typeof ctx === 'object' ? ctx._id : ctx) : [],
+                    countries: Array.isArray(post.countries) ? post.countries.map(country => typeof country === 'object' ? country._id : country) : [],
+                    primaryCompanies: Array.isArray(post.primaryCompanies) ? post.primaryCompanies.map(company => typeof company === 'object' ? company._id : company) : [],
+                    secondaryCompanies: Array.isArray(post.secondaryCompanies) ? post.secondaryCompanies.map(company => typeof company === 'object' ? company._id : company) : [],
+                    source: Array.isArray(post.source) ? post.source.map(src => typeof src === 'object' ? src._id : src) : []
+                };
+                
+                console.log("🔄 Formatted post data for form:", formattedPost);
+                return formattedPost;
+            } else {
+                console.error("❌ Failed to fetch post:", response.data.message);
+                return null;
+            }
+        } catch (err) {
+            console.error("❌ Error fetching single post:", err);
+            return null;
+        }
+    };
     
     
     // ✅ Handle Add Click (New Post)
@@ -120,11 +173,45 @@ export const PostProvider = ({ children }) => {
     };
 
     // ✅ Handle Edit Click
-    const handleEditClick = (id) => {
-        postsDispatch({ type: 'SET_EDIT_ID', payload: id });
-        setIsFormVisible(true);
-        localStorage.setItem("editId", id);  
-        localStorage.setItem("isFormVisible", "true"); 
+    const handleEditClick = async (id) => {
+        try {
+            console.log("🔄 Starting edit process for post:", id);
+            console.log("📊 Current posts in state:", posts.data.length);
+            
+            // Fetch the specific post data
+            const postData = await fetchSinglePost(id);
+            
+            if (postData) {
+                console.log("📋 Fetched post data:", {
+                    id: postData._id,
+                    title: postData.postTitle,
+                    contexts: postData.contexts?.length || 0
+                });
+                
+                // Check if post exists in current state
+                const postExists = posts.data.some(p => p._id === id);
+                console.log("🔍 Post exists in current state:", postExists);
+                
+                // Update the posts state to include this post (in case it's not in current view)
+                postsDispatch({ type: 'REFRESH_POST_DATA', payload: postData });
+                
+                // Small delay to ensure state update before setting edit mode
+                setTimeout(() => {
+                    // Set edit mode
+                    postsDispatch({ type: 'SET_EDIT_ID', payload: id });
+                    setIsFormVisible(true);
+                    localStorage.setItem("editId", id);  
+                    localStorage.setItem("isFormVisible", "true");
+                    
+                    console.log("✅ Edit mode activated for post:", postData.postTitle);
+                }, 100);
+            } else {
+                console.error("❌ Failed to fetch post data for editing");
+                // You might want to show a user-friendly error message here
+            }
+        } catch (error) {
+            console.error("❌ Error in handleEditClick:", error);
+        }
     };
 
     // ✅ Handle Form Submission
@@ -192,7 +279,7 @@ export const PostProvider = ({ children }) => {
             handleAddClick, handleEditClick, handleFormSubmit, 
             contexts, countries, companies, sources,
             page, setPage, totalPages, setTotalPages,
-            handleGoToPostList, fetchAllPosts
+            handleGoToPostList, fetchAllPosts, fetchSinglePost
         }}>
             {successMessage && <div className="success-message">{successMessage}</div>}
             {children}

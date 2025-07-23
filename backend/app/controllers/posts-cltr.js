@@ -297,6 +297,45 @@ postsCltr.getAllPosts = async (req, res) => {
     }
 };
 
+// Get a single post by ID for editing
+postsCltr.getOne = async (req, res) => {
+    try {
+        const id = req.params.id;
+        console.log("🔍 Fetching single post with ID:", id);
 
+        // Validate ObjectId format
+        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invalid Post ID format' 
+            });
+        }
+
+        const post = await Post.findById(id)
+            .populate("contexts", "contextTitle _id")
+            .populate("countries", "countryName _id")
+            .populate("primaryCompanies", "companyName _id")
+            .populate("secondaryCompanies", "companyName _id")
+            .populate("source", "sourceName _id")
+            .lean();
+
+        if (!post) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Post not found' 
+            });
+        }
+
+        console.log("✅ Successfully fetched post:", post.postTitle);
+        res.json({ success: true, post });
+    } catch (err) {
+        console.error("❌ Error fetching single post:", err);
+        res.status(500).json({ 
+            success: false, 
+            error: "Server Error",
+            message: err.message 
+        });
+    }
+};
 
 export default postsCltr

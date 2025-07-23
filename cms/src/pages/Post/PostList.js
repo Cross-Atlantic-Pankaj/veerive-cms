@@ -16,7 +16,7 @@ function useQuery() {
 }
 
 export default function PostList() {
-    const { posts, postsDispatch, handleAddClick, handleEditClick } = useContext(PostContext);
+    const { posts, postsDispatch, handleAddClick, handleEditClick, fetchSinglePost } = useContext(PostContext);
     const { contexts, isLoading } = useContext(ContextContext);
     const masterData = useContext(MasterDataContext);
     const { state } = useContext(AuthContext);
@@ -62,16 +62,14 @@ export default function PostList() {
     const query = useQuery();
     const editIdFromQuery = query.get('editId');
     useEffect(() => {
-        const fetchAndEdit = async () => {
-            if (editIdFromQuery) {
-                if (typeof fetchAllPosts === 'function') {
-                    await fetchAllPosts();
-                }
-                handleEditClick(editIdFromQuery);
+        const handleEditFromQuery = async () => {
+            if (editIdFromQuery && fetchSinglePost) {
+                console.log("🔄 Handling edit from query parameter:", editIdFromQuery);
+                await handleEditClick(editIdFromQuery);
             }
         };
-        fetchAndEdit();
-    }, [editIdFromQuery]);
+        handleEditFromQuery();
+    }, [editIdFromQuery, fetchSinglePost, handleEditClick]);
 
     useEffect(() => {
         const storedPage = parseInt(localStorage.getItem("currentPage"), 10);
