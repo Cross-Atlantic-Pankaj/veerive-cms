@@ -162,8 +162,6 @@ app.get('/api/admin/contexts/:id', authenticateUser, contextsCltr.show)
 app.get('/api/admin/posts/:postId/contexts', authenticateUser, contextsCltr.postContext)
 // Secure endpoints without ObjectIDs in URLs
 app.post('/api/admin/contexts/by-post', authenticateUser, contextsCltr.getContextsByPost)
-app.post('/api/admin/contexts/create-filter-session', authenticateUser, contextsCltr.createFilterSession)
-app.get('/api/admin/contexts/filter-session/:sessionToken', authenticateUser, contextsCltr.getContextsByFilterSession)
 app.post('/api/admin/contexts', authenticateUser, contextsCltr.create)
 app.put('/api/admin/contexts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), contextsCltr.update)
 app.put('/api/admin/contexts/:contextId/postId', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), contextsCltr.updatePostId) // for updating postId in context when a post is saved

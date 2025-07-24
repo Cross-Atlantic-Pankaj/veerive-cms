@@ -6,7 +6,6 @@ import Company from '../models/company-model.js';
 import Source from '../models/source-model.js';
 import { Country, Region } from '../models/geography-model.js';
 import PostType from '../models/postType-model.js';
-import crypto from 'crypto';
 
 
 const contextsCltr = {}
@@ -146,95 +145,7 @@ contextsCltr.getContextsByPost = async (req, res) => {
     }
 };
 
-// Temporary session storage for secure filtering
-const filterSessions = new Map();
 
-// Create a secure filter session
-contextsCltr.createFilterSession = async (req, res) => {
-    const { contextIds } = req.body;
-    console.log('Creating secure filter session');
-    try {
-        if (!contextIds || !Array.isArray(contextIds) || contextIds.length === 0) {
-            return res.status(400).json({ success: false, error: 'Context IDs are required' });
-        }
-        
-        // Generate a secure session token
-        const sessionToken = crypto.randomBytes(32).toString('hex');
-        
-        // Store the context IDs with the session token (expires in 30 minutes)
-        filterSessions.set(sessionToken, {
-            contextIds,
-            expires: Date.now() + 30 * 60 * 1000 // 30 minutes (extended from 10)
-        });
-        
-        console.log(`Created filter session for ${contextIds.length} contexts`);
-        res.json({ success: true, sessionToken });
-    } catch (error) {
-        console.error('Error creating filter session:', error);
-        res.status(500).json({ success: false, error: 'Server error' });
-    }
-};
-
-// Get contexts by filter session
-contextsCltr.getContextsByFilterSession = async (req, res) => {
-    const { sessionToken } = req.params;
-    console.log('🔒 Retrieving contexts by filter session, token length:', sessionToken?.length);
-    try {
-        if (!sessionToken) {
-            console.log('❌ No session token provided');
-            return res.status(400).json({ success: false, error: 'Session token is required' });
-        }
-        
-        console.log('🔍 Looking up session in memory store...');
-        const session = filterSessions.get(sessionToken);
-        if (!session) {
-            console.log('❌ Session not found in memory store');
-            console.log('📊 Current sessions in store:', filterSessions.size);
-            return res.status(404).json({ success: false, error: 'Invalid or expired session' });
-        }
-        
-        console.log('✅ Session found, checking expiry...');
-        // Check if session has expired
-        const now = Date.now();
-        const timeLeft = session.expires - now;
-        console.log('⏰ Session time left (minutes):', Math.round(timeLeft / 60000));
-        
-        if (now > session.expires) {
-            console.log('❌ Session has expired');
-            filterSessions.delete(sessionToken);
-            return res.status(404).json({ success: false, error: 'Session expired' });
-        }
-        
-        console.log('🔍 Fetching contexts from database, contextIds count:', session.contextIds.length);
-        
-        // Fetch contexts by IDs
-        const contexts = await Context.find({ _id: { $in: session.contextIds } });
-        
-        console.log('📋 Database query results:', {
-            requestedIds: session.contextIds.length,
-            foundContexts: contexts.length,
-            contextTitles: contexts.map(c => c.contextTitle?.substring(0, 30) + '...')
-        });
-        
-        // Clean up expired sessions periodically
-        let cleanedCount = 0;
-        for (const [token, sessionData] of filterSessions.entries()) {
-            if (Date.now() > sessionData.expires) {
-                filterSessions.delete(token);
-                cleanedCount++;
-            }
-        }
-        if (cleanedCount > 0) {
-            console.log('🧹 Cleaned up', cleanedCount, 'expired sessions');
-        }
-        
-        console.log(`✅ Successfully retrieved ${contexts.length} contexts from filter session`);
-        res.json({ success: true, contexts });
-    } catch (error) {
-        console.error('❌ Error retrieving contexts by filter session:', error);
-        res.status(500).json({ success: false, error: 'Server error', details: error.message });
-    }
-};
 
 contextsCltr.create = async (req, res) => {
     try {

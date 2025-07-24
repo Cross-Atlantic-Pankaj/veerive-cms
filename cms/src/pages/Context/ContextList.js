@@ -34,7 +34,6 @@ export default function ContextList() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [postsMap, setPostsMap] = useState({}); // Store post ID to title mapping
     const [allContexts, setAllContexts] = useState([]); // Store all contexts
-    const [secureFilterContexts, setSecureFilterContexts] = useState([]); // Store contexts from secure filter session
     const [confirmationModal, setConfirmationModal] = useState({
         isOpen: false,
         title: '',
@@ -48,16 +47,13 @@ export default function ContextList() {
 
     // Get the filter parameters from URL
     const filterContextIds = query.get('filterContexts')?.split(',').filter(Boolean) || [];
-    const filterSessionToken = query.get('filterSession');
 
     // Debug logging for filter parameter
     console.log('🔍 URL Filter Debug:', {
         urlParams: location.search,
         filterContextsParam: query.get('filterContexts'),
-        filterSessionParam: query.get('filterSession'),
         filterContextIds,
-        filterSessionToken,
-        filterActive: filterContextIds.length > 0 || !!filterSessionToken
+        filterActive: filterContextIds.length > 0
     });
 
     // Fetch all contexts when component mounts
@@ -78,62 +74,7 @@ export default function ContextList() {
         fetchAllContexts();
     }, []);
 
-    // Fetch contexts from secure filter session
-    useEffect(() => {
-        const fetchSecureFilterContexts = async () => {
-            if (!filterSessionToken) {
-                console.log('🔒 No filter session token found');
-                setSecureFilterContexts([]);
-                return;
-            }
 
-            try {
-                console.log('🔒 Fetching contexts from secure filter session');
-                console.log('🎫 Session token length:', filterSessionToken.length);
-                console.log('🔗 API URL:', `/api/admin/contexts/filter-session/${filterSessionToken}`);
-                console.log('🔑 Auth token available:', !!localStorage.getItem('token'));
-                
-                const response = await axios.get(`/api/admin/contexts/filter-session/${filterSessionToken}`, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                });
-                
-                console.log('📥 Filter session API response:', {
-                    status: response.status,
-                    success: response.data.success,
-                    contextCount: response.data.contexts?.length || 0,
-                    error: response.data.error
-                });
-                
-                if (response.data.success) {
-                    setSecureFilterContexts(response.data.contexts || []);
-                    console.log('✅ Successfully loaded secure filter contexts:', response.data.contexts?.length || 0);
-                    toast.success(`Found ${response.data.contexts?.length || 0} filtered contexts`);
-                } else {
-                    console.error('❌ API returned error:', response.data.error);
-                    toast.error(`Filter session error: ${response.data.error}`);
-                    setSecureFilterContexts([]);
-                    // Remove the invalid session token from URL
-                    navigate('/contexts', { replace: true });
-                }
-            } catch (err) {
-                console.error('❌ Error fetching secure filter contexts:', err);
-                console.error('📊 Error details:', {
-                    message: err.message,
-                    status: err.response?.status,
-                    statusText: err.response?.statusText,
-                    data: err.response?.data
-                });
-                
-                const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message;
-                toast.error(`Failed to load filtered contexts: ${errorMessage}`);
-                setSecureFilterContexts([]);
-                // Remove the invalid session token from URL
-                navigate('/contexts', { replace: true });
-            }
-        };
-
-        fetchSecureFilterContexts();
-    }, [filterSessionToken, navigate]);
 
     useEffect(() => {
         // ✅ Update local state whenever contexts are updated
@@ -276,19 +217,11 @@ export default function ContextList() {
         const isSortingActive = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending';
         const isSearchActive = localSearchQuery.trim().length > 0;
         const isFilterActive = filterContextIds.length > 0;
-        const isSecureFilterActive = filterSessionToken && secureFilterContexts.length > 0;
         
         // When filtering is active, always use client-side mode with all available data
         let data = [];
-        if (isSecureFilterActive) {
-            // For secure filtering, use the contexts from the secure filter session
-            data = secureFilterContexts;
-            console.log('🔒 Using secure filter contexts:', {
-                secureFilterContextsLength: secureFilterContexts.length,
-                totalDataLength: data.length
-            });
-        } else if (isFilterActive) {
-            // For regular filtering, use all available data (prefer allContexts, fallback to contexts.data)
+        if (isFilterActive) {
+            // For filtering, use all available data (prefer allContexts, fallback to contexts.data)
             data = allContexts.length > 0 ? allContexts : (contexts.data || []);
             console.log('🔍 Using data source for filtering:', {
                 usingAllContexts: allContexts.length > 0,
@@ -301,8 +234,8 @@ export default function ContextList() {
             data = (isSearchActive || isSortingActive) ? allContexts : (contexts.data || []);
         }
         
-        // Apply context ID filter if present (only for regular filtering, not secure filtering)
-        if (filterContextIds.length > 0 && !isSecureFilterActive) {
+        // Apply context ID filter if present
+        if (filterContextIds.length > 0) {
             console.log('🔍 Filtering contexts:', {
                 filterContextIds,
                 totalContextsBefore: data.length,
@@ -421,14 +354,13 @@ export default function ContextList() {
         }
 
         return data;
-    }, [allContexts, contexts.data, localSearchQuery, sortConfig, filterContextIds, secureFilterContexts, filterSessionToken, sectors.data, subSectors.data, signals.data, allThemes]);
+    }, [allContexts, contexts.data, localSearchQuery, sortConfig, filterContextIds, sectors.data, subSectors.data, signals.data, allThemes]);
 
     // Determine if we're in search mode or sorting mode
     const isSearchMode = localSearchQuery.trim().length > 0;
     const isSortingActive = sortConfig.key !== 'contextTitle' || sortConfig.direction !== 'ascending' || sortConfig.key === 'date';
     const isFilterMode = filterContextIds.length > 0;
-    const isSecureFilterMode = filterSessionToken && secureFilterContexts.length > 0;
-    const isClientSideMode = isSearchMode || isSortingActive || isFilterMode || isSecureFilterMode;
+    const isClientSideMode = isSearchMode || isSortingActive || isFilterMode;
 
     // Calculate pagination for processed data
     const itemsPerPage = 10;
@@ -726,38 +658,30 @@ export default function ContextList() {
             </div>
 
             {/* Filter Status Indicator */}
-            {(filterContextIds.length > 0 || filterSessionToken) && (
+            {filterContextIds.length > 0 && (
                 <div style={{
-                    backgroundColor: filterSessionToken ? '#dcfce7' : '#fef3c7',
-                    border: `1px solid ${filterSessionToken ? '#16a34a' : '#f59e0b'}`,
+                    backgroundColor: '#fef3c7',
+                    border: '1px solid #f59e0b',
                     borderRadius: '8px',
                     padding: '12px',
                     margin: '10px 0',
                     textAlign: 'center',
-                    color: filterSessionToken ? '#166534' : '#92400e'
+                    color: '#92400e'
                 }}>
-                    {filterSessionToken ? (
-                        <>
-                            🔍 <strong>{secureFilterContexts.length} context{secureFilterContexts.length !== 1 ? 's' : ''} found</strong>
-                        </>
-                    ) : (
-                        <>
-                            🔍 Filtering by Context ID(s): <strong>*** hidden for security ***</strong>
+                    🔍 Filtering by Context ID(s): <strong>Showing {processedContexts.length} filtered context{processedContexts.length !== 1 ? 's' : ''}</strong>
                     <br />
                     <small>Showing contexts that match the selected filter criteria</small>
-                        </>
-                    )}
                 </div>
             )}
             
             <div className="top-bar">
                 <div className="left-controls">
                     <button className="add-context-btn" onClick={handleAddClick} disabled={userRole === 'User'}>Add Context</button>
-                    {(filterContextIds.length > 0 || filterSessionToken) && (
+                    {filterContextIds.length > 0 && (
                         <button 
                             onClick={() => navigate('/contexts')}
                             style={{
-                                backgroundColor: filterSessionToken ? '#16a34a' : '#f59e0b',
+                                backgroundColor: '#f59e0b',
                                 color: 'white',
                                 border: 'none',
                                 padding: '8px 16px',
@@ -766,11 +690,7 @@ export default function ContextList() {
                                 cursor: 'pointer'
                             }}
                         >
-                            {filterSessionToken ? (
-                                `Clear Secure Filter (${secureFilterContexts.length} contexts)`
-                            ) : (
-                                `Clear Filter (${filterContextIds.length} ID${filterContextIds.length > 1 ? 's' : ''})`
-                            )}
+                            Clear Filter ({filterContextIds.length} ID{filterContextIds.length > 1 ? 's' : ''})
                         </button>
                     )}
                 </div>

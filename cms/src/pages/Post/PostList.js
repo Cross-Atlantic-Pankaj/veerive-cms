@@ -411,51 +411,35 @@ export default function PostList() {
                     return;
                 }
 
-                // Generate a secure session token for filtering
-                console.log('🔐 Creating filter session for contexts...');
-                const filterResponse = await axios.post(`/api/admin/contexts/create-filter-session`, {
-                    contextIds: response.data.contexts.map(ctx => ctx._id)
-                }, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-                });
-
-                console.log('🎫 Filter session response:', {
-                    success: filterResponse.data.success,
-                    hasSessionToken: !!filterResponse.data.sessionToken,
-                    tokenLength: filterResponse.data.sessionToken?.length || 0
-                });
-
-                if (filterResponse.data.success && filterResponse.data.sessionToken) {
-                    // Construct the URL more robustly for hosted environments
-                    const baseUrl = window.location.origin;
-                    const contextUrl = `${baseUrl}/contexts?filterSession=${filterResponse.data.sessionToken}`;
+                // Create direct filter using context IDs (no session needed)
+                const contextIds = response.data.contexts.map(ctx => ctx._id);
+                console.log('🔗 Creating direct filter with context IDs count:', contextIds.length);
+                
+                // Construct the URL with direct context IDs
+                const baseUrl = window.location.origin;
+                const contextUrl = `${baseUrl}/contexts?filterContexts=${contextIds.join(',')}`;
+                
+                console.log('🔗 Opening contexts URL:', contextUrl);
+                
+                // Try to open the new tab
+                try {
+                    const newTab = window.open(contextUrl, '_blank');
                     
-                    console.log('🔗 Opening contexts URL:', contextUrl);
-                    console.log('🎫 Session token:', filterResponse.data.sessionToken.substring(0, 8) + '...');
-                    
-                    // Try to open the new tab
-                    try {
-                        const newTab = window.open(contextUrl, '_blank');
-                        
-                        if (newTab && !newTab.closed) {
-                            // Show a toast with the count
-                            toast.success(`Opening ${contextTitles.length} context(s) in new tab`);
-                            console.log('✅ Successfully opened contexts in new tab');
-                        } else {
-                            // Fallback: navigate in the same tab if popup was blocked
-                            console.warn('⚠️ Popup blocked or failed, providing manual link');
-                            toast.info(`Found ${contextTitles.length} context(s). Click here to view them.`, {
-                                onClick: () => window.location.href = contextUrl,
-                                autoClose: 10000
-                            });
-                        }
-                    } catch (navError) {
-                        console.error('❌ Navigation error:', navError);
-                        toast.error('Failed to open contexts. Please try again.');
+                    if (newTab && !newTab.closed) {
+                        // Show a toast with the count
+                        toast.success(`Opening ${contextTitles.length} context(s) in new tab`);
+                        console.log('✅ Successfully opened contexts in new tab');
+                    } else {
+                        // Fallback: navigate in the same tab if popup was blocked
+                        console.warn('⚠️ Popup blocked or failed, providing manual link');
+                        toast.info(`Found ${contextTitles.length} context(s). Click here to view them.`, {
+                            onClick: () => window.location.href = contextUrl,
+                            autoClose: 10000
+                        });
                     }
-                } else {
-                    console.error('Filter session creation failed:', filterResponse.data);
-                    toast.error("Failed to create secure filter session");
+                } catch (navError) {
+                    console.error('❌ Navigation error:', navError);
+                    toast.error('Failed to open contexts. Please try again.');
                 }
             } else {
                 toast.info("No contexts associated with this post");
