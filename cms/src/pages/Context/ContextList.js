@@ -82,29 +82,50 @@ export default function ContextList() {
     useEffect(() => {
         const fetchSecureFilterContexts = async () => {
             if (!filterSessionToken) {
+                console.log('🔒 No filter session token found');
                 setSecureFilterContexts([]);
                 return;
             }
 
             try {
                 console.log('🔒 Fetching contexts from secure filter session');
+                console.log('🎫 Session token length:', filterSessionToken.length);
+                console.log('🔗 API URL:', `/api/admin/contexts/filter-session/${filterSessionToken}`);
+                console.log('🔑 Auth token available:', !!localStorage.getItem('token'));
+                
                 const response = await axios.get(`/api/admin/contexts/filter-session/${filterSessionToken}`, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                 });
                 
+                console.log('📥 Filter session API response:', {
+                    status: response.status,
+                    success: response.data.success,
+                    contextCount: response.data.contexts?.length || 0,
+                    error: response.data.error
+                });
+                
                 if (response.data.success) {
                     setSecureFilterContexts(response.data.contexts || []);
-                    console.log('🔒 Loaded secure filter contexts:', response.data.contexts?.length || 0);
+                    console.log('✅ Successfully loaded secure filter contexts:', response.data.contexts?.length || 0);
+                    toast.success(`Found ${response.data.contexts?.length || 0} filtered contexts`);
                 } else {
-                    console.error('Failed to fetch secure filter contexts:', response.data.error);
-                    toast.error('Invalid or expired filter session');
+                    console.error('❌ API returned error:', response.data.error);
+                    toast.error(`Filter session error: ${response.data.error}`);
                     setSecureFilterContexts([]);
                     // Remove the invalid session token from URL
                     navigate('/contexts', { replace: true });
                 }
             } catch (err) {
-                console.error('Error fetching secure filter contexts:', err);
-                toast.error('Failed to load filtered contexts');
+                console.error('❌ Error fetching secure filter contexts:', err);
+                console.error('📊 Error details:', {
+                    message: err.message,
+                    status: err.response?.status,
+                    statusText: err.response?.statusText,
+                    data: err.response?.data
+                });
+                
+                const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message;
+                toast.error(`Failed to load filtered contexts: ${errorMessage}`);
                 setSecureFilterContexts([]);
                 // Remove the invalid session token from URL
                 navigate('/contexts', { replace: true });

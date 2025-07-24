@@ -430,7 +430,8 @@ export default function PostList() {
                     const baseUrl = window.location.origin;
                     const contextUrl = `${baseUrl}/contexts?filterSession=${filterResponse.data.sessionToken}`;
                     
-                    console.log('Opening contexts URL:', contextUrl); // Debug log
+                    console.log('🔗 Opening contexts URL:', contextUrl);
+                    console.log('🎫 Session token:', filterResponse.data.sessionToken.substring(0, 8) + '...');
                     
                     // Try to open the new tab
                     try {
