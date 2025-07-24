@@ -782,9 +782,7 @@ export default function ContextList() {
                 ) : (
                     <tr>
                         <td colSpan="10" style={{ textAlign: 'center' }}>
-                            {filterSessionToken
-                                ? 'No matching contexts found in secure filter session'
-                                : filterContextIds.length > 0 
+                            {filterContextIds.length > 0 
                                 ? 'No matching contexts found for selected filter'
                                 : localSearchQuery.trim()
                                 ? 'No contexts found matching your search'
@@ -797,27 +795,6 @@ export default function ContextList() {
         {isSearchMode ? (
             <div className="pagination">
                 <span>Showing {currentPageData.length} of {totalFilteredItems} results for "{localSearchQuery}"</span>
-                {totalFilteredPages > 1 && (
-                    <>
-                        <button 
-                            onClick={handlePrevPage}
-                            disabled={page === 1}
-                        >
-                            Previous
-                        </button>
-                        <span> Page {page} of {displayTotalPages} </span>
-                        <button 
-                            onClick={handleNextPage}
-                            disabled={page === displayTotalPages || displayTotalPages === 0}
-                        >
-                            Next
-                        </button>
-                    </>
-                )}
-            </div>
-        ) : isSecureFilterMode ? (
-            <div className="pagination">
-                <span>Showing {currentPageData.length} of {totalFilteredItems} secure filtered contexts</span>
                 {totalFilteredPages > 1 && (
                     <>
                         <button 
