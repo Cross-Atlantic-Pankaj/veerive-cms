@@ -316,19 +316,39 @@ export default function PostList() {
 
     const handleDownloadCSV = async () => {
         try {
-            await fetchAllPosts();
+            console.log('🔄 Starting CSV download...');
             
-            let filtered = allPosts;
+            // Fetch fresh data directly instead of relying on state
+            const response = await axios.get(`/api/admin/posts/all`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            });
+            
+            if (!response.data.success) {
+                toast.error("Failed to fetch posts data");
+                return;
+            }
+            
+            let posts = response.data.posts || [];
+            console.log('📊 Total posts fetched for CSV:', posts.length);
+            
+            // Apply filters
+            let filtered = [...posts];
             
             if (dateRange.start && dateRange.end) {
+                const startDate = new Date(dateRange.start);
+                const endDate = new Date(dateRange.end);
                 filtered = filtered.filter(post => {
-                    const d = new Date(post.date);
-                    return d >= new Date(dateRange.start) && d <= new Date(dateRange.end);
+                    const postDate = new Date(post.date);
+                    return postDate >= startDate && postDate <= endDate;
                 });
+                console.log('📅 Posts after date filter:', filtered.length);
             }
             
             if (searchQuery.trim()) {
-                filtered = filtered.filter(post => (post.postTitle || '').toLowerCase().includes(searchQuery.toLowerCase()));
+                filtered = filtered.filter(post => 
+                    (post.postTitle || '').toLowerCase().includes(searchQuery.toLowerCase())
+                );
+                console.log('🔍 Posts after search filter:', filtered.length);
             }
 
             if (filtered.length === 0) {
@@ -337,39 +357,84 @@ export default function PostList() {
             }
 
             const headers = [
-                'Date', 'Post Title', 'Context', 'Post Type', 'Is Trending', 'Summary', 
+                'Post Title', 'Context', 'Post Type', 'Is Trending', 'Summary', 
                 'Complete Content', 'Primary Companies', 'Secondary Companies', 'Source', 
                 'Source URLs', 'Sentiment', 'Created At', 'Updated At'
             ];
             
-            const rows = filtered.map(post => {
-                const primaryCompanyNames = Array.isArray(post.primaryCompanies) 
-                    ? post.primaryCompanies.map(company => resolveField(company, 'company')).join(', ')
-                    : resolveField(post.primaryCompanies, 'company');
+            console.log('🔄 Generating CSV rows...');
+            
+            const rows = filtered.map((post, index) => {
+                try {
+                    // Safely resolve field values with better error handling
+                    const resolveFieldSafe = (field, type) => {
+                        try {
+                            return resolveField(field, type);
+                        } catch (err) {
+                            console.warn(`Error resolving ${type} field:`, err);
+                            return String(field || '');
+                        }
+                    };
+                    
+                    const primaryCompanyNames = Array.isArray(post.primaryCompanies) 
+                        ? post.primaryCompanies.map(company => resolveFieldSafe(company, 'company')).join(', ')
+                        : resolveFieldSafe(post.primaryCompanies, 'company');
 
-                const secondaryCompanyNames = Array.isArray(post.secondaryCompanies)
-                    ? post.secondaryCompanies.map(company => resolveField(company, 'company')).join(', ')
-                    : resolveField(post.secondaryCompanies, 'company');
+                    const secondaryCompanyNames = Array.isArray(post.secondaryCompanies)
+                        ? post.secondaryCompanies.map(company => resolveFieldSafe(company, 'company')).join(', ')
+                        : resolveFieldSafe(post.secondaryCompanies, 'company');
 
-                return [
-                    post.date ? new Date(post.date).toISOString().split('T')[0] : '',
-                    post.postTitle || '',
-                    resolveField(post.contexts, 'context'),
-                    post.postType || '',
-                    post.isTrending ? 'Yes' : 'No',
-                    post.summary || '',
-                    post.completeContent || '',
-                    primaryCompanyNames,
-                    secondaryCompanyNames,
-                    resolveField(post.source, 'source'),
-                    (post.sourceUrls || []).join(', '),
-                    post.sentiment || '',
-                    post.createdAt ? new Date(post.createdAt).toLocaleString() : '',
-                    post.updatedAt ? new Date(post.updatedAt).toLocaleString() : '',
-                ];
+                    return [
+                        post.postTitle || '',
+                        resolveFieldSafe(post.contexts, 'context'),
+                        post.postType || '',
+                        post.isTrending ? 'Yes' : 'No',
+                        (post.summary || '').replace(/[\r\n]+/g, ' '), // Clean line breaks
+                        (post.completeContent || '').replace(/[\r\n]+/g, ' '), // Clean line breaks
+                        primaryCompanyNames,
+                        secondaryCompanyNames,
+                        resolveFieldSafe(post.source, 'source'),
+                        (post.sourceUrls || []).join('; '), // Use semicolon to avoid CSV issues
+                        post.sentiment || '',
+                        post.createdAt ? new Date(post.createdAt).toLocaleString() : '',
+                        post.updatedAt ? new Date(post.updatedAt).toLocaleString() : '',
+                    ];
+                } catch (rowError) {
+                    console.error(`Error processing post ${index}:`, rowError);
+                    // Return a safe row with basic data
+                    return [
+                        post.postTitle || '',
+                        'Error processing data',
+                        post.postType || '',
+                        post.isTrending ? 'Yes' : 'No',
+                        'Error processing data',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        post.sentiment || '',
+                        '',
+                        ''
+                    ];
+                }
             });
 
-            const csvContent = [headers, ...rows].map(r => r.map(x => `"${(x || '').toString().replace(/"/g, '""')}"`).join(',')).join('\n');
+            console.log('🔄 Creating CSV content...');
+            
+            // Create CSV content with better escaping
+            const csvContent = [headers, ...rows]
+                .map(row => 
+                    row.map(cell => {
+                        const cellValue = String(cell || '');
+                        // Escape quotes and wrap in quotes
+                        const escapedCell = cellValue.replace(/"/g, '""');
+                        return `"${escapedCell}"`;
+                    }).join(',')
+                ).join('\n');
+            
+            console.log('📁 Creating blob and downloading...');
+            
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             
             const filename = dateRange.start && dateRange.end 
@@ -378,8 +443,15 @@ export default function PostList() {
                 
             saveAs(blob, filename);
             toast.success(`Successfully downloaded ${rows.length} posts`);
+            console.log('✅ CSV download completed successfully');
+            
         } catch (error) {
-            toast.error("Failed to download CSV. Please try again.");
+            console.error('❌ CSV Download Error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack
+            });
+            toast.error(`Failed to download CSV: ${error.message}`);
         }
     };
 

@@ -198,10 +198,10 @@ export const PostProvider = ({ children }) => {
                 // Small delay to ensure state update before setting edit mode
                 setTimeout(() => {
                     // Set edit mode
-                    postsDispatch({ type: 'SET_EDIT_ID', payload: id });
-                    setIsFormVisible(true);
-                    localStorage.setItem("editId", id);  
-                    localStorage.setItem("isFormVisible", "true");
+        postsDispatch({ type: 'SET_EDIT_ID', payload: id });
+        setIsFormVisible(true);
+        localStorage.setItem("editId", id);  
+        localStorage.setItem("isFormVisible", "true"); 
                     
                     console.log("✅ Edit mode activated for post:", postData.postTitle);
                 }, 100);

@@ -138,13 +138,50 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                 console.log("✅ Found post for editing:", post.postTitle);
                 console.log("Editing Post Data:", post);
                 console.log("Editing Post Contexts:", post.contexts);
+                console.log("Available contexts.data:", contexts?.data?.length || 0);
             
             setSelectedContexts(
                 post.contexts && Array.isArray(post.contexts)
-                    ? post.contexts.map(ctx => ({
-                        value: ctx._id, 
-                        label: ctx.contextTitle
-                    }))
+                    ? post.contexts.map(ctx => {
+                        // Handle both cases: when ctx is an object or just an ID
+                        if (typeof ctx === 'string') {
+                            // ctx is just an ID, find the corresponding context data
+                            const contextData = contexts?.data?.find(c => c._id === ctx);
+                            return contextData ? {
+                                value: contextData._id,
+                                label: contextData.contextTitle
+                            } : {
+                                value: ctx,
+                                label: 'Unknown Context'
+                            };
+                        } else if (ctx && ctx._id && ctx.contextTitle) {
+                            // ctx is already a populated object
+                            return {
+                                value: ctx._id,
+                                label: ctx.contextTitle
+                            };
+                        } else {
+                            // Fallback for unexpected format
+                            return {
+                                value: ctx?._id || ctx,
+                                label: ctx?.contextTitle || 'Unknown Context'
+                            };
+                        }
+                    })
+                    : []
+            );
+            
+            // Debug log the processed contexts
+            console.log("🔄 Processed selectedContexts:", 
+                post.contexts && Array.isArray(post.contexts)
+                    ? post.contexts.map(ctx => {
+                        if (typeof ctx === 'string') {
+                            const contextData = contexts?.data?.find(c => c._id === ctx);
+                            return { type: 'ID', ctx, found: !!contextData, label: contextData?.contextTitle };
+                        } else {
+                            return { type: 'Object', ctx: ctx._id, label: ctx.contextTitle };
+                        }
+                    })
                     : []
             );
 
