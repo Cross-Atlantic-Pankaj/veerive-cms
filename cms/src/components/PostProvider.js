@@ -5,6 +5,7 @@ import ContextContext from '../context/ContextContext';
 import CountryContext from '../context/CountryContext';
 import SourceContext from '../context/SourceContext';
 import CompanyContext from '../context/CompanyContext';
+import MarketDataContext from '../context/MarketDataContext';
 
 
 const postReducer = (state, action) => {
@@ -65,6 +66,7 @@ export const PostProvider = ({ children }) => {
     const { countries } = useContext(CountryContext);
     const { companies } = useContext(CompanyContext);
     const { sources } = useContext(SourceContext);
+    const { marketData } = useContext(MarketDataContext);
 
     useEffect(() => {
         fetchPosts(page); // ✅ Fetch posts only for the correct page
@@ -148,7 +150,8 @@ export const PostProvider = ({ children }) => {
                     countries: Array.isArray(post.countries) ? post.countries.map(country => typeof country === 'object' ? country._id : country) : [],
                     primaryCompanies: Array.isArray(post.primaryCompanies) ? post.primaryCompanies.map(company => typeof company === 'object' ? company._id : company) : [],
                     secondaryCompanies: Array.isArray(post.secondaryCompanies) ? post.secondaryCompanies.map(company => typeof company === 'object' ? company._id : company) : [],
-                    source: Array.isArray(post.source) ? post.source.map(src => typeof src === 'object' ? src._id : src) : []
+                    source: Array.isArray(post.source) ? post.source.map(src => typeof src === 'object' ? src._id : src) : [],
+                    marketDataDocuments: Array.isArray(post.marketDataDocuments) ? post.marketDataDocuments.map(md => typeof md === 'object' ? md._id : md) : []
                 };
                 
                 console.log("🔄 Formatted post data for form:", formattedPost);
@@ -277,7 +280,7 @@ export const PostProvider = ({ children }) => {
             posts, postsDispatch, fetchPosts,
             isFormVisible, setIsFormVisible,
             handleAddClick, handleEditClick, handleFormSubmit, 
-            contexts, countries, companies, sources,
+            contexts, countries, companies, sources, marketData,
             page, setPage, totalPages, setTotalPages,
             handleGoToPostList, fetchAllPosts, fetchSinglePost
         }}>

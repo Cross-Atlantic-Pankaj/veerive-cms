@@ -72,6 +72,7 @@ postsCltr.list = async (req, res) => {
 
         let posts = await Post.find()
             .populate("contexts", "contextTitle _id") // ✅ Populate contexts here
+            .populate("marketDataDocuments", "title _id") // ✅ Populate market data documents
             .sort({ date: -1 }) // ✅ Ensure descending order (latest first)
             .skip((page - 1) * parseInt(limit))
             .limit(parseInt(limit))
@@ -285,6 +286,7 @@ postsCltr.getAllPosts = async (req, res) => {
         // Fetch all posts and populate the contexts for better UI display
         const posts = await Post.find({})
             .populate("contexts", "contextTitle _id")
+            .populate("marketDataDocuments", "title _id") // ✅ Populate market data documents
             .sort({ date: -1 })
             .lean();
 
@@ -317,6 +319,7 @@ postsCltr.getOne = async (req, res) => {
             .populate("primaryCompanies", "companyName _id")
             .populate("secondaryCompanies", "companyName _id")
             .populate("source", "sourceName _id")
+            .populate("marketDataDocuments", "title _id dataDescription") // ✅ Populate market data documents
             .lean();
 
         if (!post) {

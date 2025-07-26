@@ -78,7 +78,7 @@ const formatOptionLabel = ({ label, jsxCode }) => (
   );
 
 export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
-    const { posts, postsDispatch,fetchPosts,  countries, companies, sources, setIsFormVisible, isFormVisible } = useContext(PostContext);
+    const { posts, postsDispatch,fetchPosts,  countries, companies, sources, marketData, setIsFormVisible, isFormVisible } = useContext(PostContext);
     const { contexts, contextsDispatch } = useContext(ContextContext);
     const { tileTemplates } = useContext(TileTemplateContext);
     const [postTitle, setPostTitle] = useState('');
@@ -97,8 +97,8 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
     const [sourceUrls, setSourceUrls] = useState([]); // Changed initial state
     const [includeInContainer, setIncludeInContainer] = useState(false); // New state for includeInContainer field
     const [tileTemplateId, setTileTemplateId] = useState(null);
-    const [infographicsUrl, setInfographicsUrl] = useState(''); // New field for Infographic posts
-    const [researchReportsUrl, setResearchReportsUrl] = useState(''); // New field for Research Report posts
+    const [selectedMarketDataDocuments, setSelectedMarketDataDocuments] = useState([]); // New field for Market Data Documents
+    const [googleDriveUrl, setGoogleDriveUrl] = useState(''); // Google Drive URL field (always visible)
 
     const fetchAllContexts = async () => {
         try {
@@ -235,8 +235,13 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                 );
                 setSourceUrls(post.sourceUrls || []);
                 setIncludeInContainer(post.includeInContainer || false);
-                setInfographicsUrl(post.infographicsUrl || '');
-                setResearchReportsUrl(post.researchReportsUrl || '');
+                setSelectedMarketDataDocuments(
+                    Array.isArray(post.marketDataDocuments) ? post.marketDataDocuments.map(md => {
+                        const marketDataDoc = marketData?.data?.find(m => m._id === md);
+                        return marketDataDoc ? { value: marketDataDoc._id, label: marketDataDoc.title } : null;
+                    }).filter(Boolean) : []
+                );
+                setGoogleDriveUrl(post.googleDriveUrl || post.infographicsUrl || post.researchReportsUrl || ''); // Migrate from old fields
                 if (post.tileTemplateId) {
                     const template = tileTemplates.find(t => t._id === post.tileTemplateId);
                     if (template) {
@@ -308,14 +313,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
             toast.warn("⚠️ Please provide at least one Source URL.");
             return;
         }
-        if (postType === 'Infographic' && !infographicsUrl.trim()) {
-            toast.warn("⚠️ Infographics URL is required for Infographic posts.");
-            return;
-        }
-        if (postType === 'Research Report' && !researchReportsUrl.trim()) {
-            toast.warn("⚠️ Research Reports URL is required for Research Report posts.");
-            return;
-        }
+
     
         const formData = {
             postTitle,
@@ -333,9 +331,9 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
             source: source.map(s => s.value),
             sourceUrls,
             includeInContainer,
+            marketDataDocuments: selectedMarketDataDocuments.map(md => md.value),
             tileTemplateId: tileTemplateId ? tileTemplateId.value : null,
-            infographicsUrl,
-            researchReportsUrl,
+            googleDriveUrl,
         };
     
         handleFormSubmit(formData, posts.editId);
@@ -427,9 +425,9 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
         setSource([]);
         setSourceUrls([]);
         setIncludeInContainer(false); // Reset includeInContainer
+        setSelectedMarketDataDocuments([]); // Reset market data documents
         setTileTemplateId(null);
-        setInfographicsUrl('');
-        setResearchReportsUrl('');
+        setGoogleDriveUrl('');
     }
 
     return (
@@ -475,39 +473,16 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     <option value="Interview">Interview</option>
                 </select>
                 
-                {/* Conditional Fields for Infographic */}
-                {postType === 'Infographic' && (
-                    <>
-                        <label htmlFor="infographicsUrl">Infographics URL <span style={{color: 'red'}}>*</span></label>
-                        <input
-                            id="infographicsUrl"
-                            type="url"
-                            placeholder="Enter Infographics URL"
-                            name="infographicsUrl"
-                            value={infographicsUrl}
-                            onChange={(e) => setInfographicsUrl(e.target.value)}
-                            className={styles.postInput}
-                            required
-                        />
-                    </>
-                )}
-                
-                {/* Conditional Fields for Research Report */}
-                {postType === 'Research Report' && (
-                    <>
-                        <label htmlFor="researchReportsUrl">Research Reports URL <span style={{color: 'red'}}>*</span></label>
-                        <input
-                            id="researchReportsUrl"
-                            type="url"
-                            placeholder="Enter Research Reports URL"
-                            name="researchReportsUrl"
-                            value={researchReportsUrl}
-                            onChange={(e) => setResearchReportsUrl(e.target.value)}
-                            className={styles.postInput}
-                            required
-                        />
-                    </>
-                )}
+                <label htmlFor="googleDriveUrl"><b>Google Drive URL</b></label>
+                <input
+                    id="googleDriveUrl"
+                    type="url"
+                    placeholder="Enter Google Drive URL (optional)"
+                    name="googleDriveUrl"
+                    value={googleDriveUrl}
+                    onChange={(e) => setGoogleDriveUrl(e.target.value)}
+                    className={styles.postInput}
+                />
                 
                 <label htmlFor="isTrending"><b>Is Trending?</b></label>
                 <input
@@ -638,6 +613,22 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     className={styles.postSelect}
                     onCreateOption={handleCreateUrl}
                     required
+                />
+
+                <label htmlFor="marketDataDocuments"><b>Market Data Documents</b></label>
+                <Select
+                    id="marketDataDocuments"
+                    name="marketDataDocuments"
+                    value={selectedMarketDataDocuments}
+                    onChange={setSelectedMarketDataDocuments}
+                    options={(marketData?.data || []).map(md => ({
+                        value: md._id,
+                        label: md.title
+                    }))}
+                    isMulti
+                    isSearchable
+                    placeholder="Search and select market data documents"
+                    className={styles.postSelect}
                 />
 
                 <div className={styles.formGroup}>

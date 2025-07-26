@@ -17,6 +17,7 @@ import { SourceProvider } from './components/SourceProvider';
 import { ContextProvider } from './components/ContextProvider';
 import { PostProvider } from './components/PostProvider';
 import { TileTemplateProvider } from './components/TileTemplateProvider';
+import { MarketDataProvider } from './components/MarketDataProvider';
 import { MasterDataProvider } from './context/MasterDataContext';
 import Login from './pages/Login';
 import HeaderComponent from './pages/HeaderComponent';
@@ -95,8 +96,9 @@ function App() {
                     <SourceProvider>
                       <ThemeProvider>
                         <ContextProvider>
-                          <PostProvider>
-                            <TileTemplateProvider>
+                          <MarketDataProvider>
+                            <PostProvider>
+                              <TileTemplateProvider>
                               <div>
                                 {shouldShowHeader && <HeaderComponent />}
                                 
@@ -251,8 +253,9 @@ function App() {
 
                                 <ToastContainer />
                               </div>
-                            </TileTemplateProvider>
-                          </PostProvider>
+                              </TileTemplateProvider>
+                            </PostProvider>
+                          </MarketDataProvider>
                         </ContextProvider>
                       </ThemeProvider>
                     </SourceProvider>

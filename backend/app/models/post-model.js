@@ -21,11 +21,17 @@ const postSchema = new Schema ({
     source: [{ type: Schema.Types.ObjectId, ref: 'Source', required: true }], // ✅ Now an array
     sourceUrls: [{ type: String, required: true }], // ✅ Now an array
 
-    // Google Drive links for specific post types
-    infographicsUrl: { type: String, required: false }, // Google Drive link for Infographic posts
-    researchReportsUrl: { type: String, required: false }, // Google Drive link for Research Report posts
+    // Google Drive URL (always available)
+    googleDriveUrl: { type: String, required: false }, // Google Drive link for any post type
+    
+    // Legacy fields for backward compatibility
+    infographicsUrl: { type: String, required: false }, // Deprecated: Google Drive link for Infographic posts
+    researchReportsUrl: { type: String, required: false }, // Deprecated: Google Drive link for Research Report posts
 
     tileTemplateId: { type: Schema.Types.ObjectId, ref: 'TileTemplate', required: false },
+
+    // Market Data Documents
+    marketDataDocuments: [{ type: Schema.Types.ObjectId, ref: 'MarketData', required: false }],
 
     seoData: {
       seoURL: { type: String, required: false }, 
