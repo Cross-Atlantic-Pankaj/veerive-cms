@@ -44,6 +44,7 @@ import bcryptjs from 'bcryptjs';
 import ensureSuperAdmin from './utils/superAdmin.js';
 import { bulkUploadClarificationGuidance, bulkUploadQueryRefiner, bulkUploadMarketData } from './app/controllers/bulkUploadController.js';
 import tileTemplatesCltr from './app/controllers/tileTemplates-cltr.js'
+import imageUploadRoutes from './app/routes/imageUploadRoutes.js'
 
 dotenv.config()
 
@@ -51,7 +52,7 @@ const app = express()
 
 console.log('Environment Variables:', {
   PORT: process.env.PORT,
-  DB_URL: process.env.DB_URL,
+  DB_URL: process.env.DB_URL_LOCAL,
   EMAIL_HOST: process.env.EMAIL_HOST,
   EMAIL_PORT: process.env.EMAIL_PORT,
   EMAIL_USER: process.env.EMAIL_USER,
@@ -325,6 +326,9 @@ app.delete('/api/admin/market-data/:id', authenticateUser, deleteMarketData);
 app.post('/api/admin/clarification-guidance/bulk', authenticateUser, authorizeUser(['admin']), bulkUploadClarificationGuidance);
 app.post('/api/admin/query-refiner/bulk', authenticateUser, authorizeUser(['admin']), bulkUploadQueryRefiner);
 app.post('/api/admin/market-data/bulk', authenticateUser, authorizeUser(['admin']), bulkUploadMarketData);
+
+// Image upload routes
+app.use('/api/images', imageUploadRoutes);
 
 // Route to serve data deletion instructions
 app.get('/data-deletion.html', (req, res) => {
