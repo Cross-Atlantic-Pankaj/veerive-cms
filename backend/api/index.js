@@ -1,5 +1,7 @@
 import express from 'express'
+import serverless from "serverless-http";
 import cors from 'cors'
+import path from 'path'
 import configDB from '../config/db.js'
 import dotenv from 'dotenv'
 import passport from 'passport'
@@ -43,6 +45,7 @@ import bcryptjs from 'bcryptjs';
 import ensureSuperAdmin from '../utils/superAdmin.js';
 import { bulkUploadClarificationGuidance, bulkUploadQueryRefiner, bulkUploadMarketData } from '../app/controllers/bulkUploadController.js';
 import tileTemplatesCltr from '../app/controllers/tileTemplates-cltr.js'
+import imageUploadRoutes from '../app/routes/imageUploadRoutes.js'
 
 dotenv.config()
 
@@ -281,9 +284,12 @@ app.post('/api/admin/clarification-guidance/bulk', authenticateUser, authorizeUs
 app.post('/api/admin/query-refiner/bulk', authenticateUser, authorizeUser(['admin']), bulkUploadQueryRefiner);
 app.post('/api/admin/market-data/bulk', authenticateUser, authorizeUser(['admin']), bulkUploadMarketData);
 
+// Image upload routes
+app.use('/api/images', imageUploadRoutes);
+
 // Route to serve data deletion instructions
 app.get('/data-deletion.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'data-deletion.html'));
+  res.sendFile(path.join(process.cwd(), 'data-deletion.html'));
 });
 
 app.get('/api/admin/contexts/edit-data', authenticateUser, contextsCltr.getEditContextData);
@@ -293,3 +299,4 @@ await ensureSuperAdmin();
 
 // Export the Express app for Vercel
 export default app; 
+export const handler = serverless(app);
