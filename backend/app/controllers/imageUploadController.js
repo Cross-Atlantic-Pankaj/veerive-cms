@@ -10,6 +10,22 @@ export const uploadImage = async (req, res) => {
       });
     }
 
+    // Check if AWS S3 is configured
+    if (!process.env.AWS_ACCESS_KEY_ID || 
+        process.env.AWS_ACCESS_KEY_ID === 'your_aws_access_key_here' ||
+        !process.env.AWS_SECRET_ACCESS_KEY || 
+        process.env.AWS_SECRET_ACCESS_KEY === 'your_aws_secret_key_here') {
+      return res.status(503).json({
+        success: false,
+        message: 'Image upload service not configured. Please configure AWS S3 credentials.',
+        data: {
+          fileName: req.file.originalname,
+          fileSize: req.file.size,
+          mimeType: req.file.mimetype
+        }
+      });
+    }
+
     const imageUrl = getImageUrl(req.file);
     
     if (!imageUrl) {
