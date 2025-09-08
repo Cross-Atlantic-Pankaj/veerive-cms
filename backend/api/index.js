@@ -83,12 +83,16 @@ app.use(
 
 app.options('*', cors()); // Preflight requests for all routes
 
-// Initialize database connection
-await configDB()
-
 // Initialize Passport and OAuth Strategies
 setupOAuthStrategies();
 app.use(passport.initialize());
+
+// Initialize database connection (async)
+configDB().then(() => {
+  console.log('Database connected successfully');
+}).catch((error) => {
+  console.error('Database connection error:', error);
+});
 
 // Middleware to parse JSON
 app.use(express.json())
@@ -306,7 +310,11 @@ app.get('/api/admin/contexts/edit-data', authenticateUser, contextsCltr.getEditC
 
 // Initialize SuperAdmin after database connection (only in non-Vercel environments)
 if (!process.env.VERCEL) {
-  await ensureSuperAdmin();
+  configDB().then(() => {
+    ensureSuperAdmin();
+  }).catch((error) => {
+    console.error('Error initializing SuperAdmin:', error);
+  });
 }
 
 // Export the Express app for Vercel
