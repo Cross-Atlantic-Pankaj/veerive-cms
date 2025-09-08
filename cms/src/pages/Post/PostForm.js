@@ -13,6 +13,7 @@ import ContextContext from '../../context/ContextContext';
 import TileTemplateContext from '../../context/TileTemplateContext';
 import JsxParser from 'react-jsx-parser';
 import Tile from '../../components/Tile';
+import ImageUpload from '../../components/ImageUpload';
 
 // Get current date in IST timezone
 const getCurrentDateInIST = () => {
@@ -99,6 +100,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
     const [tileTemplateId, setTileTemplateId] = useState(null);
     const [selectedMarketDataDocuments, setSelectedMarketDataDocuments] = useState([]); // New field for Market Data Documents
     const [googleDriveUrl, setGoogleDriveUrl] = useState(''); // Google Drive URL field (always visible)
+    const [imageURL, setImageURL] = useState(''); // Image URL for post
 
     const fetchAllContexts = async () => {
         try {
@@ -242,6 +244,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     }).filter(Boolean) : []
                 );
                 setGoogleDriveUrl(post.googleDriveUrl || post.infographicsUrl || post.researchReportsUrl || ''); // Migrate from old fields
+                setImageURL(post.imageURL || ''); // Set image URL
                 if (post.tileTemplateId) {
                     const template = tileTemplates.find(t => t._id === post.tileTemplateId);
                     if (template) {
@@ -334,6 +337,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
             marketDataDocuments: selectedMarketDataDocuments.map(md => md.value),
             tileTemplateId: tileTemplateId ? tileTemplateId.value : null,
             googleDriveUrl,
+            imageURL,
         };
     
         handleFormSubmit(formData, posts.editId);
@@ -428,6 +432,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
         setSelectedMarketDataDocuments([]); // Reset market data documents
         setTileTemplateId(null);
         setGoogleDriveUrl('');
+        setImageURL(''); // Reset image URL
     }
 
     return (
@@ -482,6 +487,13 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     value={googleDriveUrl}
                     onChange={(e) => setGoogleDriveUrl(e.target.value)}
                     className={styles.postInput}
+                />
+                
+                <ImageUpload
+                    onImageUpload={setImageURL}
+                    currentImageUrl={imageURL}
+                    onImageDelete={() => setImageURL('')}
+                    label="Post Image"
                 />
                 
                 <label htmlFor="isTrending"><b>Is Trending?</b></label>

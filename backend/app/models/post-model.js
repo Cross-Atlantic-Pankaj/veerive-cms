@@ -33,6 +33,9 @@ const postSchema = new Schema ({
     // Market Data Documents
     marketDataDocuments: [{ type: Schema.Types.ObjectId, ref: 'MarketData', required: false }],
 
+    // Image URL for post
+    imageURL: { type: String, required: false },
+
     seoData: {
       seoURL: { type: String, required: false }, 
       metaTitle: { type: String, required: false },

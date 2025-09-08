@@ -11,6 +11,7 @@ import PostContext from '../../context/PostContext';
 import ThemeContext from '../../context/ThemeContext';
 import TileTemplateContext from '../../context/TileTemplateContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import ImageUpload from '../../components/ImageUpload';
 
 export default function ContextForm({ handleFormSubmit }) {
     const { contexts, contextsDispatch, sectors: sectorsData, subSectors: subSectorsData, signals: signalsData, subSignals: subSignalsData, themes: themesData, setIsFormVisible, isFormVisible } = useContext(ContextContext);
@@ -42,6 +43,7 @@ export default function ContextForm({ handleFormSubmit }) {
     const [bannerImage, setBannerImage] = useState('');
     const [otherImage, setOtherImage] = useState('');
     const [dataForTypeNum, setDataForTypeNum] = useState('');
+    const [imageURL, setImageURL] = useState(''); // Image URL for context
     const [summary, setSummary] = useState('');
     const [postOptions, setPostOptions] = useState([]); // ✅ Store processed post options
     const [hasSlider, setHasSlider] = useState(false);
@@ -205,6 +207,7 @@ export default function ContextForm({ handleFormSubmit }) {
             setBannerImage(context.bannerImage || '');
             setOtherImage(context.otherImage || '');
             setDataForTypeNum(context.dataForTypeNum || '');
+            setImageURL(context.imageURL || '');
             setSummary(context.summary || '');
             setHasSlider(context.hasSlider || false);
             setSlides({
@@ -370,6 +373,7 @@ export default function ContextForm({ handleFormSubmit }) {
                 bannerImage,
                 otherImage,
                 dataForTypeNum,
+                imageURL,
                 summary,
                 hasSlider,
                 slide1: slides.slide1,
@@ -877,6 +881,17 @@ useEffect(() => {
                                     value={otherImage}
                                     onChange={(e) => setOtherImage(e.target.value)}
                                     className="context-input"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="field-group">
+                            <div style={{ flex: 1 }}>
+                                <ImageUpload
+                                    onImageUpload={setImageURL}
+                                    currentImageUrl={imageURL}
+                                    onImageDelete={() => setImageURL('')}
+                                    label="Context Image"
                                 />
                             </div>
                         </div>
