@@ -97,16 +97,6 @@ configDB().then(() => {
 // Middleware to parse JSON
 app.use(express.json())
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
-    message: 'Server is running',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
-
 // User routes
 app.post('/api/users/register', conditionalAuth,checkSchema(userRegisterSchema), usersCltr.register);
 app.post('/api/users/login', checkPasswordExpiry,checkSchema(userLoginSchema), usersCltr.login);

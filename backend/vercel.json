@@ -3,14 +3,14 @@
   "name": "veerive-backend",
   "builds": [
     {
-      "src": "api/test.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/api/test.js"
+      "destination": "/api/index.js"
     }
   ],
   "env": {
