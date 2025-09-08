@@ -1,5 +1,4 @@
 import { uploadSingleImage, getImageUrl, deleteImageFromS3 } from '../../utils/s3Upload.js';
-import multer from 'multer';
 
 // Upload single image
 export const uploadImage = async (req, res) => {

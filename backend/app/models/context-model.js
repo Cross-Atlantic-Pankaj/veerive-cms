@@ -45,6 +45,10 @@ const contextSchema = new Schema ({
     slide9: { title: { type: String, required: false }, description: { type: String, required: false } },
     slide10: { title: { type: String, required: false }, description1: { type: String, required: false } },   
     generalComment: { type: String, required: false },
+    
+    // Image URL for context
+    imageURL: { type: String, required: false },
+    
     seoData: {
         seoURL: { type: String, required: false }, 
         metaTitle: { type: String, required: false },
