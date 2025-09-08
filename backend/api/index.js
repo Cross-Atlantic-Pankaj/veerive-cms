@@ -93,6 +93,16 @@ app.use(passport.initialize());
 // Middleware to parse JSON
 app.use(express.json())
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // User routes
 app.post('/api/users/register', conditionalAuth,checkSchema(userRegisterSchema), usersCltr.register);
 app.post('/api/users/login', checkPasswordExpiry,checkSchema(userLoginSchema), usersCltr.login);
@@ -294,8 +304,10 @@ app.get('/data-deletion.html', (req, res) => {
 
 app.get('/api/admin/contexts/edit-data', authenticateUser, contextsCltr.getEditContextData);
 
-// Initialize SuperAdmin after database connection
-await ensureSuperAdmin();
+// Initialize SuperAdmin after database connection (only in non-Vercel environments)
+if (!process.env.VERCEL) {
+  await ensureSuperAdmin();
+}
 
 // Export the Express app for Vercel
 export default app; 
