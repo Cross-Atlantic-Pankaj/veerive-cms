@@ -44,6 +44,6 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-const User = model('User', userSchema, 'users_cms');
+const User = model('User', userSchema);
 
 export default User;
