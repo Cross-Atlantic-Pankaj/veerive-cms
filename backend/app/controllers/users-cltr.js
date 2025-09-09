@@ -107,7 +107,8 @@ usersCltr.login = async (req, res) => {
 
         // Generate token if login is successful
         const tokenData = { userId: user._id, role: user.role };
-        const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: '30d' });
+        const jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key-for-development';
+        const token = jwt.sign(tokenData, jwtSecret, { expiresIn: '30d' });
 
         return res.status(200).json({
             message: 'Login successful',

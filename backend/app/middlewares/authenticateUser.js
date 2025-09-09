@@ -42,7 +42,8 @@ const authenticateUser = (req, res, next) => {
     }
 
     try {
-        const tokenData = jwt.verify(token, process.env.JWT_SECRET); // Verify the token
+        const jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key-for-development';
+        const tokenData = jwt.verify(token, jwtSecret); // Verify the token
         // console.log('Decoded Token Data:', tokenData); // Log the decoded data
         req.user = { userId: tokenData.userId, role: tokenData.role }; // Attach decoded data to req
         // console.log('Request User:', req.user); // Debug log

@@ -64,8 +64,8 @@ const configDB = async () => {
   try {
     const mongoURI =
       process.env.NODE_ENV === 'production'
-        ? process.env.DB_URL_PRODUCTION // Use the veerive database in production
-        : process.env.DB_URL_LOCAL; // Use the local database in development
+        ? process.env.DB_URL_PRODUCTION || process.env.DB_URL // Use the veerive database in production
+        : process.env.DB_URL_LOCAL || process.env.DB_URL; // Use the local database in development
 
     const dbConnection = await mongoose.connect(mongoURI);
 
