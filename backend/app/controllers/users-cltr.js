@@ -94,8 +94,12 @@ usersCltr.login = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // Remove provider check
-        const user = await User.findOne({ email });
+        // Optimize the user lookup with timeout and lean query
+        const user = await User.findOne({ email })
+            .select("email password role _id")
+            .lean()
+            .maxTimeMS(5000); // 5 second timeout
+            
         if (!user) {
             return res.status(404).json({ error: 'Invalid email or password' });
         }
@@ -120,6 +124,9 @@ usersCltr.login = async (req, res) => {
         });
     } catch (err) {
         console.error('Error during login:', err);
+        if (err.name === 'MongoTimeoutError') {
+            return res.status(408).json({ error: 'Login timeout - please try again' });
+        }
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -289,14 +296,23 @@ usersCltr.list = async (req, res) => {
 
 usersCltr.account = async (req, res) => {
     try {
-        const user = await User.findById(req.user.userId).select("email role name");
+        const user = await User.findById(req.user.userId)
+            .select("email role name")
+            .lean() // Use lean() for better performance
+            .maxTimeMS(5000); // 5 second timeout
+        
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
+        
         res.status(200).json(user);
     } catch (err) {
         console.error('Error fetching account details:', err);
-        res.status(500).json({ error: 'Something went wrong.' });
+        if (err.name === 'MongoTimeoutError') {
+            res.status(408).json({ error: 'Request timeout - please try again' });
+        } else {
+            res.status(500).json({ error: 'Something went wrong.' });
+        }
     }
 };
 
