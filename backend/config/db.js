@@ -77,8 +77,62 @@ const configDB = async () => {
 
     const dbName = dbConnection.connection.name;
     console.log('Connected to database:', dbName);
+    
+    // Create indexes for better performance
+    await createIndexes();
+    
   } catch (err) {
     console.error('Failed to connect to database:', err);
+  }
+};
+
+// Create database indexes for better performance
+const createIndexes = async () => {
+  try {
+    const db = mongoose.connection.db;
+    
+    // Posts collection indexes
+    await db.collection('posts').createIndex({ date: -1 });
+    await db.collection('posts').createIndex({ postType: 1 });
+    await db.collection('posts').createIndex({ isTrending: 1 });
+    await db.collection('posts').createIndex({ homePageShow: 1 });
+    await db.collection('posts').createIndex({ contexts: 1 });
+    await db.collection('posts').createIndex({ createdAt: -1 });
+    
+    // Contexts collection indexes
+    await db.collection('contexts').createIndex({ date: -1 });
+    await db.collection('contexts').createIndex({ contextTitle: 1 });
+    await db.collection('contexts').createIndex({ containerType: 1 });
+    await db.collection('contexts').createIndex({ isTrending: 1 });
+    await db.collection('contexts').createIndex({ homePageShow: 1 });
+    await db.collection('contexts').createIndex({ 'posts.postId': 1 });
+    await db.collection('contexts').createIndex({ createdAt: -1 });
+    
+    // Users collection indexes (updated to users_cms)
+    await db.collection('users_cms').createIndex({ email: 1 }, { unique: true });
+    await db.collection('users_cms').createIndex({ role: 1 });
+    await db.collection('users_cms').createIndex({ resetToken: 1 });
+    
+    // Themes collection indexes
+    await db.collection('themes').createIndex({ themeTitle: 1 });
+    await db.collection('themes').createIndex({ sectors: 1 });
+    await db.collection('themes').createIndex({ subSectors: 1 });
+    
+    // Companies collection indexes
+    await db.collection('companies').createIndex({ companyName: 1 });
+    
+    // Countries collection indexes
+    await db.collection('countries').createIndex({ countryName: 1 });
+    
+    // Sectors collection indexes
+    await db.collection('sectors').createIndex({ sectorName: 1 });
+    
+    // Sources collection indexes
+    await db.collection('sources').createIndex({ sourceName: 1 });
+    
+    console.log('✅ Database indexes created successfully');
+  } catch (error) {
+    console.error('❌ Error creating database indexes:', error);
   }
 };
 

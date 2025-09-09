@@ -11,7 +11,8 @@
     "vercel-build": "echo 'Vercel build complete'",
     "test": "echo \"Error: no test specified\" && exit 1",
     "monitor": "node --inspect server.js",
-    "profile": "node --prof server.js"
+    "profile": "node --prof server.js",
+    "populate-users": "node scripts/populateUsers.js"
   },
   "keywords": [],
   "author": "",
