@@ -60,20 +60,17 @@ contextsCltr.list = async (req, res) => {
 
         console.log("🔥 Executing MongoDB Query:", query);
 
+        const totalContexts = await Context.countDocuments(query);
+
         const pageNumber = parseInt(page) || 1;
-        const pageSize = Math.min(parseInt(limit) || 10, 50); // Cap at 50 items per page
+        const pageSize = parseInt(limit) || 10;
         const skipRecords = (pageNumber - 1) * pageSize;
 
-        // Use Promise.all for parallel execution with timeouts
-        const [contexts, totalContexts] = await Promise.all([
-            Context.find(query)
-                .sort({ date: -1 })
-                .skip(skipRecords)
-                .limit(pageSize)
-                .lean()
-                .maxTimeMS(10000), // 10 second timeout
-            Context.countDocuments(query).maxTimeMS(5000) // 5 second timeout
-        ]);
+        const contexts = await Context.find(query)
+            .sort({ date: -1 })
+            .skip(skipRecords)
+            .limit(pageSize)
+            .lean();
 
         console.log("✅ API Response:", { totalContexts, totalPages: Math.ceil(totalContexts / pageSize), page: pageNumber, returnedRecords: contexts.length });
 
@@ -87,11 +84,7 @@ contextsCltr.list = async (req, res) => {
         });
     } catch (err) {
         console.error("❌ Error fetching contexts:", err);
-        if (err.name === 'MongoTimeoutError') {
-            res.status(408).json({ error: "Request timeout - please try again" });
-        } else {
-            res.status(500).json({ error: "Something went wrong" });
-        }
+        res.status(500).json({ error: "Something went wrong" });
     }
 };
 

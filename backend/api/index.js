@@ -18,7 +18,6 @@ import {
 } from '../app/validators/user-validator.js';
 import {authenticateUser, conditionalAuth, checkPasswordExpiry }from '../app/middlewares/authenticateUser.js'
 import authorizeUser from '../app/middlewares/authorizeUser.js'
-import performanceMiddleware from '../app/middlewares/performanceMiddleware.js'
 import registerCltr from '../app/controllers/register-cltr.js'
 import usersCltr from '../app/controllers/users-cltr.js'
 import rolesCltr from '../app/controllers/roles-cltr.js'
@@ -96,38 +95,7 @@ configDB().then(() => {
 });
 
 // Middleware to parse JSON
-app.use(express.json({ limit: '10mb' }))
-
-// Performance monitoring middleware
-app.use(performanceMiddleware)
-
-// Timeout middleware - 30 seconds for all requests
-app.use((req, res, next) => {
-    req.setTimeout(30000, () => {
-        res.status(408).json({ 
-            error: 'Request timeout', 
-            message: 'The request took too long to process' 
-        });
-    });
-    next();
-});
-
-// Response timeout middleware
-app.use((req, res, next) => {
-    const timeout = setTimeout(() => {
-        if (!res.headersSent) {
-            res.status(408).json({ 
-                error: 'Response timeout', 
-                message: 'The server took too long to respond' 
-            });
-        }
-    }, 25000); // 25 seconds response timeout
-
-    res.on('finish', () => clearTimeout(timeout));
-    res.on('close', () => clearTimeout(timeout));
-    next();
-});
-
+app.use(express.json())
 
 // Debug middleware to log all incoming requests
 app.use((req, res, next) => {
@@ -204,14 +172,14 @@ app.delete('/api/admin/post-types/:id', authenticateUser, authorizeUser(['Admin'
 
 //themes routes
 // Themes routes (Accessible by authenticated users)
-app.get('/api/themes', authenticateUser, themesCltr.list);
-app.get('/api/themes/all', authenticateUser, themesCltr.getAllThemes);
-app.get('/api/themes/:id', authenticateUser, themesCltr.getOne);
+app.get('/api/themes', authenticateUser, themesCltr.list); // Paginated themes
+app.get('/api/themes/all', authenticateUser, themesCltr.getAllThemes); // All themes (no pagination)
+app.get('/api/themes/:id', authenticateUser, themesCltr.getOne); // Get single theme
 
 // Admin routes (GET only, open to all authenticated users)
-app.get('/api/admin/themes', authenticateUser, themesCltr.list);
-app.get('/api/admin/themes/all', authenticateUser, themesCltr.getAllThemes);
-app.get('/api/admin/themes/:id', authenticateUser, themesCltr.getOne);
+app.get('/api/admin/themes', authenticateUser, themesCltr.list); // Paginated themes
+app.get('/api/admin/themes/all', authenticateUser, themesCltr.getAllThemes); // All themes (no pagination)
+app.get('/api/admin/themes/:id', authenticateUser, themesCltr.getOne); // Get single theme
 
 //admin routes
 app.post('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'SuperAdmin']), themesCltr.create)

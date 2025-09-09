@@ -90,31 +90,25 @@ function toIdArray(arr) {
 themesCltr.list = async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query;
-        const pageNumber = parseInt(page) || 1;
-        const limitNumber = Math.min(parseInt(limit) || 10, 50); // Cap at 50 items per page
+        const pageNumber = parseInt(page);
+        const limitNumber = parseInt(limit);
 
-        // Use Promise.all for parallel execution with timeouts
-        const [themes, totalThemes] = await Promise.all([
-            Theme.find({})
-                .populate('sectors', 'sectorName _id')
-                .populate('subSectors', 'subSectorName _id')
-                .skip((pageNumber - 1) * limitNumber)
-                .limit(limitNumber)
-                .lean()
-                .maxTimeMS(10000), // 10 second timeout
-            Theme.countDocuments().maxTimeMS(5000) // 5 second timeout
-        ]);
+        let themes = await Theme.find({})
+            .populate('sectors')
+            .populate('subSectors')
+            .skip((pageNumber - 1) * limitNumber)
+            .limit(limitNumber);
 
-        // Optimize the mapping
-        const optimizedThemes = themes.map(theme => {
-            const t = theme;
+        const totalThemes = await Theme.countDocuments();
+        themes = themes.map(theme => {
+            const t = theme.toObject();
             t.sectors = toIdArray(t.sectors);
             t.subSectors = toIdArray(t.subSectors);
             return t;
         });
 
         res.json({
-            themes: optimizedThemes,
+            themes,
             totalPages: Math.ceil(totalThemes / limitNumber),
             currentPage: pageNumber,
             totalThemes
@@ -122,24 +116,17 @@ themesCltr.list = async (req, res) => {
 
     } catch (err) {
         console.log(err);
-        if (err.name === 'MongoTimeoutError') {
-            res.status(408).json({ error: "Request timeout - please try again" });
-        } else {
-            res.status(500).json({ error: 'Something went wrong' });
-        }
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
 themesCltr.getAllThemes = async (req, res) => {
     try {
         let allThemes = await Theme.find({})
-            .populate('sectors', 'sectorName _id')
-            .populate('subSectors', 'subSectorName _id')
-            .lean()
-            .maxTimeMS(15000); // 15 second timeout for all themes
-        
+            .populate('sectors')
+            .populate('subSectors');
         allThemes = allThemes.map(theme => {
-            const t = theme;
+            const t = theme.toObject();
             t.sectors = toIdArray(t.sectors);
             t.subSectors = toIdArray(t.subSectors);
             return t;
@@ -147,11 +134,7 @@ themesCltr.getAllThemes = async (req, res) => {
         res.json({ success: true, themes: allThemes });
     } catch (err) {
         console.error("Error fetching all themes:", err);
-        if (err.name === 'MongoTimeoutError') {
-            res.status(408).json({ error: "Request timeout - please try again" });
-        } else {
-            res.status(500).json({ error: "Something went wrong" });
-        }
+        res.status(500).json({ error: "Something went wrong" });
     }
 };
 

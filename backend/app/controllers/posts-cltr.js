@@ -69,43 +69,33 @@ postsCltr.date = async (req, res) => {
 postsCltr.list = async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query;
-        const pageNumber = parseInt(page) || 1;
-        const limitNumber = Math.min(parseInt(limit) || 10, 50); // Cap at 50 items per page
 
-        // Use Promise.all for parallel execution
-        const [posts, totalPosts] = await Promise.all([
-            Post.find()
-                .populate("contexts", "contextTitle _id")
-                .populate("marketDataDocuments", "title _id")
-                .sort({ date: -1 })
-                .skip((pageNumber - 1) * limitNumber)
-                .limit(limitNumber)
-                .lean()
-                .maxTimeMS(10000), // 10 second timeout for this query
-            Post.countDocuments().maxTimeMS(5000) // 5 second timeout for count
-        ]);
+        let posts = await Post.find()
+            .populate("contexts", "contextTitle _id") // ✅ Populate contexts here
+            .populate("marketDataDocuments", "title _id") // ✅ Populate market data documents
+            .sort({ date: -1 }) // ✅ Ensure descending order (latest first)
+            .skip((page - 1) * parseInt(limit))
+            .limit(parseInt(limit))
+            .lean();
 
-        // Optimize the mapping
-        const optimizedPosts = posts.map(post => ({
+        posts = posts.map(post => ({
             ...post,
             contexts: post.contexts?.map(ctx => ({ _id: ctx._id, contextTitle: ctx.contextTitle })) || []
         }));
 
+        const totalPosts = await Post.countDocuments();
+
         res.json({
             success: true,
             total: totalPosts,
-            page: pageNumber,
-            limit: limitNumber,
-            totalPages: Math.ceil(totalPosts / limitNumber),
-            posts: optimizedPosts
+            page: parseInt(page),
+            limit: parseInt(limit),
+            totalPages: Math.ceil(totalPosts / limit),
+            posts
         });
     } catch (err) {
         console.error("❌ Error fetching posts:", err);
-        if (err.name === 'MongoTimeoutError') {
-            res.status(408).json({ error: "Request timeout - please try again" });
-        } else {
-            res.status(500).json({ error: "Server Error" });
-        }
+        res.status(500).json({ error: "Server Error" });
     }
 };
 

@@ -123,34 +123,7 @@ setupOAuthStrategies();
 app.use(passport.initialize());
 
 // Middleware to parse JSON
-app.use(express.json({ limit: '10mb' }))
-
-// Timeout middleware - 30 seconds for all requests
-app.use((req, res, next) => {
-    req.setTimeout(30000, () => {
-        res.status(408).json({ 
-            error: 'Request timeout', 
-            message: 'The request took too long to process' 
-        });
-    });
-    next();
-});
-
-// Response timeout middleware
-app.use((req, res, next) => {
-    const timeout = setTimeout(() => {
-        if (!res.headersSent) {
-            res.status(408).json({ 
-                error: 'Response timeout', 
-                message: 'The server took too long to respond' 
-            });
-        }
-    }, 25000); // 25 seconds response timeout
-
-    res.on('finish', () => clearTimeout(timeout));
-    res.on('close', () => clearTimeout(timeout));
-    next();
-});
+app.use(express.json())
 
 
 // User routes
@@ -364,13 +337,7 @@ app.get('/data-deletion.html', (req, res) => {
 
 app.get('/api/admin/contexts/edit-data', authenticateUser, contextsCltr.getEditContextData);
 
-// Initialize database connection and SuperAdmin
-configDB().then(() => {
-  console.log('Database connected successfully');
-  return ensureSuperAdmin();
-}).catch((error) => {
-  console.error('Database connection error:', error);
-});
+configDB().then(ensureSuperAdmin);
 
 const port = process.env.PORT || 3050
 

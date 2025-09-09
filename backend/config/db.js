@@ -67,13 +67,7 @@ const configDB = async () => {
         ? process.env.DB_URL_PRODUCTION // Use the veerive database in production
         : process.env.DB_URL_LOCAL; // Use the local database in development
 
-    const dbConnection = await mongoose.connect(mongoURI, {
-      maxPoolSize: 10, // Maintain up to 10 socket connections
-      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
-      connectTimeoutMS: 10000, // Give up initial connection after 10 seconds
-    });
+    const dbConnection = await mongoose.connect(mongoURI);
 
     const dbName = dbConnection.connection.name;
     console.log('Connected to database:', dbName);
