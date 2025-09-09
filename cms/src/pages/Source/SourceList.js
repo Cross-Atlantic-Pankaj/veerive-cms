@@ -204,8 +204,7 @@ export default function SourceList() {
             </div>
             
             <div style={{ display: 'flex', marginBottom: 16 }}>
-                <input
-                    type="text"
+                <input name="searchsources..." id="searchsources..." type="text"
                     placeholder="Search sources..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}

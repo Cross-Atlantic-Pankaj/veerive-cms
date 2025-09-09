@@ -100,8 +100,10 @@ const TileTemplateForm = ({ onClose }) => {
                 </div>
                 
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Name</label>
-                    <input 
+                    <label htmlFor="name" className={styles.formLabel}>Name</label>
+                    <input
+                        id="name"
+                        name="name" 
                         type="text" 
                         value={name} 
                         onChange={(e) => setName(e.target.value)} 
@@ -112,8 +114,10 @@ const TileTemplateForm = ({ onClose }) => {
                 </div>
                 
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Type</label>
-                    <input 
+                    <label htmlFor="type" className={styles.formLabel}>Type</label>
+                    <input
+                        id="type"
+                        name="type" 
                         type="text" 
                         value={type} 
                         onChange={(e) => setType(e.target.value)} 
@@ -124,8 +128,10 @@ const TileTemplateForm = ({ onClose }) => {
                 </div>
                 
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Tile Background Color</label>
-                    <input 
+                    <label htmlFor="tilebackgroundcolor" className={styles.formLabel}>Tile Background Color</label>
+                    <input
+                        id="tilebackgroundcolor"
+                        name="tilebackgroundcolor" 
                         type="color" 
                         value={backgroundColor} 
                         onChange={(e) => setBackgroundColor(e.target.value)} 
@@ -135,8 +141,10 @@ const TileTemplateForm = ({ onClose }) => {
                 </div>
                 
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Preview Background Color</label>
-                    <input 
+                    <label htmlFor="previewbackgroundcol" className={styles.formLabel}>Preview Background Color</label>
+                    <input
+                        id="previewbackgroundcol"
+                        name="previewbackgroundcol" 
                         type="color" 
                         value={previewBackgroundColor} 
                         onChange={(e) => setPreviewBackgroundColor(e.target.value)} 
@@ -146,8 +154,10 @@ const TileTemplateForm = ({ onClose }) => {
                 </div>
                 
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Icon Name</label>
-                    <input 
+                    <label htmlFor="iconname" className={styles.formLabel}>Icon Name</label>
+                    <input
+                        id="iconname"
+                        name="iconname" 
                         type="text" 
                         value={iconName} 
                         onChange={(e) => setIconName(e.target.value)} 
@@ -160,8 +170,10 @@ const TileTemplateForm = ({ onClose }) => {
                 </div>
                 
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Icon Color</label>
-                    <input 
+                    <label htmlFor="iconcolor" className={styles.formLabel}>Icon Color</label>
+                    <input
+                        id="iconcolor"
+                        name="iconcolor" 
                         type="color" 
                         value={iconColor} 
                         onChange={(e) => setIconColor(e.target.value)} 
@@ -172,7 +184,7 @@ const TileTemplateForm = ({ onClose }) => {
                 <div className={styles.formGroup}>
                     <label className={styles.formLabel}>Icon Size</label>
                     <div className={styles.rangeDisplay}>
-                        <input 
+                        <input id="field8ytmi" name="field8ytmi" 
                             type="range" 
                             min="16" 
                             max="96" 

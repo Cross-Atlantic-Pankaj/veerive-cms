@@ -150,14 +150,87 @@ contextsCltr.getContextsByPost = async (req, res) => {
 contextsCltr.create = async (req, res) => {
     try {
         console.log("Received Request Body:", req.body); // Debugging
+        console.log("🖼️ ImageUrl in context request:", req.body.imageUrl);
+        console.log("🔍 Context request headers:", req.headers);
+        console.log("🔍 Context request body keys:", Object.keys(req.body || {}));
+        console.log("🔍 Full context request body:", JSON.stringify(req.body, null, 2));
+        console.log("🔍 Context imageUrl type:", typeof req.body.imageUrl);
+        console.log("🔍 Context imageUrl truthy:", !!req.body.imageUrl);
+        console.log("🔍 Context imageUrl length:", req.body.imageUrl ? req.body.imageUrl.length : 'null/undefined');
+        console.log("🔍 Context has imageUrl key:", 'imageUrl' in req.body);
+        console.log("🔍 Context all body keys containing 'image':", Object.keys(req.body).filter(key => key.toLowerCase().includes('image')));
 
         // Check if containerType exists in req.body
         if (!req.body.containerType) {
             return res.status(400).json({ error: 'containerType is required.' });
         }
 
-        const context = new Context(req.body);
+        // Explicitly handle imageUrl to ensure it's not lost
+        const imageUrlValue = req.body.imageUrl || null;
+        console.log('🔍 Context explicit imageUrl value:', imageUrlValue);
+        console.log('🔍 Context explicit imageUrl type:', typeof imageUrlValue);
+        
+        const contextData = {
+            ...req.body,
+            imageUrl: imageUrlValue // ✅ Explicitly set imageUrl
+        };
+        const context = new Context(contextData);
+        console.log("📝 Creating new Context with data:", context.toObject());
+        console.log("🖼️ ImageUrl before save:", context.imageUrl);
+        console.log("🔍 Context imageUrl type before save:", typeof context.imageUrl);
+        console.log("🔍 Context imageUrl truthy before save:", !!context.imageUrl);
+        console.log("🔍 Context imageUrl length before save:", context.imageUrl ? context.imageUrl.length : 'null/undefined');
+        console.log("🔍 Context document keys before save:", Object.keys(context.toObject()));
+        console.log("🔍 Context document keys containing image before save:", Object.keys(context.toObject()).filter(key => key.toLowerCase().includes('image')));
+        
+        // Explicitly set imageUrl to ensure it's not lost
+        if (imageUrlValue) {
+            context.imageUrl = imageUrlValue;
+            console.log('🔧 Context explicitly set imageUrl to:', context.imageUrl);
+        }
+        
+        console.log("💾 About to save context to MongoDB...");
+        console.log("💾 Final context imageUrl before save:", context.imageUrl);
         await context.save();
+        console.log("💾 Context saved to MongoDB successfully!");
+        
+        console.log("💾 Context saved to database successfully");
+        console.log("🖼️ ImageUrl after save:", context.imageUrl);
+        console.log("📄 Full saved context object:", JSON.stringify(context.toObject(), null, 2));
+        
+        // Backup: If imageUrl is not saved, try direct MongoDB update
+        if (imageUrlValue && !context.imageUrl) {
+            console.log('🔧 Context Backup: imageUrl not saved, attempting direct MongoDB update...');
+            try {
+                await Context.findByIdAndUpdate(context._id, { imageUrl: imageUrlValue });
+                console.log('🔧 Context Backup: Direct MongoDB update successful');
+                // Refresh the context object
+                const refreshedContext = await Context.findById(context._id);
+                console.log('🔧 Context Backup: Refreshed context imageUrl:', refreshedContext.imageUrl);
+            } catch (backupError) {
+                console.error('🔧 Context Backup: Direct MongoDB update failed:', backupError);
+            }
+        }
+        
+        // Verify the context was actually saved with imageUrl in MongoDB
+        console.log("🔍 Starting context verification process...");
+        const verificationContext = await Context.findById(context._id);
+        console.log("🔍 Verification: Context retrieved from MongoDB:", verificationContext.imageUrl);
+        console.log("🔍 Verification: Context imageUrl type:", typeof verificationContext.imageUrl);
+        console.log("🔍 Verification: Context imageUrl truthy:", !!verificationContext.imageUrl);
+        console.log("🔍 Verification: Context imageUrl length:", verificationContext.imageUrl ? verificationContext.imageUrl.length : 'null/undefined');
+        console.log("🔍 Verification: Full verification context:", JSON.stringify(verificationContext.toObject(), null, 2));
+        
+        // Check the raw document fields
+        const rawContext = await Context.findById(context._id).lean();
+        console.log("🔍 Raw context document fields:", Object.keys(rawContext));
+        console.log("🔍 Raw context imageUrl field:", rawContext.imageUrl);
+        console.log("🔍 Raw context imageURL field:", rawContext.imageURL);
+        console.log("🔍 All context fields containing 'image':", Object.keys(rawContext).filter(key => key.toLowerCase().includes('image')));
+        console.log("🔍 Raw context imageUrl type:", typeof rawContext.imageUrl);
+        console.log("🔍 Raw context imageUrl truthy:", !!rawContext.imageUrl);
+        console.log("🔍 Raw context imageUrl length:", rawContext.imageUrl ? rawContext.imageUrl.length : 'null/undefined');
+        
         res.status(201).json(context);
     } catch (err) {
         console.error('Error creating context:', err);
@@ -173,7 +246,35 @@ contextsCltr.update = async (req, res) => {
         let context
         const id = req.params.id
         const body = req.body
-        context = await Context.findByIdAndUpdate(id, body, {new: true})
+        
+        console.log("🖼️ ImageUrl in context update request:", body.imageUrl);
+        
+        console.log("📝 Updating context with data:", body);
+        console.log("🖼️ ImageUrl in update data:", body.imageUrl);
+        
+        // Explicitly handle imageUrl for context update
+        const imageUrlValue = body.imageUrl || null;
+        console.log('🔍 Context update explicit imageUrl value:', imageUrlValue);
+        console.log('🔍 Context update explicit imageUrl type:', typeof imageUrlValue);
+        
+        const updateData = {
+            ...body,
+            imageUrl: imageUrlValue // ✅ Explicitly set imageUrl
+        };
+        
+        // Ensure imageUrl is explicitly set in the context update
+        if (imageUrlValue) {
+            updateData.imageUrl = imageUrlValue;
+            console.log('🔧 Context update explicitly set imageUrl to:', updateData.imageUrl);
+        }
+        
+        console.log('💾 About to update context in MongoDB...');
+        console.log('💾 Final context update imageUrl:', updateData.imageUrl);
+        context = await Context.findByIdAndUpdate(id, updateData, {new: true})
+        
+        console.log("💾 Context updated in database successfully");
+        console.log("🖼️ ImageUrl in updated context:", context.imageUrl);
+        console.log("📄 Full updated context object:", JSON.stringify(context.toObject(), null, 2));
         
         if(!context){
             return res.status(404).json({ message: 'Context not found' })

@@ -131,7 +131,7 @@ export default function MarketDataForm() {
         <form onSubmit={handleSubmit} className={styles.companyForm}>
             <div>
               <label>Title <span style={{color: 'red'}}>*</span></label>
-              <input 
+              <input id="fieldm4o46" name="fieldm4o46" 
               className={styles.companyInput} 
                 value={title} 
                 onChange={e => setTitle(e.target.value)} 
@@ -142,7 +142,7 @@ export default function MarketDataForm() {
             
             <div>
               <label>Data Description <span style={{color: 'red'}}>*</span></label>
-              <textarea 
+              <textarea id="fieldid94v" name="fieldid94v" 
               className={styles.companyTextarea} 
                 value={dataDescription} 
                 onChange={e => setDataDescription(e.target.value)} 
@@ -153,7 +153,7 @@ export default function MarketDataForm() {
             
             <div>
               <label>Sector <span style={{color: 'red'}}>*</span></label>
-              <select 
+              <select id="fieldngf99" name="fieldngf99" 
               className={styles.companySelect} 
                 value={sector} 
                 onChange={e => setSector(e.target.value)} 
@@ -173,8 +173,10 @@ export default function MarketDataForm() {
             </div>
             
             <div>
-              <label>Sub-Sector</label>
-              <select 
+              <label htmlFor="subsector">Sub-Sector</label>
+                    <select
+                        id="subsector"
+                        name="subsector" 
               className={styles.companySelect} 
                 value={subSector} 
                 onChange={e => setSubSector(e.target.value)} 
@@ -189,7 +191,7 @@ export default function MarketDataForm() {
             
             <div>
               <label>Source Name <span style={{color: 'red'}}>*</span></label>
-              <select
+              <select id="fieldv8x4x" name="fieldv8x4x"
               className={styles.companySelect}
                 value={sourceName}
                 onChange={e => setSourceName(e.target.value)}
@@ -203,8 +205,10 @@ export default function MarketDataForm() {
             </div>
             
             <div>
-              <label>CSV Upload (URL or file path)</label>
-              <input 
+              <label htmlFor="csvuploadurlorfilepath">CSV Upload (URL or file path)</label>
+                    <input
+                        id="csvuploadurlorfilepath"
+                        name="csvuploadurlorfilepath" 
               className={styles.companyInput} 
                 value={csvUpload} 
                 onChange={e => setCsvUpload(e.target.value)} 

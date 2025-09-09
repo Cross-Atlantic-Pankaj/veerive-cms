@@ -245,8 +245,7 @@ export default function CountryList() {
             </div>
             
             <div style={{ display: 'flex', marginBottom: 16 }}>
-                <input
-                    type="text"
+                <input name="searchcountries..." id="searchcountries..." type="text"
                     placeholder="Search countries..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}

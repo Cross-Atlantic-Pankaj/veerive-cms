@@ -97,8 +97,7 @@ export default function ContainerList() {
     return (
         <div className="container-list-container">
             <div className="search-container">
-                <input
-                    type="text"
+                <input name="search..." id="search..." type="text"
                     placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}

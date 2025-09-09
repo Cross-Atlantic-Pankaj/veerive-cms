@@ -299,8 +299,7 @@ export default function ThemeList() {
             </div>
             
             <div style={{ display: 'flex', marginBottom: 16 }}>
-                <input
-                    type="text"
+                <input name="searchthemes..." id="searchthemes..." type="text"
                     placeholder="Search themes..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}

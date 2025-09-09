@@ -328,8 +328,8 @@ export default function StoryOrder() {
             <h1>Story Order</h1>
 
             <div className="form-controls">
-                <label>Start Date: <input type="date" name="startDate" value={startDate} onChange={handleDateChange} /></label>
-                <label>End Date: <input type="date" name="endDate" value={endDate} onChange={handleDateChange} /></label>
+                <label>Start Date: <input id="dateField" type="date" name="startDate" value={startDate} onChange={handleDateChange} /></label>
+                <label>End Date: <input id="dateField" type="date" name="endDate" value={endDate} onChange={handleDateChange} /></label>
                 <button onClick={fetchPosts} disabled={loading}>
                     {loading ? 'Loading...' : 'Fetch Posts'}
                 </button>
@@ -347,7 +347,7 @@ export default function StoryOrder() {
                     <h2>Context and Posts</h2>
                     <label>
                         Publish Date:
-                        <input type="date" name="publishDate" value={publishDate} onChange={handlePublishDateChange} />
+                        <input id="dateField" type="date" name="publishDate" value={publishDate} onChange={handlePublishDateChange} />
                         <br/>
                         <br/>
                         <button onClick={handleSave} className="save-btn">Save</button>

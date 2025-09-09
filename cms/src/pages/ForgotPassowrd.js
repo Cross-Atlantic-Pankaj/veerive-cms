@@ -43,8 +43,7 @@ export default function ForgotPassword() {
                 </p>
 
                 <form onSubmit={handleForgotPassword} style={{ display: "flex", flexDirection: "column" }}>
-                    <input
-                        type="email"
+                    <input name="enteryouremail" id="enteryouremail" type="email"
                         placeholder="Enter your email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}

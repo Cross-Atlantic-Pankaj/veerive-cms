@@ -43,7 +43,15 @@ export default function ContextForm({ handleFormSubmit }) {
     const [bannerImage, setBannerImage] = useState('');
     const [otherImage, setOtherImage] = useState('');
     const [dataForTypeNum, setDataForTypeNum] = useState('');
-    const [imageURL, setImageURL] = useState(''); // Image URL for context
+    const [imageUrl, setImageUrl] = useState(''); // Image URL for context
+    
+    // Debug imageUrl state changes
+    useEffect(() => {
+        console.log('🔄 ContextForm: imageUrl state changed to:', imageUrl);
+        console.log('🔄 ContextForm: imageUrl type:', typeof imageUrl);
+        console.log('🔄 ContextForm: imageUrl length:', imageUrl ? imageUrl.length : 'null/undefined');
+        console.log('🔄 ContextForm: imageUrl truthy:', !!imageUrl);
+    }, [imageUrl]);
     const [summary, setSummary] = useState('');
     const [postOptions, setPostOptions] = useState([]); // ✅ Store processed post options
     const [hasSlider, setHasSlider] = useState(false);
@@ -207,7 +215,7 @@ export default function ContextForm({ handleFormSubmit }) {
             setBannerImage(context.bannerImage || '');
             setOtherImage(context.otherImage || '');
             setDataForTypeNum(context.dataForTypeNum || '');
-            setImageURL(context.imageURL || '');
+            setImageUrl(context.imageUrl || '');
             setSummary(context.summary || '');
             setHasSlider(context.hasSlider || false);
             setSlides({
@@ -373,7 +381,7 @@ export default function ContextForm({ handleFormSubmit }) {
                 bannerImage,
                 otherImage,
                 dataForTypeNum,
-                imageURL,
+                imageUrl,
                 summary,
                 hasSlider,
                 slide1: slides.slide1,
@@ -387,6 +395,15 @@ export default function ContextForm({ handleFormSubmit }) {
                 slide9: slides.slide9,
                 slide10: slides.slide10,
             };
+            
+            console.log('📝 Context form data being submitted:', formData);
+            console.log('🖼️ ImageUrl in context form data:', formData.imageUrl);
+            console.log('🔍 Context form data keys:', Object.keys(formData));
+            console.log('🔍 Context imageUrl type:', typeof formData.imageUrl);
+            console.log('🔍 Context imageUrl truthy:', !!formData.imageUrl);
+            console.log('🔍 Context imageUrl length:', formData.imageUrl ? formData.imageUrl.length : 'null/undefined');
+            console.log('🔍 Current context imageUrl state:', imageUrl);
+            console.log('🔍 Context state vs form data match:', imageUrl === formData.imageUrl);
     
             if (contexts.editId) {
                 const response = await axios.put(`/api/admin/contexts/${contexts.editId}`, formData, {
@@ -585,8 +602,7 @@ useEffect(() => {
                         <div className="field-group">
                             <div style={{ flex: 1 }}>
                                 <label htmlFor="contextTitle">Context Title <span style={{color: 'red'}}>*</span></label>
-                                <input
-                                    id="contextTitle"
+                                <input name="entercontexttitle" id="contextTitle"
                                     type="text"
                                     placeholder="Enter context title"
                                     value={contextTitle}
@@ -597,8 +613,7 @@ useEffect(() => {
                             </div>
                             <div style={{ flex: 1 }}>
                                 <label htmlFor="date">Date <span style={{color: 'red'}}>*</span></label>
-                                <input
-                                    id="date"
+                                <input name="date" id="date"
                                     type="date"
                                     value={date}
                                     onChange={(e) => setDate(e.target.value)}
@@ -611,8 +626,7 @@ useEffect(() => {
                         <div className="field-group">
                             <div style={{ flex: 1 }}>
                                 <label htmlFor="containerType">Container Type <span style={{color: 'red'}}>*</span></label>
-                                <Select
-                                    id="containerType"
+                                <Select name="select" id="containerType"
                                     options={containerTypeOptions}
                                     value={containerTypeOptions.find(option => option.value === containerType)}
                                     onChange={(selectedOption) => setContainerType(selectedOption.value)}
@@ -637,8 +651,7 @@ useEffect(() => {
 
                         <div className="field-group">
                             <div className="checkbox-container">
-                                <input
-                                    id="isTrending"
+                                <input name="checkboxField" id="isTrending"
                                     type="checkbox"
                                     checked={isTrending}
                                     onChange={(e) => setIsTrending(e.target.checked)}
@@ -654,8 +667,7 @@ useEffect(() => {
                         <div className="field-group">
                             <div style={{ flex: 1 }}>
                                 <label htmlFor="sectors">Sectors <span style={{color: 'red'}}>*</span></label>
-                                <Select
-                                    id="sectors"
+                                <Select name="select" id="sectors"
                                     isMulti
                                     options={(sectorsData?.data || []).map(sector => ({ value: sector._id, label: sector.sectorName }))}
                                     value={selectedSectors.map(sectorId => ({ value: sectorId, label: (sectorsData?.data || []).find(sector => sector._id === sectorId)?.sectorName || '' }))}
@@ -665,8 +677,7 @@ useEffect(() => {
                             </div>
                             <div style={{ flex: 1 }}>
                                 <label htmlFor="subSectors">Sub-Sectors</label>
-                                <Select
-                                    id="subSectors"
+                                <Select name="select" id="subSectors"
                                     isMulti
                                     options={filteredSubSectors.map(subSector => ({
                                         value: subSector._id,
@@ -685,8 +696,7 @@ useEffect(() => {
                         <div className="field-group">
                             <div style={{ flex: 1 }}>
                                 <label htmlFor="signalCategories">Signal Categories <span style={{color: 'red'}}>*</span></label>
-                                <Select
-                                    id="signalCategories"
+                                <Select name="select" id="signalCategories"
                                     isMulti
                                     options={(signalsData?.data || []).map(signal => ({
                                         value: signal._id,
@@ -702,8 +712,7 @@ useEffect(() => {
                             </div>
                             <div style={{ flex: 1 }}>
                                 <label htmlFor="signalSubCategories">Signal Sub-Categories</label>
-                                <Select
-                                    id="signalSubCategories"
+                                <Select name="select" id="signalSubCategories"
                                     isMulti
                                     options={filteredSignalSubCategories.map(subSignal => ({
                                         value: subSignal._id,
@@ -723,8 +732,7 @@ useEffect(() => {
                             <div style={{ flex: 1 }}>
                                 <label htmlFor="themes">Themes</label>
                                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                    <Select
-                                        id="themes"
+                                    <Select name="select" id="themes"
                                         isMulti
                                         options={themeOptions}
                                         value={selectedThemes}
@@ -761,8 +769,7 @@ useEffect(() => {
                             <div style={{ flex: 1 }}>
                                 <label htmlFor="tileTemplates">Tile Templates</label>
                                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                    <Select
-                                        id="tileTemplates"
+                                    <Select name="select" id="tileTemplates"
                                         isMulti
                                         options={tileTemplateOptions}
                                         value={selectedTileTemplates}
@@ -803,8 +810,7 @@ useEffect(() => {
                             <div style={{ flex: 1 }}>
                                 <label htmlFor="posts">Posts</label>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <Select
-                                        id="posts"
+                                    <Select name="select" id="posts"
                                         isMulti
                                         options={postOptions}
                                         value={selectedPosts}
@@ -839,8 +845,7 @@ useEffect(() => {
 
                         <div className="field-group">
                             <div className="checkbox-container">
-                                <input
-                                    id="bannerShow"
+                                <input name="checkboxField" id="bannerShow"
                                     type="checkbox"
                                     checked={bannerShow}
                                     onChange={(e) => setBannerShow(e.target.checked)}
@@ -849,8 +854,7 @@ useEffect(() => {
                                 <label htmlFor="bannerShow" className="checkbox-label">Show Banner?</label>
                             </div>
                             <div className="checkbox-container">
-                                <input
-                                    id="homePageShow"
+                                <input name="checkboxField" id="homePageShow"
                                     type="checkbox"
                                     checked={homePageShow}
                                     onChange={(e) => setHomePageShow(e.target.checked)}
@@ -863,8 +867,7 @@ useEffect(() => {
                         <div className="field-group">
                             <div style={{ flex: 1 }}>
                                 <label htmlFor="bannerImage">Banner Image URL</label>
-                                <input
-                                    id="bannerImage"
+                                <input name="enterbannerimageurl" id="bannerImage"
                                     type="text"
                                     placeholder="Enter banner image URL"
                                     value={bannerImage}
@@ -874,8 +877,7 @@ useEffect(() => {
                             </div>
                             <div style={{ flex: 1 }}>
                                 <label htmlFor="otherImage">Other Image URL</label>
-                                <input
-                                    id="otherImage"
+                                <input name="enterotherimageurl" id="otherImage"
                                     type="text"
                                     placeholder="Enter other image URL"
                                     value={otherImage}
@@ -887,20 +889,25 @@ useEffect(() => {
 
                         <div className="field-group">
                             <div style={{ flex: 1 }}>
-                                <ImageUpload
-                                    onImageUpload={setImageURL}
-                                    currentImageUrl={imageURL}
-                                    onImageDelete={() => setImageURL('')}
-                                    label="Context Image"
-                                />
+                <ImageUpload
+                    onImageUpload={(url) => {
+                        console.log('🖼️ Context image uploaded, setting imageUrl to:', url);
+                        setImageUrl(url);
+                    }}
+                    currentImageUrl={imageUrl}
+                    onImageDelete={() => {
+                        console.log('🗑️ Context image deleted, clearing imageUrl');
+                        setImageUrl('');
+                    }}
+                    label="Context Image"
+                />
                             </div>
                         </div>
 
                         <div className="field-group">
                             <div style={{ flex: 1 }}>
                                 <label htmlFor="dataForTypeNum">Data for Type-Num</label>
-                                <input
-                                    id="dataForTypeNum"
+                                <input name="enterdatafortype-num" id="dataForTypeNum"
                                     type="text"
                                     placeholder="Enter data for Type-Num"
                                     value={dataForTypeNum}
@@ -925,8 +932,7 @@ useEffect(() => {
 
                     <div className="form-group">
                         <label htmlFor="hasSlider"><b>Enable Slider?</b></label>
-                        <input
-                            id="hasSlider"
+                        <input name="checkboxField" id="hasSlider"
                             type="checkbox"
                             checked={hasSlider}
                             onChange={(e) => setHasSlider(e.target.checked)}
@@ -943,8 +949,7 @@ useEffect(() => {
                                     return (
                                         <div key={slideNumber} className="slide">
                                             <label htmlFor={`${slideNumber}Title`}><b>Slide {index + 1} Title</b></label>
-                                            <input
-                                                id={`${slideNumber}Title`}
+                                            <input name="textField" id="textField" id={`${slideNumber}Title`}
                                                 type="text"
                                                 placeholder={`Slide ${index + 1} Title`}
                                                 value={slides[slideNumber]?.title || ''}

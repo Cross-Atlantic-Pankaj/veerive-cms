@@ -141,8 +141,7 @@ const SettingsPage = () => {
                     <label htmlFor="email" className={styles.formLabel}>
                         New Email Address
                     </label>
-                    <input
-                        id="email"
+                    <input name="emailField" id="email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -175,8 +174,7 @@ const SettingsPage = () => {
                     <label htmlFor="currentPassword" className={styles.formLabel}>
                         Current Password
                     </label>
-                    <input
-                        id="currentPassword"
+                    <input name="passwordField" id="currentPassword"
                         type="password"
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
@@ -192,8 +190,7 @@ const SettingsPage = () => {
                     <label htmlFor="newPassword" className={styles.formLabel}>
                         New Password (minimum 6 characters)
                     </label>
-                    <input
-                        id="newPassword"
+                    <input name="passwordField" id="newPassword"
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}

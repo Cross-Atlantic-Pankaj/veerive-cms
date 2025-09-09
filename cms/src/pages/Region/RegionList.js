@@ -210,8 +210,7 @@ export default function RegionList() {
             </div>
 
             <div style={{ display: 'flex', marginBottom: 16 }}>
-                <input
-                    type="text"
+                <input name="searchregions..." id="searchregions..." type="text"
                     placeholder="Search regions..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}

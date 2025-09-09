@@ -197,8 +197,7 @@ export default function SectorList() {
             </div>
             
             <div style={{ display: 'flex', marginBottom: 16 }}>
-                <input
-                    type="text"
+                <input name="searchsectors..." id="searchsectors..." type="text"
                     placeholder="Search sectors..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}

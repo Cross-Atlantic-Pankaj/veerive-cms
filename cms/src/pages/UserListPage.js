@@ -234,16 +234,14 @@ const UserManagementPage = () => {
       <div className={styles.createUserCard}>
         <h3 className={styles.createUserTitle}>Create New User/Admin</h3>
         <form onSubmit={handleCreateUser} className={styles.createUserForm}>
-          <input
-            type="text"
+          <input name="fullname(optional)" id="fullname(optional)" type="text"
             placeholder="Full Name (Optional)"
             value={newUser.name}
             onChange={e => setNewUser({ ...newUser, name: e.target.value })}
             className={styles.formInput}
             disabled={isCreatingUser}
           />
-          <input
-            type="email"
+          <input name="emailaddress*" id="emailaddress*" type="email"
             placeholder="Email Address *"
             value={newUser.email}
             onChange={e => setNewUser({ ...newUser, email: e.target.value })}
@@ -251,8 +249,7 @@ const UserManagementPage = () => {
             required
             disabled={isCreatingUser}
           />
-          <input
-            type="password"
+          <input name="password(min6chars)*" id="password(min6chars)*" type="password"
             placeholder="Password (min 6 chars) *"
             value={newUser.password}
             onChange={e => setNewUser({ ...newUser, password: e.target.value })}
@@ -261,8 +258,7 @@ const UserManagementPage = () => {
             minLength={6}
             disabled={isCreatingUser}
           />
-          <select
-            value={newUser.role}
+          <select name="select" id="selectField" value={newUser.role}
             onChange={e => setNewUser({ ...newUser, role: e.target.value })}
             className={styles.formSelect}
             required
@@ -288,16 +284,14 @@ const UserManagementPage = () => {
         <div className={styles.createUserCard} style={{ backgroundColor: '#f0f8ff', border: '2px solid #4CAF50' }}>
           <h3 className={styles.createUserTitle}>Edit User</h3>
           <form onSubmit={handleEditUser} className={styles.createUserForm}>
-            <input
-              type="text"
+            <input name="fullname(optional)" id="fullname(optional)" type="text"
               placeholder="Full Name (Optional)"
               value={editingUser.name}
               onChange={e => setEditingUser({ ...editingUser, name: e.target.value })}
               className={styles.formInput}
               disabled={isEditingUser}
             />
-            <input
-              type="email"
+            <input name="emailaddress*" id="emailaddress*" type="email"
               placeholder="Email Address *"
               value={editingUser.email}
               onChange={e => setEditingUser({ ...editingUser, email: e.target.value })}
@@ -305,16 +299,14 @@ const UserManagementPage = () => {
               required
               disabled={isEditingUser}
             />
-            <input
-              type="password"
+            <input name="newpassword(leaveblanktokeepcurrent)" id="newpassword(leaveblanktokeepcurrent)" type="password"
               placeholder="New Password (leave blank to keep current)"
               value={editingUser.password}
               onChange={e => setEditingUser({ ...editingUser, password: e.target.value })}
               className={styles.formInput}
               disabled={isEditingUser}
             />
-            <select
-              value={editingUser.role}
+            <select name="select" id="selectField" value={editingUser.role}
               onChange={e => setEditingUser({ ...editingUser, role: e.target.value })}
               className={styles.formSelect}
               required
@@ -346,8 +338,7 @@ const UserManagementPage = () => {
 
       {/* Search */}
       <div style={{ marginBottom: 16 }}>
-        <input
-          type="text"
+        <input name="searchbynameoremail..." id="searchbynameoremail..." type="text"
           placeholder="Search by name or email..."
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -380,8 +371,7 @@ const UserManagementPage = () => {
                     {user.email === 'info@veerive.com' ? (
                       <strong>SuperAdmin</strong>
                     ) : (
-                      <select
-                        value={user.role}
+                      <select name="select" id="selectField" value={user.role}
                         onChange={e => handleRoleChange(user._id, e.target.value)}
                         disabled={user.email === 'info@veerive.com' || !(state.user.role === 'Admin' || state.user.role === 'SuperAdmin')}
                         className={styles.roleSelect}

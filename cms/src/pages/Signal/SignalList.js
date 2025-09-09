@@ -128,8 +128,7 @@ export default function SignalList() {
 
             {/* Header with search and actions */}
             <div className={styles.listHeader}>
-                <input
-                    type="text"
+                <input name="searchsignals..." id="searchsignals..." type="text"
                     placeholder="Search signals..."
                     value={searchTerm}
                     onChange={handleSearchChange}

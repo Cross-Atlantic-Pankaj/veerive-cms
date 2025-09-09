@@ -80,7 +80,7 @@ export default function ContainerForm() {
             <button type="button" className="submit-btn" onClick={handleHomeNav}>Container Home</button>
             <h2>
                 Context: {contextTitle}
-                <select 
+                <select id="field2zwzf" name="field2zwzf" 
                     value={selectedType} 
                     onChange={handleTypeChange}
                     style={{ marginLeft: '20px' }}
@@ -110,7 +110,7 @@ export default function ContainerForm() {
                                 <td>{post.postTitle}</td>
                                 <td>{post.isTrending ? 'Yes' : 'No'}</td>
                                 <td>
-                                    <input
+                                    <input id="fieldro9ma" name="fieldro9ma"
                                         type="checkbox"
                                         checked={post.includeInContainer || false}
                                         onChange={() => {

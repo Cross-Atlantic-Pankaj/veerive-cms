@@ -149,8 +149,7 @@ export default function StoryView() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
                     <label style={{ fontWeight: 'bold' }}>
                         Start Date:
-                        <input
-                            type="date"
+                        <input id="dateField" type="date"
                             name="startDate"
                             value={startDate}
                             onChange={handleDateChange}
@@ -160,8 +159,7 @@ export default function StoryView() {
 
                     <label style={{ fontWeight: 'bold' }}>
                         End Date:
-                        <input
-                            type="date"
+                        <input id="dateField" type="date"
                             name="endDate"
                             value={endDate}
                             onChange={handleDateChange}

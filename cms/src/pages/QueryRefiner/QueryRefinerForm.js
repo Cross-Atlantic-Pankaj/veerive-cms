@@ -116,7 +116,7 @@ export default function QueryRefinerForm() {
         <form onSubmit={handleSubmit} className={styles.companyForm}>
           <div>
             <label>Title <span style={{color: 'red'}}>*</span></label>
-            <input 
+            <input id="fieldnxucd" name="fieldnxucd" 
               className={styles.companyInput} 
               value={title} 
               onChange={e => setTitle(e.target.value)} 
@@ -127,7 +127,7 @@ export default function QueryRefinerForm() {
           
           <div>
             <label>Module Description <span style={{color: 'red'}}>*</span></label>
-            <textarea 
+            <textarea id="fieldd4dc1" name="fieldd4dc1" 
               className={styles.companyTextarea} 
               value={moduleDescription} 
               onChange={e => setModuleDescription(e.target.value)} 
@@ -138,7 +138,7 @@ export default function QueryRefinerForm() {
           
           <div>
             <label>Prompt Guidance <span style={{color: 'red'}}>*</span></label>
-            <textarea 
+            <textarea id="fieldehpgw" name="fieldehpgw" 
               className={styles.companyTextarea} 
               value={promptGuidance} 
               onChange={e => setPromptGuidance(e.target.value)} 
@@ -149,7 +149,7 @@ export default function QueryRefinerForm() {
           
           <div>
             <label>Sector <span style={{color: 'red'}}>*</span></label>
-            <select 
+            <select id="fieldlqjbk" name="fieldlqjbk" 
               className={styles.companySelect} 
               value={sector} 
               onChange={e => setSector(e.target.value)} 
@@ -169,8 +169,10 @@ export default function QueryRefinerForm() {
           </div>
           
           <div>
-            <label>Sub-Sector</label>
-            <select 
+            <label htmlFor="subsector">Sub-Sector</label>
+                    <select
+                        id="subsector"
+                        name="subsector" 
               className={styles.companySelect} 
               value={subSector} 
               onChange={e => setSubSector(e.target.value)} 

@@ -63,7 +63,7 @@ export default function SourceForm() {
             <form onSubmit={handleSubmit} className={styles.companyForm}>
                 <div>
                     <label>Source Name <span style={{color: 'red'}}>*</span></label>
-                    <input
+                    <input id="fieldpinm9" name="fieldpinm9"
                         type="text"
                         value={sourceName}
                         onChange={(e) => setSourceName(e.target.value)}
@@ -75,7 +75,7 @@ export default function SourceForm() {
                 
                 <div>
                     <label>Source Type <span style={{color: 'red'}}>*</span></label>
-                    <select
+                    <select id="field2zf49" name="field2zf49"
                         value={sourceType}
                         onChange={(e) => setSourceType(e.target.value)}
                         className={styles.companySelect}

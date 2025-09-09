@@ -47,7 +47,7 @@ const contextSchema = new Schema ({
     generalComment: { type: String, required: false },
     
     // Image URL for context
-    imageURL: { type: String, required: false },
+    imageUrl: { type: String, required: false },
     
     seoData: {
         seoURL: { type: String, required: false }, 

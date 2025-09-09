@@ -357,8 +357,7 @@ const MarketDataList = () => {
             </div>
             
             <div style={{ display: 'flex', marginBottom: 16 }}>
-                <input
-                    type="text"
+                <input name="searchallfields..." id="searchallfields..." type="text"
                     placeholder="Search all fields..."
                     value={localSearchQuery}
                     onChange={handleSearch}

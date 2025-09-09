@@ -100,7 +100,15 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
     const [tileTemplateId, setTileTemplateId] = useState(null);
     const [selectedMarketDataDocuments, setSelectedMarketDataDocuments] = useState([]); // New field for Market Data Documents
     const [googleDriveUrl, setGoogleDriveUrl] = useState(''); // Google Drive URL field (always visible)
-    const [imageURL, setImageURL] = useState(''); // Image URL for post
+    const [imageUrl, setImageUrl] = useState(''); // Image URL for post
+    
+    // Debug imageUrl state changes
+    useEffect(() => {
+        console.log('🔄 PostForm: imageUrl state changed to:', imageUrl);
+        console.log('🔄 PostForm: imageUrl type:', typeof imageUrl);
+        console.log('🔄 PostForm: imageUrl length:', imageUrl ? imageUrl.length : 'null/undefined');
+        console.log('🔄 PostForm: imageUrl truthy:', !!imageUrl);
+    }, [imageUrl]);
 
     const fetchAllContexts = async () => {
         try {
@@ -244,7 +252,8 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     }).filter(Boolean) : []
                 );
                 setGoogleDriveUrl(post.googleDriveUrl || post.infographicsUrl || post.researchReportsUrl || ''); // Migrate from old fields
-                setImageURL(post.imageURL || ''); // Set image URL
+                console.log('🔄 Setting imageUrl from post data:', post.imageUrl);
+                setImageUrl(post.imageUrl || ''); // Set image URL
                 if (post.tileTemplateId) {
                     const template = tileTemplates.find(t => t._id === post.tileTemplateId);
                     if (template) {
@@ -274,48 +283,73 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
     
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        console.log('🚀 FORM SUBMIT BUTTON CLICKED!');
+        console.log('🔄 Starting form submission with imageUrl:', imageUrl);
+        console.log('📋 Form validation check starting...');
     
         // Validation checks
+        console.log('🔍 Validation check - postTitle:', postTitle);
         if (!postTitle.trim()) {
+            console.log('❌ Validation failed: Post Title is required');
             toast.warn("⚠️ Post Title is required.");
             return;
         }
+        console.log('🔍 Validation check - date:', date);
         if (!date) {
+            console.log('❌ Validation failed: Date is required');
             toast.warn("⚠️ Date is required.");
             return;
         }
         if (new Date(date) > new Date(currentDateInIST)) {
+            console.log('❌ Validation failed: Date cannot be in the future');
             toast.warn("⚠️ Date cannot be in the future.");
             return;
         }
+        console.log('🔍 Validation check - postType:', postType);
         if (!postType) {
+            console.log('❌ Validation failed: Post Type is required');
             toast.warn("⚠️ Post Type is required.");
             return;
         }
+        console.log('🔍 Validation check - summary:', summary);
         if (!summary) {
+            console.log('❌ Validation failed: Summary is required');
             toast.warn("⚠️ Summary is required.");
             return;
         }
+        console.log('🔍 Validation check - sentiment:', sentiment);
         if (!sentiment) {
+            console.log('❌ Validation failed: Sentiment is required');
             toast.warn("⚠️ Sentiment is required.");
             return;
         }
+        console.log('🔍 Validation check - selectedContexts:', selectedContexts);
         if (selectedContexts.length === 0) {
+            console.log('❌ Validation failed: Please select at least one Context');
             toast.warn("⚠️ Please select at least one Context.");
             return;
         }
+        console.log('🔍 Validation check - selectedCountries:', selectedCountries);
         if (selectedCountries.length === 0) {
+            console.log('❌ Validation failed: Please select at least one Country');
             toast.warn("⚠️ Please select at least one Country.");
             return;
         }
+        console.log('🔍 Validation check - source:', source);
         if (source.length === 0) {
+            console.log('❌ Validation failed: Please select at least one Source');
             toast.warn("⚠️ Please select at least one Source.");
             return;
         }
+        console.log('🔍 Validation check - sourceUrls:', sourceUrls);
         if (sourceUrls.length === 0) {
+            console.log('❌ Validation failed: Please provide at least one Source URL');
             toast.warn("⚠️ Please provide at least one Source URL.");
             return;
         }
+        
+        console.log('✅ All validation checks passed! Proceeding with form submission...');
 
     
         const formData = {
@@ -337,8 +371,18 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
             marketDataDocuments: selectedMarketDataDocuments.map(md => md.value),
             tileTemplateId: tileTemplateId ? tileTemplateId.value : null,
             googleDriveUrl,
-            imageURL,
+            imageUrl: imageUrl || null, // Ensure imageUrl is explicitly set
         };
+        
+        console.log('📝 Form data being submitted:', formData);
+        console.log('🖼️ ImageUrl in form data:', formData.imageUrl);
+        console.log('🔍 Form data keys:', Object.keys(formData));
+        console.log('🔍 ImageUrl type:', typeof formData.imageUrl);
+        console.log('🔍 ImageUrl value:', formData.imageUrl);
+        console.log('🔍 ImageUrl truthy:', !!formData.imageUrl);
+        console.log('🔍 ImageUrl length:', formData.imageUrl ? formData.imageUrl.length : 'null/undefined');
+        console.log('🔍 Current imageUrl state:', imageUrl);
+        console.log('🔍 State vs form data match:', imageUrl === formData.imageUrl);
     
         handleFormSubmit(formData, posts.editId);
     };
@@ -432,7 +476,8 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
         setSelectedMarketDataDocuments([]); // Reset market data documents
         setTileTemplateId(null);
         setGoogleDriveUrl('');
-        setImageURL(''); // Reset image URL
+        console.log('🔄 Resetting imageUrl to empty string');
+        setImageUrl(''); // Reset image URL
     }
 
     return (
@@ -490,29 +535,37 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                 />
                 
                 <ImageUpload
-                    onImageUpload={setImageURL}
-                    currentImageUrl={imageURL}
-                    onImageDelete={() => setImageURL('')}
+                    onImageUpload={(url) => {
+                        console.log('🖼️ Image uploaded, setting imageUrl to:', url);
+                        setImageUrl(url);
+                        // Force a re-render to ensure state is updated
+                        setTimeout(() => {
+                            console.log('🔄 Verifying imageUrl state after upload:', url);
+                        }, 0);
+                    }}
+                    currentImageUrl={imageUrl}
+                    onImageDelete={() => {
+                        console.log('🗑️ Image deleted, clearing imageUrl');
+                        setImageUrl('');
+                    }}
                     label="Post Image"
                 />
                 
                 <label htmlFor="isTrending"><b>Is Trending?</b></label>
-                <input
-                    id="isTrending"
+                <input name="checkboxField" id="isTrending"
                     type="checkbox"
                     checked={isTrending}
                     onChange={(e) => setIsTrending(e.target.checked)}
                     className={styles.postCheckbox}
                 />
                 <label htmlFor="homePageShow"><b>Show on Home Page?</b></label>
-                <input
-                    id="homePageShow"
+                <input name="checkboxField" id="homePageShow"
                     type="checkbox"
                     checked={homePageShow}
                     onChange={(e) => setHomePageShow(e.target.checked)}
                     className={styles.postCheckbox}
                 />
-              <label htmlFor="Contexts">Contexts <span style={{color: 'red'}}>*</span></label>
+                <label htmlFor="contexts">Contexts <span style={{color: 'red'}}>*</span></label>
                     <Select
                         id="contexts"
                         name="contexts"
@@ -524,8 +577,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                         required
                     />
                 <label htmlFor="includeInContainer"><b>Include in Container?</b></label>
-                <input
-                    id="includeInContainer"
+                <input name="checkboxField" id="includeInContainer"
                     type="checkbox"
                     checked={includeInContainer}
                     onChange={(e) => setIncludeInContainer(e.target.checked)}
@@ -551,16 +603,17 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                 />
 
                 <label htmlFor="completeContent"><b>Complete Content</b></label>
-                <textarea
-                    id="completeContent"
+                <textarea name="completecontent" id="completeContent"
                     placeholder="Complete Content"
                     value={completeContent}
                     onChange={(e) => setCompleteContent(e.target.value)}
                     className={styles.postTextarea}
                 />
                 <div className={styles.formGroup}>
-                    <label>Sentiment *</label>
+                    <label htmlFor="sentiment">Sentiment *</label>
                     <Select
+                        id="sentiment"
+                        name="sentiment"
                         value={sentiment}
                         onChange={setSentiment}
                         options={[
@@ -576,8 +629,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                 </div>
                 <label htmlFor="primaryCompanies"><b>Primary Companies</b></label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Select
-                        id="primaryCompanies"
+                    <Select name="select" id="primaryCompanies"
                         value={primaryCompanies}
                         onChange={setPrimaryCompanies}
                         options={primaryCompanyOptions}
@@ -589,8 +641,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                 </div>
                 <label htmlFor="secondaryCompanies"><b>Secondary Companies</b></label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Select
-                        id="secondaryCompanies"
+                    <Select name="select" id="secondaryCompanies"
                         value={secondaryCompanies}
                         onChange={setSecondaryCompanies}
                         options={secondaryCompanyOptions}
@@ -644,8 +695,10 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                 />
 
                 <div className={styles.formGroup}>
-                    <label>Tile Template</label>
+                    <label htmlFor="tileTemplate">Tile Template</label>
                     <Select
+                        id="tileTemplate"
+                        name="tileTemplate"
                         value={tileTemplateId}
                         onChange={setTileTemplateId}
                         options={tileTemplates.map(template => ({ value: template._id, label: template.name, jsxCode: template.jsxCode }))}

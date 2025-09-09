@@ -130,8 +130,7 @@ const TileTemplateList = () => {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
-                <input
-                    type="text"
+                <input name="searchtiletemplates..." id="searchtiletemplates..." type="text"
                     placeholder="Search tile templates..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}

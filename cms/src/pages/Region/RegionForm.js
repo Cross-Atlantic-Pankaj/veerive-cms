@@ -55,7 +55,7 @@ export default function RegionForm() {
             <form onSubmit={handleSubmit} className="region-form">
                 <h2>{regions.editId ? 'Edit Region' : 'Add Region'}</h2>
                 <label htmlFor="regionName">Region Name <span style={{color: 'red'}}>*</span></label>
-                <input
+                <input id="enterregionname" name="enterregionname"
                     type="text"
                     placeholder="Enter region name"
                     name="regionName"
@@ -64,7 +64,7 @@ export default function RegionForm() {
                     className="region-input"
                     required
                 />
-                <textarea
+                <textarea id="entercomment" name="entercomment"
                     placeholder="Enter comment"
                     name="generalComment"
                     value={generalComment}

@@ -578,14 +578,13 @@ export default function PostList() {
             <div className="post-list-controls">
                 <button className="add-post-btn" onClick={handleAddClick}>Add Post</button>
                 <div className="date-range-controls">
-                    <label>From: <input type="date" value={dateRange.start} onChange={e => setDateRange(r => ({ ...r, start: e.target.value }))} max={currentDateInIST} /></label>
-                    <label>To: <input type="date" value={dateRange.end} onChange={e => setDateRange(r => ({ ...r, end: e.target.value }))} max={currentDateInIST} /></label>
+                    <label>From: <input name="date" id="dateField" type="date" value={dateRange.start} onChange={e => setDateRange(r => ({ ...r, start: e.target.value }))} max={currentDateInIST} /></label>
+                    <label>To: <input name="date" id="dateField" type="date" value={dateRange.end} onChange={e => setDateRange(r => ({ ...r, end: e.target.value }))} max={currentDateInIST} /></label>
                     <button className="download-csv-btn" onClick={handleDownloadCSV}>Download CSV</button>
                 </div>
             </div>
             <div className="search-container">
-                <input 
-                    type="text" 
+                <input name="search..." id="search..." type="text" 
                     placeholder="Search..." 
                     value={searchQuery} 
                     onChange={(e) => setSearchQuery(e.target.value)} 

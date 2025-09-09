@@ -97,6 +97,20 @@ configDB().then(() => {
 // Middleware to parse JSON
 app.use(express.json())
 
+// Debug middleware to log all incoming requests
+app.use((req, res, next) => {
+    if (req.path.includes('/posts') || req.path.includes('/contexts')) {
+        console.log('🔍 Incoming request:', {
+            method: req.method,
+            path: req.path,
+            bodyKeys: Object.keys(req.body || {}),
+            hasImageUrl: 'imageUrl' in (req.body || {}),
+            imageUrlValue: req.body?.imageUrl
+        });
+    }
+    next();
+});
+
 // User routes
 app.post('/api/users/register', conditionalAuth,checkSchema(userRegisterSchema), usersCltr.register);
 app.post('/api/users/login', checkPasswordExpiry,checkSchema(userLoginSchema), usersCltr.login);
@@ -134,6 +148,7 @@ app.delete('/api/admin/contexts/:id', authenticateUser, authorizeUser(['Admin', 
 app.get('/api/admin/posts/all', authenticateUser, postsCltr.getAllPosts);
 // ✅ Route for fetching a single post by ID
 app.get('/api/admin/posts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), postsCltr.getOne);
+app.get('/api/admin/posts/test/fields', authenticateUser, postsCltr.testFields);
 
 // ✅ Route for fetching all contexts (for Post Form)
 app.get('/api/admin/contexts/all', authenticateUser, contextsCltr.getAllContexts);

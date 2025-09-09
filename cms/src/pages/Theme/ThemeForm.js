@@ -193,8 +193,7 @@ export default function ThemeForm({ handleFormSubmit }) {
 
                 <div className="form-group checkbox-group">
                     <label htmlFor="isTrending"><b>Is Trending?</b></label>
-                    <input
-                        id="isTrending"
+                    <input name="checkboxField" id="isTrending"
                         type="checkbox"
                         checked={isTrending}
                         onChange={(e) => setIsTrending(e.target.checked)}
@@ -242,8 +241,7 @@ export default function ThemeForm({ handleFormSubmit }) {
 
                 <div className="form-group">
                     <label htmlFor="trendingScoreImage"><b>Trending Score Image URL</b></label>
-                    <input
-                        id="trendingScoreImage"
+                    <input name="trendingscoreimageurl" id="trendingScoreImage"
                         type="text"
                         placeholder="Trending Score Image URL"
                         value={trendingScoreImage}
@@ -254,8 +252,7 @@ export default function ThemeForm({ handleFormSubmit }) {
 
                 <div className="form-group">
                     <label htmlFor="impactScoreImage"><b>Impact Score Image URL</b></label>
-                    <input
-                        id="impactScoreImage"
+                    <input name="impactscoreimageurl" id="impactScoreImage"
                         type="text"
                         placeholder="Impact Score Image URL"
                         value={impactScoreImage}
@@ -266,8 +263,7 @@ export default function ThemeForm({ handleFormSubmit }) {
 
                 <div className="form-group">
                     <label htmlFor="predictiveMomentumScoreImage"><b>Predictive Momentum Score Image URL</b></label>
-                    <input
-                        id="predictiveMomentumScoreImage"
+                    <input name="predictivemomentumscoreimageurl" id="predictiveMomentumScoreImage"
                         type="text"
                         placeholder="Predictive Momentum Score Image URL"
                         value={predictiveMomentumScoreImage}
@@ -307,8 +303,7 @@ export default function ThemeForm({ handleFormSubmit }) {
 
                 <div className="form-group">
                     <label>Tile Template</label>
-                    <Select
-                        value={tileTemplateId}
+                    <Select name="select" id="selectField" value={tileTemplateId}
                         onChange={setTileTemplateId}
                         options={tileTemplates.map(template => ({ value: template._id, label: template.name, jsxCode: template.jsxCode }))}
                         formatOptionLabel={({ label, jsxCode }) => (

@@ -47,8 +47,7 @@ export default function ResetPassword() {
                 </p>
 
                 <form onSubmit={handleResetPassword} style={{ display: "flex", flexDirection: "column" }}>
-                    <input
-                        type="password"
+                    <input name="enternewpassword" id="enternewpassword" type="password"
                         placeholder="Enter new password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}

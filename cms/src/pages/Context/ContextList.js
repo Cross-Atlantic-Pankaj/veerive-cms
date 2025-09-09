@@ -697,19 +697,18 @@ export default function ContextList() {
                 <div className="center-controls">
                     <label>
                         Start Date:
-                        <input type="date" value={downloadStartDate} onChange={e => setDownloadStartDate(e.target.value)} placeholder="dd-mm-yyyy" max={currentDateInIST} />
+                        <input name="date" id="dateField" type="date" value={downloadStartDate} onChange={e => setDownloadStartDate(e.target.value)} placeholder="dd-mm-yyyy" max={currentDateInIST} />
                     </label>
                     <label>
                         End Date:
-                        <input type="date" value={downloadEndDate} onChange={e => setDownloadEndDate(e.target.value)} placeholder="dd-mm-yyyy" max={currentDateInIST} />
+                        <input name="date" id="dateField" type="date" value={downloadEndDate} onChange={e => setDownloadEndDate(e.target.value)} placeholder="dd-mm-yyyy" max={currentDateInIST} />
                     </label>
                     <button onClick={handleDownloadCSV} disabled={isDownloading} style={{ minWidth: '120px' }}>
                         {isDownloading ? 'Downloading...' : 'Download CSV'}
                     </button>
                 </div>
                 <div className="right-controls">
-                    <input
-                        type="text"
+                    <input name="searchbytitleordate..." id="searchbytitleordate..." type="text"
                         placeholder="Search by Title or Date..."
                         value={localSearchQuery}
                         onChange={handleSearch}

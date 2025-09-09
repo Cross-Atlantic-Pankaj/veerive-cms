@@ -213,8 +213,7 @@ export default function SubSectorList() {
             </div>
             
             <div style={{ display: 'flex', marginBottom: 16 }}>
-                <input
-                    type="text"
+                <input name="searchsub-sectors..." id="searchsub-sectors..." type="text"
                     placeholder="Search sub-sectors..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}

@@ -127,8 +127,10 @@ export default function CompanyForm() {
             <h2>{companies.editId ? 'Edit Company' : 'Add Company'}</h2>
             <form onSubmit={handleSubmit} className={styles.companyForm}>
                 <div>
-                    <label>Company Name <span style={{color: 'red'}}>*</span></label>
+                    <label htmlFor="companyName">Company Name <span style={{color: 'red'}}>*</span></label>
                     <input
+                        id="companyName"
+                        name="companyName"
                         type="text"
                         placeholder="Company Name"
                         value={companyName}
@@ -138,8 +140,10 @@ export default function CompanyForm() {
                     />
                 </div>
                 <div>
-                    <label>Parent Name</label>
+                    <label htmlFor="parentName">Parent Name</label>
                     <input
+                        id="parentName"
+                        name="parentName"
                         type="text"
                         placeholder="Parent Name"
                         value={parentName}
@@ -148,9 +152,11 @@ export default function CompanyForm() {
                     />
                 </div>
                 <div>
-                    <label>Company Website <span style={{color: 'red'}}>*</span></label>
+                    <label htmlFor="website">Company Website <span style={{color: 'red'}}>*</span></label>
                     <input
-                        type="text"
+                        id="website"
+                        name="website"
+                        type="url"
                         placeholder="Company Website"
                         value={website}
                         onChange={(e) => setWebsite(e.target.value)}
@@ -159,8 +165,10 @@ export default function CompanyForm() {
                     />
                 </div>
                 <div>
-                    <label>Country <span style={{color: 'red'}}>*</span></label>
+                    <label htmlFor="country">Country <span style={{color: 'red'}}>*</span></label>
                     <select
+                        id="country"
+                        name="country"
                         value={country}
                         onChange={(e) => setCountry(e.target.value)}
                         className={styles.companySelect}
@@ -173,8 +181,10 @@ export default function CompanyForm() {
                     </select>
                 </div>
                 <div>
-                    <label>Sectors <span style={{color: 'red'}}>*</span></label>
+                    <label htmlFor="sector">Sectors <span style={{color: 'red'}}>*</span></label>
                     <select
+                        id="sector"
+                        name="sector"
                         value={sector}
                         onChange={handleSectorChange}
                         className={styles.companySelect}
@@ -187,8 +197,10 @@ export default function CompanyForm() {
                     </select>
                 </div>
                 <div>
-                    <label>Sub-Sectors</label>
+                    <label htmlFor="subSector">Sub-Sectors</label>
                     <select
+                        id="subSector"
+                        name="subSector"
                         value={subSector}
                         onChange={(e) => setSubSector(e.target.value)}
                         className={styles.companySelect}

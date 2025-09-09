@@ -68,7 +68,7 @@ export default function SubSectorForm({ handleFormSubmit }) {
             <form onSubmit={handleSubmit} className={styles.companyForm}>
                 <div>
                     <label>Sub-Sector Name <span style={{color: 'red'}}>*</span></label>
-                    <input
+                    <input id="entersubsectorname" name="entersubsectorname"
                         type="text"
                         placeholder="Enter sub-sector name"
                         value={subSectorName}
@@ -80,7 +80,7 @@ export default function SubSectorForm({ handleFormSubmit }) {
                 
                 <div>
                     <label>Sector <span style={{color: 'red'}}>*</span></label>
-                    <select
+                    <select id="fieldjvra6" name="fieldjvra6"
                         value={sectorId}
                         onChange={(e) => setSectorId(e.target.value)}
                         className={styles.companySelect}

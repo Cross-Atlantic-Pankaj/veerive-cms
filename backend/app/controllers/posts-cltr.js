@@ -104,6 +104,16 @@ postsCltr.list = async (req, res) => {
 postsCltr.create = async (req, res) => {
     try {
         console.log("Received Post Data:", req.body); // Debugging
+        console.log("🖼️ ImageUrl in request:", req.body.imageUrl);
+        console.log("🔍 Request headers:", req.headers);
+        console.log("🔍 Request body keys:", Object.keys(req.body || {}));
+        console.log("🔍 Full request body:", JSON.stringify(req.body, null, 2));
+        console.log("🔍 ImageUrl type:", typeof req.body.imageUrl);
+        console.log("🔍 ImageUrl value:", req.body.imageUrl);
+        console.log("🔍 ImageUrl truthy:", !!req.body.imageUrl);
+        console.log("🔍 ImageUrl length:", req.body.imageUrl ? req.body.imageUrl.length : 'null/undefined');
+        console.log("🔍 Has imageUrl key:", 'imageUrl' in req.body);
+        console.log("🔍 All body keys containing 'image':", Object.keys(req.body).filter(key => key.toLowerCase().includes('image')));
 
         const cleanSummary = req.body.summary ? req.body.summary.replace(/<[^>]*>/g, '').trim() : "";
 
@@ -115,14 +125,83 @@ postsCltr.create = async (req, res) => {
             return res.status(400).json({ error: "At least one Source URL is required." });
         }
 
+        // Explicitly handle imageUrl to ensure it's not lost
+        const imageUrlValue = req.body.imageUrl || null;
+        console.log('🔍 Explicit imageUrl value:', imageUrlValue);
+        console.log('🔍 Explicit imageUrl type:', typeof imageUrlValue);
+        
         const formattedPost = {
             ...req.body,
             summary: cleanSummary,
-            tileTemplateId: req.body.tileTemplateId || null // ✅ Handle tileTemplateId
+            tileTemplateId: req.body.tileTemplateId || null, // ✅ Handle tileTemplateId
+            imageUrl: imageUrlValue // ✅ Explicitly set imageUrl
         };
+        
+        console.log('📝 Formatted post data for creation:', formattedPost);
+        console.log('🖼️ ImageUrl in formatted post:', formattedPost.imageUrl);
+        console.log('🔍 Formatted post imageUrl type:', typeof formattedPost.imageUrl);
+        console.log('🔍 Formatted post imageUrl truthy:', !!formattedPost.imageUrl);
+        console.log('🔍 Formatted post imageUrl length:', formattedPost.imageUrl ? formattedPost.imageUrl.length : 'null/undefined');
+        console.log('🔍 Formatted post keys containing image:', Object.keys(formattedPost).filter(key => key.toLowerCase().includes('image')));
 
         let post = new Post(formattedPost);
+        console.log('📝 Creating new Post with data:', post.toObject());
+        console.log('🖼️ ImageUrl before save:', post.imageUrl);
+        console.log('🔍 Post schema fields:', Object.keys(post.schema.paths));
+        console.log('🔍 Post imageUrl field definition:', post.schema.paths.imageUrl);
+        console.log('🔍 Post imageUrl type before save:', typeof post.imageUrl);
+        console.log('🔍 Post imageUrl truthy before save:', !!post.imageUrl);
+        console.log('🔍 Post imageUrl length before save:', post.imageUrl ? post.imageUrl.length : 'null/undefined');
+        console.log('🔍 Post document keys before save:', Object.keys(post.toObject()));
+        console.log('🔍 Post document keys containing image before save:', Object.keys(post.toObject()).filter(key => key.toLowerCase().includes('image')));
+        
+        // Explicitly set imageUrl to ensure it's not lost
+        if (imageUrlValue) {
+            post.imageUrl = imageUrlValue;
+            console.log('🔧 Explicitly set imageUrl to:', post.imageUrl);
+        }
+        
+        console.log('💾 About to save post to MongoDB...');
+        console.log('💾 Final imageUrl before save:', post.imageUrl);
         await post.save();
+        console.log('💾 Post saved to MongoDB successfully!');
+        
+        console.log('💾 Post saved to database successfully');
+        console.log('🖼️ ImageUrl after save:', post.imageUrl);
+        console.log('📄 Full saved post object:', JSON.stringify(post.toObject(), null, 2));
+        
+        // Backup: If imageUrl is not saved, try direct MongoDB update
+        if (imageUrlValue && !post.imageUrl) {
+            console.log('🔧 Backup: imageUrl not saved, attempting direct MongoDB update...');
+            try {
+                await Post.findByIdAndUpdate(post._id, { imageUrl: imageUrlValue });
+                console.log('🔧 Backup: Direct MongoDB update successful');
+                // Refresh the post object
+                const refreshedPost = await Post.findById(post._id);
+                console.log('🔧 Backup: Refreshed post imageUrl:', refreshedPost.imageUrl);
+            } catch (backupError) {
+                console.error('🔧 Backup: Direct MongoDB update failed:', backupError);
+            }
+        }
+        
+        // Verify the post was actually saved with imageUrl in MongoDB
+        console.log('🔍 Starting verification process...');
+        const verificationPost = await Post.findById(post._id);
+        console.log('🔍 Verification: Post retrieved from MongoDB:', verificationPost.imageUrl);
+        console.log('🔍 Verification: imageUrl type:', typeof verificationPost.imageUrl);
+        console.log('🔍 Verification: imageUrl truthy:', !!verificationPost.imageUrl);
+        console.log('🔍 Verification: imageUrl length:', verificationPost.imageUrl ? verificationPost.imageUrl.length : 'null/undefined');
+        console.log('🔍 Verification: Full verification post:', JSON.stringify(verificationPost.toObject(), null, 2));
+        
+        // Check the raw document fields
+        const rawPost = await Post.findById(post._id).lean();
+        console.log('🔍 Raw document fields:', Object.keys(rawPost));
+        console.log('🔍 Raw imageUrl field:', rawPost.imageUrl);
+        console.log('🔍 Raw imageURL field:', rawPost.imageURL);
+        console.log('🔍 All fields containing "image":', Object.keys(rawPost).filter(key => key.toLowerCase().includes('image')));
+        console.log('🔍 Raw post imageUrl type:', typeof rawPost.imageUrl);
+        console.log('🔍 Raw post imageUrl truthy:', !!rawPost.imageUrl);
+        console.log('🔍 Raw post imageUrl length:', rawPost.imageUrl ? rawPost.imageUrl.length : 'null/undefined');
 
         // ✅ Automatically tag the post to contexts and save context
         if (req.body.contexts && Array.isArray(req.body.contexts) && req.body.contexts.length > 0) {
@@ -173,6 +252,7 @@ postsCltr.update = async (req, res) => {
         const body = req.body;
 
         console.log("Updating Post ID:", id, "Data:", body);
+        console.log("🖼️ ImageUrl in update request:", body.imageUrl);
 
         const cleanSummary = body.summary ? body.summary.replace(/<[^>]*>/g, '').trim() : "";
 
@@ -189,13 +269,37 @@ postsCltr.update = async (req, res) => {
             return res.status(404).json({ error: "Post not found." });
         }
 
+        // Explicitly handle imageUrl for update
+        const imageUrlValue = body.imageUrl || null;
+        console.log('🔍 Update explicit imageUrl value:', imageUrlValue);
+        console.log('🔍 Update explicit imageUrl type:', typeof imageUrlValue);
+        
         const updatedData = { 
             ...body, 
             summary: cleanSummary,
-            tileTemplateId: body.tileTemplateId || null // ✅ Handle tileTemplateId on update
+            tileTemplateId: body.tileTemplateId || null, // ✅ Handle tileTemplateId on update
+            imageUrl: imageUrlValue // ✅ Explicitly set imageUrl
         };
+        
+        console.log('📝 Updated data for post update:', updatedData);
+        console.log('🖼️ ImageUrl in updated data:', updatedData.imageUrl);
 
+        console.log('📝 Updating post with data:', updatedData);
+        console.log('🖼️ ImageUrl in update data:', updatedData.imageUrl);
+        
+        // Ensure imageUrl is explicitly set in the update
+        if (imageUrlValue) {
+            updatedData.imageUrl = imageUrlValue;
+            console.log('🔧 Update explicitly set imageUrl to:', updatedData.imageUrl);
+        }
+        
+        console.log('💾 About to update post in MongoDB...');
+        console.log('💾 Final update imageUrl:', updatedData.imageUrl);
         const updatedPost = await Post.findByIdAndUpdate(id, updatedData, { new: true });
+        
+        console.log('💾 Post updated in database successfully');
+        console.log('🖼️ ImageUrl in updated post:', updatedPost.imageUrl);
+        console.log('📄 Full updated post object:', JSON.stringify(updatedPost.toObject(), null, 2));
 
         // ✅ Handle context updates when post contexts change
         if (body.contexts && Array.isArray(body.contexts)) {
@@ -338,6 +442,42 @@ postsCltr.getOne = async (req, res) => {
             error: "Server Error",
             message: err.message 
         });
+    }
+};
+
+// Test endpoint to check database field names
+postsCltr.testFields = async (req, res) => {
+    try {
+        console.log('🔍 Testing database field names...');
+        
+        // Get the most recent post
+        const recentPost = await Post.findOne().sort({ createdAt: -1 });
+        
+        if (!recentPost) {
+            return res.json({ message: 'No posts found in database' });
+        }
+        
+        const rawPost = recentPost.toObject();
+        console.log('🔍 Raw post fields:', Object.keys(rawPost));
+        
+        // Check for image-related fields
+        const imageFields = Object.keys(rawPost).filter(key => 
+            key.toLowerCase().includes('image')
+        );
+        
+        console.log('🔍 Image-related fields:', imageFields);
+        
+        res.json({
+            message: 'Field analysis complete',
+            allFields: Object.keys(rawPost),
+            imageFields: imageFields,
+            imageUrl: rawPost.imageUrl,
+            imageURL: rawPost.imageURL,
+            recentPost: rawPost
+        });
+    } catch (error) {
+        console.error('Error testing fields:', error);
+        res.status(500).json({ error: 'Failed to test fields' });
     }
 };
 

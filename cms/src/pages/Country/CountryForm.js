@@ -104,8 +104,10 @@ export default function CountryForm() {
             <h2>{countries.editId ? 'Edit Country' : 'Add Country'}</h2>
             <form onSubmit={handleSubmit} className={styles.companyForm}>
                 <div>
-                    <label>Country Name <span style={{color: 'red'}}>*</span></label>
+                    <label htmlFor="countryName">Country Name <span style={{color: 'red'}}>*</span></label>
                     <input
+                        id="countryName"
+                        name="countryName"
                         type="text"
                         placeholder="Enter country name"
                         value={countryName}
@@ -117,8 +119,10 @@ export default function CountryForm() {
                 </div>
                 
                 <div>
-                    <label>Region <span style={{color: 'red'}}>*</span></label>
+                    <label htmlFor="regionId">Region <span style={{color: 'red'}}>*</span></label>
                     <select
+                        id="regionId"
+                        name="regionId"
                         value={regionId}
                         onChange={(e) => setRegionId(e.target.value)}
                         className={styles.companySelect}

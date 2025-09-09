@@ -40,43 +40,37 @@ export default function Register(){
         <div>
             <h2>Register Page</h2>
             <form onSubmit={handleSubmit}>
-            <input 
-                    type="text" 
+            <input name="enterfirstname" id="enterfirstname" type="text" 
                     placeholder="enter first name" 
                     value={firstName} 
                     onChange={e => setFirstName(e.target.value)}
                 /> <br/>
                 
-                <input 
-                    type="text" 
+                <input name="enterlastname" id="enterlastname" type="text" 
                     placeholder="enter last name" 
                     value={lastName} 
                     onChange={e => setLastName(e.target.value)}
                 /> <br/>
 
-                <input 
-                    type="text" 
+                <input name="entercountry" id="entercountry" type="text" 
                     placeholder="enter country" 
                     value={country} 
                     onChange={e => setCountry(e.target.value)}
                 /> <br/>
 
-                <input 
-                    type="text" 
+                <input name="enteremail" id="enteremail" type="text" 
                     placeholder="enter email" 
                     value={email} 
                     onChange={e => setEmail(e.target.value)}
                 /> <br/>
 
-                <input 
-                    type="password" 
+                <input name="enterpassword" id="enterpassword" type="password" 
                     placeholder="enter password" 
                     value={password} 
                     onChange={e => setPassword(e.target.value)}
                 />  <br/>    
                 
-                <input 
-                    type="text" 
+                <input name="enterpasswordagain" id="enterpasswordagain" type="text" 
                     placeholder="enter password again" 
                     value={repeatPassword} 
                     onChange={e => setRepeatPassword(e.target.value)}

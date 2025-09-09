@@ -149,11 +149,14 @@ const CustomDropdown = ({
                     horizontal: 'right',
                 }}
             >
-                {items.map((item, index) => (
-                    <React.Fragment key={item.id || index}>
-                        {item.divider && index > 0 && <Divider />}
-                        {!item.divider && (
+                {items.map((item, index) => {
+                    if (item.divider && index > 0) {
+                        return <Divider key={`divider-${index}`} />;
+                    }
+                    if (!item.divider) {
+                        return (
                             <MenuItem 
+                                key={item.id || index}
                                 onClick={() => handleItemClick(item)}
                                 disabled={item.disabled}
                             >
@@ -175,9 +178,10 @@ const CustomDropdown = ({
                                     />
                                 )}
                             </MenuItem>
-                        )}
-                    </React.Fragment>
-                ))}
+                        );
+                    }
+                    return null;
+                })}
             </StyledMenu>
         </Box>
     );

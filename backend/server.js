@@ -6,6 +6,7 @@ import passport from 'passport'
 import setupOAuthStrategies from './config/oauthConfig.js'
 import oauthRouth from './oauthRoutes.js'
 import { checkSchema } from 'express-validator'
+import path from 'path'
 import {
   userRegisterSchema,
   userLoginSchema,
@@ -116,8 +117,6 @@ app.use(
 
 app.options('*', cors()); // Preflight requests for all routes
 
-
-configDB()
 
 // Initialize Passport and OAuth Strategies
 setupOAuthStrategies();
@@ -329,6 +328,7 @@ app.post('/api/admin/market-data/bulk', authenticateUser, authorizeUser(['admin'
 
 // Image upload routes
 app.use('/api/images', imageUploadRoutes);
+
 
 // Route to serve data deletion instructions
 app.get('/data-deletion.html', (req, res) => {

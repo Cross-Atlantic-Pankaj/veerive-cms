@@ -183,8 +183,7 @@ export default function SubSignalList() {
 
             {/* Header with search and actions */}
             <div className={styles.listHeader}>
-                <input
-                    type="text"
+                <input name="searchsub-signals..." id="searchsub-signals..." type="text"
                     placeholder="Search sub-signals..."
                     value={searchTerm}
                     onChange={handleSearchChange}

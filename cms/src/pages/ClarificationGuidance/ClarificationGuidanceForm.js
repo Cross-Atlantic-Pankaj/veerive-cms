@@ -148,7 +148,7 @@ export default function ClarificationGuidanceForm() {
         <form onSubmit={handleSubmit} className={styles.companyForm}>
           <div>
             <label>Title <span style={{color: 'red'}}>*</span></label>
-            <input 
+            <input id="fieldrvkx6" name="fieldrvkx6" 
               className={styles.companyInput}
               value={title} 
               onChange={e => setTitle(e.target.value)} 
@@ -159,7 +159,7 @@ export default function ClarificationGuidanceForm() {
           
           <div>
             <label>Clarification Note <span style={{color: 'red'}}>*</span></label>
-            <textarea 
+            <textarea id="fieldcuvx3" name="fieldcuvx3" 
               className={styles.companyTextarea}
               value={clarificationNote} 
               onChange={e => setClarificationNote(e.target.value)} 
@@ -170,7 +170,7 @@ export default function ClarificationGuidanceForm() {
           
           <div>
             <label>Sector <span style={{color: 'red'}}>*</span></label>
-            <select 
+            <select id="field9mjw4" name="field9mjw4" 
               className={styles.companySelect}
               value={sector} 
               onChange={e => setSector(e.target.value)} 
@@ -190,8 +190,10 @@ export default function ClarificationGuidanceForm() {
           </div>
           
           <div>
-            <label>Sub-Sector</label>
-            <select 
+            <label htmlFor="subsector">Sub-Sector</label>
+                    <select
+                        id="subsector"
+                        name="subsector" 
               className={styles.companySelect}
               value={subSector} 
               onChange={e => setSubSector(e.target.value)} 

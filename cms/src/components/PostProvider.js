@@ -220,21 +220,45 @@ export const PostProvider = ({ children }) => {
     // ✅ Handle Form Submission
     const handleFormSubmit = async (formData, editId = null) => {
         try {
+            console.log('🚀 PostProvider: handleFormSubmit called with:', {
+                editId,
+                formDataKeys: Object.keys(formData),
+                imageUrl: formData.imageUrl,
+                imageUrlType: typeof formData.imageUrl,
+                imageUrlValue: formData.imageUrl,
+                imageUrlTruthy: !!formData.imageUrl,
+                imageUrlLength: formData.imageUrl ? formData.imageUrl.length : 'null/undefined'
+            });
+            console.log('🚀 PostProvider: Full formData object:', JSON.stringify(formData, null, 2));
+            console.log('🚀 PostProvider: About to make API call to backend...');
+            
             let response;
             if (editId) {
                 // Update existing post
+                console.log('🔄 PostProvider: Updating post with data:', formData);
+                console.log('🔄 PostProvider: Making PUT request to /api/admin/posts/' + editId);
+                console.log('🔄 PostProvider: Request payload imageUrl:', formData.imageUrl);
+                console.log('🔄 PostProvider: Request payload keys:', Object.keys(formData));
                 response = await axios.put(`/api/admin/posts/${editId}`, formData, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                 });
+                console.log('✅ PostProvider: Update response received:', response.status);
+                console.log('✅ PostProvider: Update response data:', response.data);
                 if (response.data.success) {
                     postsDispatch({ type: 'UPDATE_POST', payload: response.data.updatedPost });
                     setSuccessMessage('Post updated successfully!');
                 }
             } else {
                 // Create new post
+                console.log('🔄 PostProvider: Creating new post with data:', formData);
+                console.log('🔄 PostProvider: Making POST request to /api/admin/posts');
+                console.log('🔄 PostProvider: Request payload imageUrl:', formData.imageUrl);
+                console.log('🔄 PostProvider: Request payload keys:', Object.keys(formData));
                 response = await axios.post('/api/admin/posts', formData, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                 });
+                console.log('✅ PostProvider: Create response received:', response.status);
+                console.log('✅ PostProvider: Create response data:', response.data);
                 if (response.data.success) {
                     postsDispatch({ type: 'ADD_POST', payload: response.data.post });
                     setSuccessMessage('Post added successfully!');

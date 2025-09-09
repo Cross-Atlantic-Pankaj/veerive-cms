@@ -253,8 +253,7 @@ export default function CompanyList() {
             </div>
             
             <div style={{ display: 'flex', marginBottom: 16 }}>
-                <input
-                    type="text"
+                <input name="searchcompanies..." id="searchcompanies..." type="text"
                     placeholder="Search companies..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}

@@ -53,8 +53,7 @@ export default function Login() {
             <div className="login-card">
                 <h2 className="login-title">Veerive CMS Login</h2>
                 <form onSubmit={handleSubmit}>
-                    <input
-                        type="text"
+                    <input name="enteremail" id="enteremail" type="text"
                         placeholder="Enter email"
                         className="login-input"
                         value={email}
@@ -87,8 +86,7 @@ export default function Login() {
                         </span>
                     </div>
                     <div className="remember-me-container">
-                        <input
-                            type="checkbox"
+                        <input name="checkboxField" type="checkbox"
                             id="rememberMe"
                             checked={remember}
                             onChange={e => setRemember(e.target.checked)}

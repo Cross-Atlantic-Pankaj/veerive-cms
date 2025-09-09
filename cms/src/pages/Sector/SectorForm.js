@@ -62,8 +62,10 @@ export default function SectorForm({ handleFormSubmit }) {
                 <h2>{sectors.editId ? 'Edit Sector' : 'Add Sector'}</h2>
                 <form onSubmit={handleSubmit} className={styles.companyForm}>
                     <div>
-                        <label>Sector Name <span style={{color: 'red'}}>*</span></label>
+                        <label htmlFor="sectorName">Sector Name <span style={{color: 'red'}}>*</span></label>
                         <input
+                            id="sectorName"
+                            name="sectorName"
                             type="text"
                             placeholder="Enter sector name"
                             value={sectorName}
