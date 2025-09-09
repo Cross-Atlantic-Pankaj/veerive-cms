@@ -9,7 +9,9 @@
     "dev": "nodemon server.js",
     "build": "echo 'Build complete'",
     "vercel-build": "echo 'Vercel build complete'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "monitor": "node --inspect server.js",
+    "profile": "node --prof server.js"
   },
   "keywords": [],
   "author": "",
