@@ -1,6 +1,31 @@
 
 import jwt from 'jsonwebtoken';
 import User from '../models/user-model.js'; // Ensure the correct path to the User model
+import nodemailer from 'nodemailer';
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com', // Hardcoded Gmail SMTP host
+    port: 587, // Hardcoded SMTP port for TLS
+    secure: false, // Use STARTTLS (not SSL)
+    auth: {
+        user: 'info@veerive.com', // Hardcoded email address
+        pass: 'rtos ktbb yzdf twaw',   // Hardcoded App Password (from Gmail settings)
+    },
+    tls: {
+        rejectUnauthorized: false, // Accept self-signed certificates
+    },
+    family: 4, // Force IPv4
+    debug: true, // Enable debug output for troubleshooting
+});
+
+// Verify the transporter
+transporter.verify((error, success) => {
+    if (error) {
+        console.error('SMTP Debugging Error:', error);
+    } else {
+        console.log('SMTP Debugging Successful:', success);
+    }
+});
 
 // Middleware to authenticate users
 const authenticateUser = (req, res, next) => {
@@ -30,9 +55,8 @@ const authenticateUser = (req, res, next) => {
 
 const conditionalAuth = async (req, res, next) => {
     try {
-        // Check if any admin exists in the database with timeout
-        const adminCount = await User.countDocuments({ role: 'Admin' })
-            .maxTimeMS(3000); // 3 second timeout
+        // Check if any admin exists in the database
+        const adminCount = await User.countDocuments({ role: 'Admin' });
 
         if (adminCount === 0) {
             // No Admin exists; allow the first admin registration
@@ -45,20 +69,14 @@ const conditionalAuth = async (req, res, next) => {
         }
     } catch (err) {
         console.error('Error checking Admin count:', err.message);
-        // Don't block registration if admin check fails
-        next();
+        return res.status(500).json({ error: 'Something went wrong.' });
     }
 };
 
 const checkPasswordExpiry = async (req, res, next) => {
     if (req.user && req.user.role === 'Admin') {
         try {
-            // Optimize the user lookup with timeout and lean query
-            const user = await User.findById(req.user.userId)
-                .select("lastPasswordUpdate email")
-                .lean()
-                .maxTimeMS(3000); // 3 second timeout
-                
+            const user = await User.findById(req.user.userId);
             if (!user) {
                 return res.status(404).json({ error: 'User not found' });
             }
@@ -66,19 +84,32 @@ const checkPasswordExpiry = async (req, res, next) => {
             // Calculate days since last password update
             const daysSinceLastUpdate = Math.floor((Date.now() - new Date(user.lastPasswordUpdate)) / (1000 * 60 * 60 * 24));
 
+            // Reminder email: Send during the last 5 days before expiry
+            if (daysSinceLastUpdate >= 25 && daysSinceLastUpdate < 30) {
+                try {
+                    console.log('Sending password nearing expiry reminder.');
+                    const mailOptions = {
+                        from: 'info@veerive.com', // Hardcoded sender email
+                        to: user.email,
+                        subject: 'Password Change Reminder',
+                        text: 'Your password is nearing expiry. Please change it within the next 5 days to avoid disruption.',
+                    };
+                    await transporter.sendMail(mailOptions);
+                } catch (emailErr) {
+                    console.error('Error sending password expiry reminder email:', emailErr.message);
+                }
+            }
+
             // Password expired: Block further actions
             if (daysSinceLastUpdate >= 30) {
                 console.log('Password expired.');
                 return res.status(403).json({ error: 'Password expired. Please update your password to continue.' });
             }
 
-            // Skip email sending for now to improve performance
-            // TODO: Implement background job for email reminders
             next();
         } catch (err) {
             console.error('Error checking password expiry:', err.message);
-            // Don't block the request if password check fails
-            next();
+            return res.status(500).json({ error: 'Internal server error.' });
         }
     } else {
         next(); // Skip check for non-admin users
