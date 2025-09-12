@@ -31,7 +31,6 @@ export default function RegionForm() {
                 regionsDispatch({ type: 'UPDATE_REGION', payload: response.data });
                 handleFormSubmit('Region updated successfully');
             } catch (err) {
-                console.log(err.message);
             }
         } else {
             try {
@@ -46,7 +45,6 @@ export default function RegionForm() {
 
     const handleHomeNav = () =>{
         setIsFormVisible(false)
-        console.log('form vis', isFormVisible)
     }
 
     return (

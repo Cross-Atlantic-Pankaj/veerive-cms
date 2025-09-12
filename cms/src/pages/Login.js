@@ -4,12 +4,13 @@ import AuthContext from '../context/AuthContext';
 import '../html/css/Login.css'; // Import the CSS file for styling
 
 export default function Login() {
-    const { handleLogin } = useContext(AuthContext);
+    const { handleLogin, loading } = useContext(AuthContext);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState(''); // State to store error messages
+    const [error, setError] = useState('');
     const [remember, setRemember] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         const savedEmail = localStorage.getItem('rememberedEmail');
@@ -23,13 +24,19 @@ export default function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Prevent multiple submissions
+        if (isSubmitting || loading) return;
+        
+        setIsSubmitting(true);
+        setError('');
+        
         const formData = {
             email,
             password,
         };
 
         try {
-            // Call the login function from AuthContext
             await handleLogin(formData);
             if (remember) {
                 localStorage.setItem('rememberedEmail', email);
@@ -39,12 +46,13 @@ export default function Login() {
                 localStorage.removeItem('rememberedPassword');
             }
         } catch (err) {
-            // Handle error and set error message
             if (err.response && err.response.data && err.response.data.error) {
-                setError(err.response.data.error); // Show specific error message
+                setError(err.response.data.error);
             } else {
-                setError('Something went wrong. Please try again.'); // Generic error message
+                setError('Something went wrong. Please try again.');
             }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -94,7 +102,13 @@ export default function Login() {
                         <label htmlFor="rememberMe">Remember Me</label>
                     </div>
                     {error && <p className="login-error">{error}</p>} {/* Display error message */}
-                    <button type="submit" className="login-button">Login</button>
+                    <button 
+                        type="submit" 
+                        className="login-button" 
+                        disabled={isSubmitting || loading}
+                    >
+                        {isSubmitting || loading ? 'Logging in...' : 'Login'}
+                    </button>
                 </form>
                 <div className="login-links">
                     <Link to="/forgot-password" className="forgot-password-link">Forgot Password?</Link>

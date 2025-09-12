@@ -33,7 +33,6 @@ export default function StoryView() {
 
     const fetchStoryOrders = async () => {
         if (!contexts || contexts.length === 0) {
-            console.log("⏳ Waiting for contexts before fetching story orders...");
             return; // ✅ Ensure `contexts` is loaded first
         }
     
@@ -45,8 +44,6 @@ export default function StoryView() {
             });
     
             let orders = response.data;
-            console.log("📢 Story Orders Response:", orders);
-    
             // ✅ Remove story orders where `contextId` is not found in `contexts`
             const validContextIds = new Set(contexts.map(ctx => ctx._id));
             orders = orders.filter(order => validContextIds.has(order.contextId));
@@ -58,14 +55,11 @@ export default function StoryView() {
             }));
             console.log("🗂 All Context IDs in contexts:", Array.from(validContextIds));
             const validOrders = orders.filter(order => contextMap[order.contextId]);
-            console.log("📌 Final Story Orders Sent to UI:", validOrders.length);
-
                 setStoryOrders(validOrders); // ✅ Ensure it only updates once
 
             if (updatedOrders.length > 0) {
                 setStoryOrders(updatedOrders);
             } else {
-                console.log("⚠️ No valid story orders found.");
                 setStoryOrders([]); // ✅ Ensure empty array if no records
             }
         } catch (err) {
@@ -74,8 +68,7 @@ export default function StoryView() {
             setLoading(false);
         }
     };
-    
-    
+
     const fetchContexts = async () => {
         setLoading(true);
         let allContexts = [];
@@ -98,9 +91,6 @@ export default function StoryView() {
                     break;
                 }
             } while (currentPage <= totalPages);
-    
-            console.log("✅ Fetched ALL Contexts:", allContexts.length);
-            console.log("✅ Contexts Fetched:", contexts.length);
             console.log("📌 All Context IDs:", contexts.map(ctx => ctx._id)); 
 
             setContexts(allContexts);

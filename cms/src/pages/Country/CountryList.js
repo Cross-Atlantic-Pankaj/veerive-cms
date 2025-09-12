@@ -36,7 +36,6 @@ export default function CountryList() {
                 const response = await axios.get('/api/admin/countries', {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                 });
-                console.log("Fetched Countries Data:", response.data);
                 countriesDispatch({ type: 'SET_COUNTRIES', payload: response.data });
             } catch (error) {
                 console.error("API Fetch Error:", error);

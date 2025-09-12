@@ -19,7 +19,6 @@ export default function ClarificationGuidanceForm() {
   const { subSectors } = useContext(SubSectorContext);
 
   useEffect(() => {
-    console.log('Sectors data:', sectors);
   }, [sectors]);
 
   // Fetch guidance data for edit mode
@@ -57,7 +56,6 @@ export default function ClarificationGuidanceForm() {
     if (isEdit && subSectors?.data?.length > 0 && subSector) {
       const subSectorExists = subSectors.data.find(ss => ss._id === subSector);
       if (!subSectorExists) {
-        console.log('Sub-sector not found in data, resetting...');
         setSubSector('');
       }
     }
@@ -117,16 +115,8 @@ export default function ClarificationGuidanceForm() {
   }
 
   // Debug logging
-  console.log('SubSectors data:', subSectors?.data);
-  console.log('Selected sector:', sector);
-  console.log('Selected subSector:', subSector);
-  console.log('Filtered subSectors:', filteredSubSectors);
-  console.log('SubSector options:', subSectorOptions);
-
   // Check if sectors data exists and has items
   const sectorOptions = sectors?.data || [];
-  console.log('Available sector options:', sectorOptions);
-
   if (isEdit && loading) {
     return (
       <div className={styles.formContainer}>

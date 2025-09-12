@@ -44,28 +44,12 @@ const ImageUpload = ({
   };
 
   const uploadImage = async (file) => {
-    console.log('🚀 ImageUpload: Starting upload process');
-    console.log('🚀 ImageUpload: File details:', {
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      lastModified: file.lastModified
-    });
-    
     setUploading(true);
     setError(null);
 
     try {
-      console.log('🚀 ImageUpload: Creating FormData');
       const formData = new FormData();
       formData.append('image', file);
-      console.log('🚀 ImageUpload: FormData created, entries:', Array.from(formData.entries()));
-
-      console.log('🚀 ImageUpload: Making API call to /api/images/upload');
-      console.log('🚀 ImageUpload: Request headers:', {
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      });
       
       const response = await axios.post('/api/images/upload', formData, {
         headers: {
@@ -74,44 +58,19 @@ const ImageUpload = ({
         },
       });
 
-      console.log('🚀 ImageUpload: API response received');
-      console.log('🚀 ImageUpload: Response status:', response.status);
-      console.log('🚀 ImageUpload: Response headers:', response.headers);
-      console.log('🚀 ImageUpload: Full response data:', response.data);
-      console.log('🚀 ImageUpload: Response data keys:', Object.keys(response.data || {}));
-      console.log('🚀 ImageUpload: Response data.data keys:', Object.keys(response.data.data || {}));
-
       if (response.data.success) {
         const imageUrl = response.data.data.imageUrl;
-        console.log('🖼️ ImageUpload: Upload successful, received URL:', imageUrl);
-        console.log('🖼️ ImageUpload: URL type:', typeof imageUrl);
-        console.log('🖼️ ImageUpload: URL length:', imageUrl ? imageUrl.length : 'null/undefined');
-        console.log('🖼️ ImageUpload: URL truthy:', !!imageUrl);
-        console.log('🖼️ ImageUpload: Setting preview and calling onImageUpload');
-        console.log('🖼️ ImageUpload: onImageUpload function type:', typeof onImageUpload);
-        console.log('🖼️ ImageUpload: About to call onImageUpload with:', imageUrl);
-        
-        // Set both the preview and the parent's state
         setPreview(imageUrl);
         onImageUpload(imageUrl);
-        
-        // Force re-render to ensure URL is displayed
-        setTimeout(() => setPreview(imageUrl), 0);
-        console.log('🖼️ ImageUpload: onImageUpload called with URL:', imageUrl);
       } else {
-        console.error('❌ ImageUpload: Upload failed:', response.data.message);
         throw new Error(response.data.message || 'Upload failed');
       }
     } catch (error) {
-      console.error('❌ ImageUpload: Upload error:', error);
-      console.error('❌ ImageUpload: Error response:', error.response?.data);
-      console.error('❌ ImageUpload: Error status:', error.response?.status);
-      console.error('❌ ImageUpload: Error headers:', error.response?.headers);
+      console.error('Image upload error:', error);
       setError(error.response?.data?.message || error.message || 'Upload failed');
       setPreview(null);
     } finally {
       setUploading(false);
-      console.log('🚀 ImageUpload: Upload process completed');
     }
   };
 

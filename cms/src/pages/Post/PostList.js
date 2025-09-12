@@ -64,7 +64,6 @@ export default function PostList() {
     useEffect(() => {
         const handleEditFromQuery = async () => {
             if (editIdFromQuery && fetchSinglePost) {
-                console.log("🔄 Handling edit from query parameter:", editIdFromQuery);
                 await handleEditClick(editIdFromQuery);
             }
         };
@@ -316,8 +315,6 @@ export default function PostList() {
 
     const handleDownloadCSV = async () => {
         try {
-            console.log('🔄 Starting CSV download...');
-            
             // Fetch fresh data directly instead of relying on state
             const response = await axios.get(`/api/admin/posts/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -329,8 +326,6 @@ export default function PostList() {
             }
             
             let posts = response.data.posts || [];
-            console.log('📊 Total posts fetched for CSV:', posts.length);
-            
             // Apply filters
             let filtered = [...posts];
             
@@ -341,14 +336,12 @@ export default function PostList() {
                     const postDate = new Date(post.date);
                     return postDate >= startDate && postDate <= endDate;
                 });
-                console.log('📅 Posts after date filter:', filtered.length);
             }
             
             if (searchQuery.trim()) {
                 filtered = filtered.filter(post => 
                     (post.postTitle || '').toLowerCase().includes(searchQuery.toLowerCase())
                 );
-                console.log('🔍 Posts after search filter:', filtered.length);
             }
 
             if (filtered.length === 0) {
@@ -361,9 +354,6 @@ export default function PostList() {
                 'Complete Content', 'Primary Companies', 'Secondary Companies', 'Source', 
                 'Source URLs', 'Sentiment', 'Created At', 'Updated At'
             ];
-            
-            console.log('🔄 Generating CSV rows...');
-            
             const rows = filtered.map((post, index) => {
                 try {
                     // Safely resolve field values with better error handling
@@ -419,9 +409,6 @@ export default function PostList() {
                     ];
                 }
             });
-
-            console.log('🔄 Creating CSV content...');
-            
             // Create CSV content with better escaping
             const csvContent = [headers, ...rows]
                 .map(row => 
@@ -432,9 +419,6 @@ export default function PostList() {
                         return `"${escapedCell}"`;
                     }).join(',')
                 ).join('\n');
-            
-            console.log('📁 Creating blob and downloading...');
-            
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             
             const filename = dateRange.start && dateRange.end 
@@ -443,8 +427,6 @@ export default function PostList() {
                 
             saveAs(blob, filename);
             toast.success(`Successfully downloaded ${rows.length} posts`);
-            console.log('✅ CSV download completed successfully');
-            
         } catch (error) {
             console.error('❌ CSV Download Error:', error);
             console.error('Error details:', {
@@ -458,21 +440,12 @@ export default function PostList() {
     const handleShowPostContexts = async (postId) => {
         try {
             console.log('🔍 Fetching contexts for post...'); // Debug log without exposing ID
-            console.log('🌐 Current origin:', window.location.origin);
-            
             // Query the context collection to find all contexts that contain this post ID
             const response = await axios.post(`/api/admin/contexts/by-post`, {
                 postId: postId
             }, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
-
-            console.log('📥 Contexts API response:', {
-                success: response.data.success,
-                hasContexts: !!response.data.contexts,
-                contextCount: response.data.contexts?.length || 0
-            });
-
             if (response.data.success && response.data.contexts) {
                 const contextTitles = response.data.contexts.map(ctx => ctx.contextTitle);
                 
@@ -485,14 +458,9 @@ export default function PostList() {
 
                 // Create direct filter using context IDs (no session needed)
                 const contextIds = response.data.contexts.map(ctx => ctx._id);
-                console.log('🔗 Creating direct filter with context IDs count:', contextIds.length);
-                
                 // Construct the URL with direct context IDs
                 const baseUrl = window.location.origin;
                 const contextUrl = `${baseUrl}/contexts?filterContexts=${contextIds.join(',')}`;
-                
-                console.log('🔗 Opening contexts URL:', contextUrl);
-                
                 // Try to open the new tab
                 try {
                     const newTab = window.open(contextUrl, '_blank');
@@ -500,7 +468,6 @@ export default function PostList() {
                     if (newTab && !newTab.closed) {
                         // Show a toast with the count
                         toast.success(`Opening ${contextTitles.length} context(s) in new tab`);
-                        console.log('✅ Successfully opened contexts in new tab');
                     } else {
                         // Fallback: navigate in the same tab if popup was blocked
                         console.warn('⚠️ Popup blocked or failed, providing manual link');

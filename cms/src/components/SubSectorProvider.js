@@ -68,7 +68,6 @@ export const SubSectorProvider = ({ children }) => {
         const fetchSubSectors = async () => {
             const token = localStorage.getItem('token'); // ✅ Check for token
             if (!token) {
-                console.log("⏳ No token found. Skipping sub-sector fetch.");
                 return;  // ✅ Skip API call if no token is available
             }
 
@@ -76,7 +75,6 @@ export const SubSectorProvider = ({ children }) => {
                 const response = await axios.get('/api/admin/sub-sectors', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                console.log("✅ Sub-Sectors Fetched:", response.data);
                 subSectorsDispatch({ type: 'SET_SUB_SECTORS', payload: response.data });
             } catch (err) {
                 console.error("❌ Error Fetching Sub-Sectors:", err);

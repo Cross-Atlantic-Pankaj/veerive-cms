@@ -12,8 +12,6 @@ import PostContext from '../context/PostContext'; // ✅ Import PostContext
 const contextReducer = (state, action) => {
     switch (action.type) {
         case 'SET_CONTEXTS':
-            console.log("🔹 Updating Context State with New Data:", action.payload);
-            
             return { 
                 ...state, 
                 data: Array.isArray(action.payload.contexts) ? action.payload.contexts : [], // ✅ Ensure `data` is always an array
@@ -86,14 +84,11 @@ export const ContextProvider = ({ children }) => {
         setIsLoading(true); // ✅ Show loading while fetching
     
         try {
-            console.log(`🔍 Fetching contexts for page: ${page}, search: "${searchQuery}"`);
-            
             const response = await axios.get(`/api/admin/contexts?page=${page}&limit=10&search=${encodeURIComponent(searchQuery)}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
     
             if (response.data.success) {
-                console.log("✅ Fetched Contexts:", response.data.contexts.length);
                 contextsDispatch({ 
                     type: 'SET_CONTEXTS', 
                     payload: { 
@@ -116,20 +111,17 @@ export const ContextProvider = ({ children }) => {
     
     const fetchAllThemes = async () => {
         try {
-            console.log("🔄 Fetching ALL Themes...");
             const response = await axios.get('/api/admin/themes/all', {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
     
             if (response.data.success) {
-                console.log("✅ Successfully fetched All Themes:", response.data.themes.length);
                 setAllThemes(response.data.themes); // ✅ Store all themes separately
             }
         } catch (err) {
             console.error("❌ Error fetching all themes:", err);
         }
     };
-    
 
 // ✅ Now `fetchContexts` is defined before it's used in useEffect
 useEffect(() => {
@@ -140,21 +132,17 @@ useEffect(() => {
     }
 }, [state.isLoggedIn, page, searchQuery]); // ✅ Fetch only when `page` or `searchQuery` changes
 
-
 // Call fetchAllThemes once when the component mounts
 // useEffect(() => {
 //     fetchAllThemes();
 // }, []);
 
-    
     const handleAddClick = () => {
         contextsDispatch({ type: 'SET_EDIT_ID', payload: null });
         setIsFormVisible(true);
     };
 
     const handleEditClick = (id) => {
-        console.log('Edit button clicked for context ID:', id);
-        console.log('Current contexts data:', contexts.data);
         localStorage.setItem('editContextId', id);
         contextsDispatch({ type: 'SET_EDIT_ID', payload: id });
         setIsFormVisible(true);

@@ -61,7 +61,6 @@ export const SectorProvider = ({ children }) => {
         const fetchSectors = async () => {
             const token = localStorage.getItem('token');  // ✅ Get token from localStorage
             if (!token) {
-                console.log("⏳ No token found. Skipping sector fetch.");
                 return;  // ✅ Skip API call if no token is available
             }
     
@@ -69,7 +68,6 @@ export const SectorProvider = ({ children }) => {
                 const response = await axios.get('/api/admin/sectors', { 
                     headers: { Authorization: `Bearer ${token}` } 
                 });
-                console.log("✅ Sectors Fetched:", response.data);
                 sectorsDispatch({ type: 'SET_SECTORS', payload: response.data });
             } catch (err) {
                 console.error("❌ Error Fetching Sectors:", err);

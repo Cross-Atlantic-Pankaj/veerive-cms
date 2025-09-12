@@ -91,16 +91,12 @@ export const ContainerProvider = ({ children }) => {
             console.error('No context ID selected');
             return;
         }
-
-        console.log('selectedContextId', selectedContextId);
-
         try {
             const response = await axios.get(`/api/posts?context=${selectedContextId}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}`}
             });
             setPostsForContext(response.data);
             setIsFormVisible(true);
-            console.log('show response', response);
         } catch (err) {
             console.error('Error fetching posts:', err);
         }

@@ -30,7 +30,6 @@ export default function Register(){
                 password: password,
     
             }
-            console.log(formData)
             handleRegister(formData)
 
         }

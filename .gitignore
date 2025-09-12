@@ -3,6 +3,8 @@
 .env.*
 **/.env
 **/.env.*
+backend/DEPLOYMENT_OPTIMIZATION.md
+backend/OPTIMIZATION.md
 
 # Ignore node_modules in backend
 backend/node_modules/

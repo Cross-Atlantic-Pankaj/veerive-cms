@@ -74,8 +74,6 @@ export default function ContextList() {
         fetchAllContexts();
     }, []);
 
-
-
     useEffect(() => {
         // ✅ Update local state whenever contexts are updated
         setContextsData(contexts.data || []);
@@ -105,9 +103,6 @@ export default function ContextList() {
                 const apiUrl = needsAllData 
                     ? `/api/admin/contexts/all`
                     : `/api/admin/contexts?page=${page}&limit=10`;
-    
-                console.log(`🔍 Fetching contexts from: ${apiUrl}`);
-    
                 const response = await axios.get(apiUrl, {
                     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
                 });
@@ -120,13 +115,6 @@ export default function ContextList() {
                         setAllContexts(contextsData);
                         const totalItems = contextsData.length;
                         const calculatedTotalPages = Math.ceil(totalItems / 10);
-                        
-                        console.log('📊 All Data Response:', {
-                            contextsCount: contextsData.length,
-                            calculatedTotalPages,
-                            page
-                        });
-                        
                         contextsDispatch({ 
                             type: "SET_CONTEXTS", 
                             payload: { 
@@ -137,13 +125,6 @@ export default function ContextList() {
                         });
                     } else {
                         // Use server pagination for default view
-                        console.log('📊 Paginated API Response:', {
-                            contextsCount: contextsData.length,
-                            totalPages: response.data.totalPages,
-                            page: response.data.page,
-                            total: response.data.total
-                        });
-                        
                         contextsDispatch({ 
                             type: "SET_CONTEXTS", 
                             payload: { 
@@ -223,12 +204,6 @@ export default function ContextList() {
         if (isFilterActive) {
             // For filtering, use all available data (prefer allContexts, fallback to contexts.data)
             data = allContexts.length > 0 ? allContexts : (contexts.data || []);
-            console.log('🔍 Using data source for filtering:', {
-                usingAllContexts: allContexts.length > 0,
-                allContextsLength: allContexts.length,
-                contextsDataLength: contexts.data?.length || 0,
-                totalDataLength: data.length
-            });
         } else {
             // Normal behavior for search/sort
             data = (isSearchActive || isSortingActive) ? allContexts : (contexts.data || []);
@@ -248,7 +223,6 @@ export default function ContextList() {
                     const filterIdStr = String(filterId).trim();
                     const match = filterIdStr === contextId;
                     if (match) {
-                        console.log('✅ Found matching context:', context.contextTitle, 'ID hidden for security');
                     }
                     return match;
                 });
@@ -377,20 +351,6 @@ export default function ContextList() {
     const displayTotalPages = isClientSideMode ? totalFilteredPages : (totalPages || 1);
 
     // Debug logging
-    console.log('🔍 Pagination Debug:', {
-        isSearchMode,
-        isSortingActive,
-        isClientSideMode,
-        localSearchQuery,
-        sortConfig,
-        totalFilteredItems,
-        totalFilteredPages,
-        totalPages,
-        displayTotalPages,
-        currentPageDataLength: currentPageData.length,
-        page
-    });
-
     // Update pagination when filtered results change
     useEffect(() => {
         if (isClientSideMode && page > totalFilteredPages && totalFilteredPages > 0) {
@@ -500,7 +460,6 @@ export default function ContextList() {
 
     const handleNextPage = () => {
         if (page < displayTotalPages) {
-            console.log("Navigating to Next Page:", page + 1);
             setPage(page + 1);
             localStorage.setItem('contextPage', page + 1);  // ✅ Store updated page in local storage
         }
@@ -508,7 +467,6 @@ export default function ContextList() {
     
     const handlePrevPage = () => {
         if (page > 1) {
-            console.log("Navigating to Previous Page:", page - 1);
             setPage(page - 1);
             localStorage.setItem('contextPage', page - 1);  // ✅ Store updated page in local storage
         }

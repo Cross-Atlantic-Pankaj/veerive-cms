@@ -63,7 +63,6 @@ export const SubSignalProvider = ({ children }) => {
         const fetchSubSignals = async () => {
             const token = localStorage.getItem('token'); // ✅ Check for token
             if (!token) {
-                console.log("⏳ No token found. Skipping sub-signal fetch.");
                 return; // ✅ Don't call the API if there's no token
             }
 
@@ -72,7 +71,6 @@ export const SubSignalProvider = ({ children }) => {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 subSignalsDispatch({ type: 'SET_SUBSIGNALS', payload: response.data });
-                console.log("✅ Sub-Signals Fetched:", response.data);
             } catch (err) {
                 console.error("❌ Error Fetching Sub-Signals:", err);
             }

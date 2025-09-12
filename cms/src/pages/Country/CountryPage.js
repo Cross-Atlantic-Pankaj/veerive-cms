@@ -9,7 +9,6 @@ import styles from '../../html/css/Country.module.css';
 const CountryPage = () => {
     const { isFormVisible, handleFormSubmit } = useContext(CountryContext);
     const { regions } = useContext(RegionContext);
-    console.log('count pg ', isFormVisible)
     return (
         <div className="countries-container">
             {!isFormVisible ? (

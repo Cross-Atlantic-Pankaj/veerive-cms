@@ -32,7 +32,6 @@ export default function SourceForm() {
                 sourcesDispatch({ type: 'UPDATE_SOURCE', payload: response.data });
                 handleFormSubmit('Source updated successfully');
             } catch (err) {
-                console.log(err.message);
             }
         } else {
             try {
@@ -47,7 +46,6 @@ export default function SourceForm() {
 
     const handleHomeNav = () => {
         setIsFormVisible(false);
-        console.log('form vis', isFormVisible);
     };
 
     const handleBackToList = () => {

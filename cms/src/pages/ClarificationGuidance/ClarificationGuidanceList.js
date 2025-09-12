@@ -41,9 +41,6 @@ const ClarificationGuidanceList = () => {
             const response = await axios.get(`/api/admin/clarification-guidance?page=${page}&limit=${itemsPerPage}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            
-            console.log('Clarification Guidance API Response:', response.data);
-            
             setGuidances({
                 data: response.data.guidances || [],
                 totalPages: response.data.totalPages || 1,
@@ -64,9 +61,6 @@ const ClarificationGuidanceList = () => {
             const response = await axios.get('/api/admin/clarification-guidance/all', {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            
-            console.log('All Clarification Guidances Response:', response.data);
-            
             setAllGuidances(response.data.guidances || []);
         } catch (error) {
             console.error('Error fetching all clarification guidances:', error);

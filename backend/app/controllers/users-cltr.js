@@ -1,4 +1,5 @@
 import User from "../models/user-model.js";
+import UserCms from "../models/user-cms-model.js";
 import { validationResult } from "express-validator";
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -8,27 +9,17 @@ import bcryptjs from 'bcryptjs';
 const usersCltr = {};
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com', // Hardcoded Gmail SMTP host
-    port: 587, // Hardcoded SMTP port for TLS
-    secure: false, // Use STARTTLS (not SSL)
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
     auth: {
-        user: 'info@veerive.com', // Hardcoded email address
-        pass: 'rtos ktbb yzdf twaw',   // Hardcoded App Password (from Gmail settings)
+        user: 'info@veerive.com',
+        pass: 'rtos ktbb yzdf twaw',
     },
     tls: {
-        rejectUnauthorized: false, // Accept self-signed certificates
+        rejectUnauthorized: false,
     },
-    family: 4, // Force IPv4
-    debug: true, // Enable debug output for troubleshooting
-});
-
-// Verify the transporter
-transporter.verify((error, success) => {
-    if (error) {
-        console.error('SMTP Debugging Error:', error);
-    } else {
-        console.log('SMTP Debugging Successful:', success);
-    }
+    family: 4,
 });
 
 usersCltr.register = async (req, res) => {
@@ -86,24 +77,74 @@ usersCltr.register = async (req, res) => {
 };
 
 usersCltr.login = async (req, res) => {
+    console.log('🔍 Login attempt:', { email: req.body.email, password: req.body.password ? '***' : 'missing' });
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        console.log('❌ Validation errors:', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
 
     const { email, password } = req.body;
 
     try {
-        // Remove provider check
-        const user = await User.findOne({ email });
+        // Check both collections and find the user with matching password
+        let user = null;
+        let isCmsUser = false;
+        
+        // First check regular users collection
+        console.log('🔍 Checking regular users collection...');
+        const regularUser = await User.findOne({ email });
+        console.log('Regular user found:', regularUser ? 'Yes' : 'No');
+        if (regularUser) {
+            console.log('Regular user password type:', regularUser.password ? (regularUser.password.startsWith('$2a$') ? 'bcrypt' : 'plain') : 'none');
+            // Check if password matches for regular user
+            let passwordMatch = false;
+            if (regularUser.password) {
+                if (regularUser.password.startsWith('$2a$')) {
+                    passwordMatch = await bcryptjs.compare(password, regularUser.password);
+                } else {
+                    passwordMatch = (password === regularUser.password);
+                }
+            }
+            console.log('Regular user password match:', passwordMatch);
+            if (passwordMatch) {
+                user = regularUser;
+                isCmsUser = false;
+            }
+        }
+        
+        // If no match in regular users, check CMS users collection
+        if (!user) {
+            console.log('🔍 Checking CMS users collection...');
+            const cmsUser = await UserCms.findOne({ email });
+            console.log('CMS user found:', cmsUser ? 'Yes' : 'No');
+            if (cmsUser) {
+                console.log('CMS user password type:', cmsUser.password ? (cmsUser.password.startsWith('$2a$') ? 'bcrypt' : 'plain') : 'none');
+                console.log('CMS user password:', cmsUser.password);
+                console.log('Provided password:', password);
+                // Check if password matches for CMS user
+                let passwordMatch = false;
+                if (cmsUser.password) {
+                    if (cmsUser.password.startsWith('$2a$')) {
+                        passwordMatch = await bcryptjs.compare(password, cmsUser.password);
+                    } else {
+                        passwordMatch = (password === cmsUser.password);
+                    }
+                }
+                console.log('CMS user password match:', passwordMatch);
+                if (passwordMatch) {
+                    user = cmsUser;
+                    isCmsUser = true;
+                }
+            }
+        }
+        
         if (!user) {
             return res.status(404).json({ error: 'Invalid email or password' });
         }
 
-        // Plain-text password check
-        if (password !== user.password) {
-            return res.status(404).json({ error: 'Invalid email or password' });
-        }
+        // Password already verified above, proceed with token generation
 
         // Generate token if login is successful
         const tokenData = { userId: user._id, role: user.role };
@@ -141,7 +182,6 @@ usersCltr.forgotPassword = async (req, res) => {
         user.resetTokenExpiration = Date.now() + 900000; // 15 minutes
 
         await user.save();
-        console.log("Token Saved to Database"); // Debugging
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -226,7 +266,6 @@ usersCltr.updatePassword = async (req, res) => {
 };
 
 usersCltr.updateEmail = async (req, res) => {
-    //console.log("Request User from Middleware:", req.user); // Log req.user to confirm presence
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -267,7 +306,6 @@ usersCltr.updateEmail = async (req, res) => {
 };
 
 usersCltr.list = async (req, res) => {
-    console.log('Accessing user list with req.user:', req.user); // Debugging log
     try {
         let query = {};
         if (req.user.role === 'SuperAdmin') {
@@ -289,7 +327,14 @@ usersCltr.list = async (req, res) => {
 
 usersCltr.account = async (req, res) => {
     try {
-        const user = await User.findById(req.user.userId).select("email role name");
+        // Check both collections for the user
+        let user = await User.findById(req.user.userId).select("email role name");
+        
+        // If not found in regular users collection, check CMS users collection
+        if (!user) {
+            user = await UserCms.findById(req.user.userId).select("email role name");
+        }
+        
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }

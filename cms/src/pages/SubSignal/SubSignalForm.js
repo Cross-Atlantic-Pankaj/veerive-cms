@@ -71,7 +71,6 @@ export default function SubSignalForm({ handleFormSubmit }) {
 
     const handleHomeNav = () =>{
         setIsFormVisible(false)
-        console.log('form vis', isFormVisible)
     }
 
     return (

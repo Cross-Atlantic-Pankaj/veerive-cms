@@ -19,7 +19,6 @@ const themeReducer = (state, action) => {
         case 'REMOVE_THEME':
             return { ...state, data: state.data.filter(ele => ele._id !== action.payload) };
         case 'SET_EDIT_ID':
-            console.log("Setting edit ID:", action.payload);
             return { ...state, editId: action.payload };
         case 'UPDATE_THEME':
             return {
@@ -80,18 +79,13 @@ export const ThemeProvider = ({ children }) => {
     const fetchThemes = async (page, limit = 10) => {
         const token = localStorage.getItem('token');
         if (!token) {
-            console.log("⏳ No token found. Skipping theme fetch.");
             return;
         }
     
         try {
-            console.log("Fetching themes for page:", page);
             const response = await axios.get(`/api/admin/themes?page=${page}&limit=${limit}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-    
-            console.log("✅ Themes Fetched:", response.data);
-    
             let totalPages = response.data.totalPages || 1;
     
             themesDispatch({
@@ -114,7 +108,6 @@ export const ThemeProvider = ({ children }) => {
     // ✅ Ensure correct `currentPage` is used before fetching themes
     useEffect(() => {
         if (!hasFetched.current) {
-            console.log("Initial data fetch");
             hasFetched.current = true;
             fetchThemes(currentPage);
             fetchAllThemes();
@@ -123,7 +116,6 @@ export const ThemeProvider = ({ children }) => {
 
     // ✅ Corrected `setCurrentPage` to update both local state and context
     const updateCurrentPage = (newPage) => {
-        console.log("Updating page to:", newPage);
         setCurrentPage(newPage);
         themesDispatch({ type: 'SET_PAGE', payload: newPage });
         fetchThemes(newPage);
@@ -131,14 +123,12 @@ export const ThemeProvider = ({ children }) => {
 
     // ✅ Handle Add Theme Click
     const handleAddClick = () => {
-        console.log("Add theme clicked");
         themesDispatch({ type: 'SET_EDIT_ID', payload: null });
         setIsFormVisible(true);
     };
 
     // ✅ Handle Edit Theme Click
     const handleEditClick = async (id) => {
-        console.log("Edit theme clicked:", id);
         try {
             // First fetch the specific theme to ensure we have the latest data
             const token = localStorage.getItem('token');
@@ -147,9 +137,6 @@ export const ThemeProvider = ({ children }) => {
             const response = await axios.get(`/api/admin/themes/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-
-            console.log("Theme data fetched:", response.data);
-
             // Update the theme in the context
             themesDispatch({ 
                 type: 'UPDATE_THEME', 
@@ -166,7 +153,6 @@ export const ThemeProvider = ({ children }) => {
 
     // ✅ Handle Form Submission
     const handleFormSubmit = (message) => {
-        console.log("Form submitted:", message);
         // Clear edit state
         themesDispatch({ type: 'SET_EDIT_ID', payload: null });
         // Hide the form
@@ -174,13 +160,6 @@ export const ThemeProvider = ({ children }) => {
         setSuccessMessage(message);
         setTimeout(() => setSuccessMessage(''), 2000);
     };
-
-    console.log("ThemeProvider state:", { 
-        isFormVisible, 
-        editId: themes.editId, 
-        themesCount: themes.data.length 
-    });
-
     return (
         <ThemeContext.Provider 
             value={{ 

@@ -51,54 +51,15 @@ dotenv.config()
 
 const app = express()
 
-console.log('Environment Variables:', {
-  PORT: process.env.PORT,
-  DB_URL: process.env.DB_URL_LOCAL,
-  EMAIL_HOST: process.env.EMAIL_HOST,
-  EMAIL_PORT: process.env.EMAIL_PORT,
-  EMAIL_USER: process.env.EMAIL_USER,
-});
-
-
- //app.use(cors())
-
-// app.use(cors({
-//   origin: 'https://veerive-frontend.vercel.app', // Allow your Vercel frontend
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
-//   credentials: true, // Allow cookies and credentials if needed
-//   allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
-// }));
-
-// const allowedOrigins = [
-//   'http://localhost:3001', // Add your local development origin
-//   'https://veerive-oct7.vercel.app',
-//   'https://veerive-frontend.vercel.app'
-// ];
-
-// app.use(cors({
-//   origin: (origin, callback) => {
-//     // If the request origin is in the allowedOrigins array or is undefined (for server-to-server requests), allow it
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
-//   credentials: true, // Allow credentials (e.g., cookies, authorization headers)
-//   allowedHeaders: ['Content-Type', 'Authorization'] // Allow specific headers
-// }));
-
-// app.options('*', cors()); // Allow preflight requests on all routes
 
 const allowedOrigins = [
   'http://localhost:3000', // User frontend
   'http://localhost:3001', // Admin Development
+  'http://localhost:3002', // CMS Development
   'https://veerive-oct7.vercel.app', // Staging
   'https://veerive-frontend.vercel.app', // Production
 ];
 
-// Remove the redundant `app.use(cors())`
 
 app.use(
   cors({
@@ -146,13 +107,6 @@ app.use('/api/auth', oauthRouth);
 //profile routes
 app.get('/api/profiles', authenticateUser, profilesCltr.list)
 app.put('/api/profiles/:id', authenticateUser, profilesCltr.update)
-//app.post('/api/profiles', profilesCltr.create) //- this is happening during registration
-
-// Role types routes - blocked - add from schema
-//app.get('/api/roles', authenticateUser, authorizeUser(['Admin']), rolesCltr.list)
-//app.post('/api/roles', authenticateUser, authorizeUser(['Admin']), rolesCltr.create)
-//app.put('/api/roles/:id', authenticateUser, authorizeUser(['Admin']), rolesCltr.update)
-//app.delete('/api/roles/:id', authenticateUser, authorizeUser(['Admin']), rolesCltr.delete)
 
 // context routes
 app.get('/api/contexts', authenticateUser, contextsCltr.list)
@@ -191,8 +145,6 @@ app.post('/api/admin/post-types', authenticateUser, postTypesCltr.create)
 app.put('/api/admin/post-types/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), postTypesCltr.update)
 app.delete('/api/admin/post-types/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), postTypesCltr.delete)
 
-//themes routes
-//app.get('/api/themes', authenticateUser, themesCltr.list)
 // Themes routes (Accessible by authenticated users)
 app.get('/api/themes', authenticateUser, themesCltr.list); // Paginated themes
 app.get('/api/themes/all', authenticateUser, themesCltr.getAllThemes); // All themes (no pagination)
@@ -203,8 +155,6 @@ app.get('/api/admin/themes', authenticateUser, themesCltr.list); // Paginated th
 app.get('/api/admin/themes/all', authenticateUser, themesCltr.getAllThemes); // All themes (no pagination)
 app.get('/api/admin/themes/:id', authenticateUser, themesCltr.getOne); // Get single theme
 
-//admin routes
-//app.get('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'Moderator']), themesCltr.list)
 app.post('/api/admin/themes', authenticateUser, authorizeUser(['Admin', 'SuperAdmin']), themesCltr.create)
 app.put('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'SuperAdmin']), themesCltr.update)
 app.delete('/api/admin/themes/:id', authenticateUser, authorizeUser(['Admin', 'SuperAdmin']), themesCltr.delete)
@@ -337,7 +287,18 @@ app.get('/data-deletion.html', (req, res) => {
 
 app.get('/api/admin/contexts/edit-data', authenticateUser, contextsCltr.getEditContextData);
 
-configDB().then(ensureSuperAdmin);
+configDB()
+  .then(() => {
+    console.log('Database connected successfully');
+    return ensureSuperAdmin();
+  })
+  .then(() => {
+    console.log('SuperAdmin ensured successfully');
+  })
+  .catch((err) => {
+    console.error('Failed to initialize database:', err);
+    process.exit(1);
+  });
 
 const port = process.env.PORT || 3050
 

@@ -41,9 +41,6 @@ const QueryRefinerList = () => {
             const response = await axios.get(`/api/admin/query-refiner?page=${page}&limit=${itemsPerPage}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            
-            console.log('Query Refiner API Response:', response.data);
-            
             setRefiners({
                 data: response.data.refiners || [],
                 totalPages: response.data.totalPages || 1,
@@ -64,9 +61,6 @@ const QueryRefinerList = () => {
             const response = await axios.get('/api/admin/query-refiner/all', {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            
-            console.log('All Query Refiners Response:', response.data);
-            
             setAllRefiners(response.data.refiners || []);
         } catch (error) {
             console.error('Error fetching all query refiners:', error);

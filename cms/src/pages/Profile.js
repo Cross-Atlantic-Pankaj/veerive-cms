@@ -5,10 +5,7 @@ import axios from '../config/axios'
 export default function Profile(){
     const [profile, setProfile] = useState(null);
     const { state } = useContext(AuthContext)
-    console.log('state', state)
     const userId = state.user._id
-    console.log('uid', userId)
-    
     useEffect (() => {
         const fetchProfile = async () => {
             try {
@@ -27,9 +24,7 @@ export default function Profile(){
     }
     if (!profile) {
         return <div>Loading...</div>
-        console.log('profile', profile)
     }
-    
 
     return (
         <div>

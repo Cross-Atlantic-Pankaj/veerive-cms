@@ -30,7 +30,6 @@ export default function SectorForm({ handleFormSubmit }) {
                 sectorsDispatch({ type: 'UPDATE_SECTOR', payload: response.data });
                 handleFormSubmit('Sector updated successfully');
             } catch (err) {
-                console.log(err.message);
             }
         } else {
             try {
@@ -45,7 +44,6 @@ export default function SectorForm({ handleFormSubmit }) {
 
     const handleHomeNav = () => {
         setIsFormVisible(false);
-        console.log('form vis', isFormVisible);
     };
 
     const handleBackToList = () => {

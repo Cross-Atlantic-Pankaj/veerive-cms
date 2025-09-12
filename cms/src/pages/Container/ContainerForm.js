@@ -10,8 +10,6 @@ export default function ContainerForm() {
     const [selectedType, setSelectedType] = useState(''); // Initialize as empty string
     const [loading, setLoading] = useState(true);
 
-
-
     // Fetch containerType from the database when the form is opened
     useEffect(() => {
         if (selectedContextId) {
@@ -63,7 +61,6 @@ export default function ContainerForm() {
             await axios.put(`/api/admin/contexts/${selectedContextId}`, { containerType: selectedType }, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            console.log('Save successful');
         } catch (err) {
             console.error('Error saving updates:', err);
         }

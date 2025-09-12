@@ -9,9 +9,6 @@ export default function ContainerList() {
     const [sortConfig, setSortConfig] = useState({ key: 'postTitle', direction: 'ascending' });
     const [selectedContainer, setSelectedContainer] = useState(null);
     const [loadingContexts, setLoadingContexts] = useState(false); // New loading state
-
-    console.log('contexts', contexts);
-
     // Helper functions
     const getContextName = (ids, data) => {
         if (!Array.isArray(ids)) return 'Unknown';
@@ -84,15 +81,11 @@ export default function ContainerList() {
             console.error('Contexts data is not available.');
             return;
         }
-        console.log('Selected container:', container);
-        console.log('Contexts data:', contexts);
-    
         // Ensure that selectedContainer is updated correctly before showing the form
         setSelectedContainer(container);
         // Call handleShowClick which should trigger the update of context or postsForContext
         await handleShowClick(container);
     };
-    
 
     return (
         <div className="container-list-container">

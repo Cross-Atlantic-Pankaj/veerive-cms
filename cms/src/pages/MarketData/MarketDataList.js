@@ -41,9 +41,6 @@ const MarketDataList = () => {
             const response = await axios.get(`/api/admin/market-data?page=${page}&limit=${itemsPerPage}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            
-            console.log('Market Data API Response:', response.data);
-            
             setMarketData({
                 data: response.data.marketData || [],
                 totalPages: response.data.totalPages || 1,
@@ -64,9 +61,6 @@ const MarketDataList = () => {
             const response = await axios.get('/api/admin/market-data/all', {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            
-            console.log('All Market Data Response:', response.data);
-            
             setAllMarketData(response.data.marketData || []);
         } catch (error) {
             console.error('Error fetching all market data:', error);

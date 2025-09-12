@@ -49,7 +49,6 @@ export default function SignalForm({ handleFormSubmit }) {
 
     const handleHomeNav = () =>{
         setIsFormVisible(false)
-        console.log('form vis', isFormVisible)
     }
 
     return (

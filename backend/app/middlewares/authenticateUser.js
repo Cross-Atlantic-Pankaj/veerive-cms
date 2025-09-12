@@ -4,27 +4,17 @@ import User from '../models/user-model.js'; // Ensure the correct path to the Us
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com', // Hardcoded Gmail SMTP host
-    port: 587, // Hardcoded SMTP port for TLS
-    secure: false, // Use STARTTLS (not SSL)
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
     auth: {
-        user: 'info@veerive.com', // Hardcoded email address
-        pass: 'rtos ktbb yzdf twaw',   // Hardcoded App Password (from Gmail settings)
+        user: 'info@veerive.com',
+        pass: 'rtos ktbb yzdf twaw',
     },
     tls: {
-        rejectUnauthorized: false, // Accept self-signed certificates
+        rejectUnauthorized: false,
     },
-    family: 4, // Force IPv4
-    debug: true, // Enable debug output for troubleshooting
-});
-
-// Verify the transporter
-transporter.verify((error, success) => {
-    if (error) {
-        console.error('SMTP Debugging Error:', error);
-    } else {
-        console.log('SMTP Debugging Successful:', success);
-    }
+    family: 4,
 });
 
 // Middleware to authenticate users

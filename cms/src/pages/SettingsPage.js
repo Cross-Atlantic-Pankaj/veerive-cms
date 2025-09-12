@@ -98,7 +98,6 @@ const SettingsPage = () => {
             setIsUpdatingPassword(false);
         }
     };
-    
 
     // Navigate back to Admin Home
     const handleBackToAdminHome = () => {

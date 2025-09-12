@@ -30,8 +30,7 @@ export default function StoryOrder() {
         if (storedStartDate) setStartDate(storedStartDate);
         if (storedEndDate) setEndDate(storedEndDate);
         if (storedPage) setCurrentPage(parseInt(storedPage));
-    
-        
+
     }, []);
     
   useEffect(() => {
@@ -50,8 +49,7 @@ export default function StoryOrder() {
         setCurrentPage(page);
         localStorage.setItem('currentPage', page); // ✅ Store current page in localStorage
     };
-    
-    
+
     // Handle changes in rank input fields
     const handleRankChange = (contextTitle, value) => {
         setRank(prevRank => ({
@@ -69,7 +67,6 @@ export default function StoryOrder() {
             setEndDate(value);
         }
     };
-    
 
     const handlePublishDateChange = (e) => {
         setPublishDate(e.target.value);
@@ -88,14 +85,11 @@ export default function StoryOrder() {
         setFilteredContextsState([]); // ✅ Clear previous contexts before fetching
         
         try {
-            console.log("🔄 Fetching ALL posts within date range...");
             const response = await axios.get('/api/admin/posts/all', {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
     
             if (response.data.success) {
-                console.log("✅ Successfully fetched ALL posts:", response.data.posts.length);
-    
                 // ✅ Manually filter posts by date
                 const filteredPosts = response.data.posts.filter(post => {
                     const postDate = new Date(post.date); // Ensure post.date is a Date object
@@ -105,8 +99,6 @@ export default function StoryOrder() {
     
                     return postDate >= start && postDate <= end; // ✅ Keep only posts in range
                 });
-    
-                console.log("✅ Filtered Posts Count:", filteredPosts.length);
                 setPosts(filteredPosts);
                 // ✅ Store in `localStorage` to persist after reload
             localStorage.setItem('startDate', startDate);
@@ -134,7 +126,6 @@ export default function StoryOrder() {
     
         try {
             do {
-                console.log(`🔄 Fetching ALL contexts - Page ${currentPage}`);
                 const response = await axios.get('/api/admin/contexts/all', {
                     params: { postIds, page: currentPage, limit },
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -147,15 +138,10 @@ export default function StoryOrder() {
                 totalPages = response.data.totalPages;
                 currentPage++;
             } while (currentPage <= totalPages);
-    
-            console.log("✅ Final Contexts Fetched:", allContexts.length);
-    
             // ✅ Only keep contexts that are linked to fetched posts
             const filteredContexts = allContexts.filter(context =>
                 context.posts.some(p => postIds.includes(p.postId))
             );
-    
-            console.log("✅ Filtered Contexts Count:", filteredContexts.length);
             setContexts(filteredContexts);
         } catch (err) {
             console.error('❌ Error fetching all contexts:', err);
@@ -178,8 +164,6 @@ export default function StoryOrder() {
             });
     
             const orders = response.data;
-            console.log("📢 Story Orders Response:", orders);
-    
             // ✅ Extract contexts that are linked to posts
             const postLinkedContextIds = contexts
                 .filter(ctx => ctx.posts.some(p => posts.some(post => post._id === p.postId)))
@@ -192,9 +176,6 @@ export default function StoryOrder() {
             const newFilteredContexts = contexts.filter(ctx => 
                 validContextIds.includes(ctx._id) || postLinkedContextIds.includes(ctx._id)
             );
-    
-            console.log("✅ Filtered Story Orders Count:", orders.length);
-            console.log("✅ Final Displayed Contexts Count:", newFilteredContexts.length);
             setFilteredContextsState(newFilteredContexts); // ✅ Update state with filtered contexts
     
             // ✅ Set the latest publish date if available
@@ -232,14 +213,10 @@ export default function StoryOrder() {
         }
     
         try {
-            console.log("📢 Saving Story Orders for:", publishDate, startDate, endDate);
-    
             const existingOrdersResponse = await axios.get('/api/admin/story-orders', {
                 params: { startDate, endDate, publishDate },
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-    
-            console.log("Existing Story Orders:", existingOrdersResponse.data);
             const existingOrders = existingOrdersResponse.data;
     
             const storyOrders = Object.entries(rank).map(([contextTitle, contextRank]) => {
@@ -258,9 +235,6 @@ export default function StoryOrder() {
                     _id: existingOrder ? existingOrder._id : null
                 };
             }).filter(Boolean);
-    
-            console.log("✅ Final Story Orders Payload:", storyOrders);
-    
             await Promise.all(storyOrders.map(async order => {
                 if (order._id) {
                     await axios.put(`/api/admin/story-orders/${order._id}`, {
@@ -280,9 +254,6 @@ export default function StoryOrder() {
                     });
                 }
             }));
-    
-            console.log('✅ Story orders saved successfully');
-    
             // ✅ Clear the publish date after saving
             setPublishDate('');
             alert("✅ Story Orders Saved Successfully!");
@@ -321,8 +292,7 @@ export default function StoryOrder() {
         setEndDate('');
         setCurrentPage(1);
     }, []);
-    
-    
+
     return (
         <div className="story-order-container">
             <h1>Story Order</h1>

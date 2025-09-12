@@ -61,7 +61,6 @@ export const RegionProvider = ({ children }) => {
         const fetchRegions = async () => {
             const token = localStorage.getItem('token'); // ✅ Get token from localStorage
             if (!token) {
-                console.log("⏳ No token found. Skipping region fetch.");
                 return; // ✅ Exit early if token is missing
             }
     
@@ -69,7 +68,6 @@ export const RegionProvider = ({ children }) => {
                 const response = await axios.get('/api/admin/regions', { 
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                console.log("✅ Regions Fetched:", response.data);
                 regionsDispatch({ type: 'SET_REGIONS', payload: response.data });
             } catch (err) {
                 console.error("❌ Error Fetching Regions:", err);
@@ -78,8 +76,7 @@ export const RegionProvider = ({ children }) => {
     
         fetchRegions(); // ✅ Call only if token exists
     }, []); // Runs once when the component mounts
-    
-    
+
     // Handler function to show the form and prepare for adding a new region
     const handleAddClick = () => {
         regionsDispatch({ type: 'SET_EDIT_ID', payload: null });

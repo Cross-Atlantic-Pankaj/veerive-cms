@@ -70,7 +70,6 @@ const formatOptionLabel = ({ label, jsxCode }) => (
             <JsxParser
               jsx={jsxCode}
               components={{ Tile }}
-              onError={(error) => console.error('JSX Parser Error:', error)}
             />
         </div>
       </div>
@@ -102,12 +101,9 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
     const [googleDriveUrl, setGoogleDriveUrl] = useState(''); // Google Drive URL field (always visible)
     const [imageUrl, setImageUrl] = useState(''); // Image URL for post
     
-    // Debug imageUrl state changes
+    // ImageUrl state management
     useEffect(() => {
-        console.log('🔄 PostForm: imageUrl state changed to:', imageUrl);
-        console.log('🔄 PostForm: imageUrl type:', typeof imageUrl);
-        console.log('🔄 PostForm: imageUrl length:', imageUrl ? imageUrl.length : 'null/undefined');
-        console.log('🔄 PostForm: imageUrl truthy:', !!imageUrl);
+        // ImageUrl state updated
     }, [imageUrl]);
 
     const fetchAllContexts = async () => {
@@ -117,14 +113,12 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
             });
     
             if (response.data.success && Array.isArray(response.data.contexts)) {
-                console.log("✅ Fetched All Contexts:", response.data.contexts.length);
+
                 contextsDispatch({ type: "SET_CONTEXTS", payload: { contexts: response.data.contexts } });
             } else {
-                console.error("❌ Invalid API response:", response.data);
                 contextsDispatch({ type: "SET_CONTEXTS", payload: { contexts: [] } }); // ✅ Fallback to empty array
             }
         } catch (err) {
-            console.error("❌ Error fetching all contexts:", err);
             contextsDispatch({ type: "SET_CONTEXTS", payload: { contexts: [] } }); // ✅ Fallback to empty array
         }
     };
@@ -135,21 +129,12 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
     }, []);
     
     useEffect(() => {
-        console.log("🔄 PostForm useEffect triggered:", {
-            editId: posts.editId,
-            dataLength: posts.data.length,
-            hasEditId: !!posts.editId
-        });
-        
+
         if (posts.editId) {
             const post = posts.data.find((ele) => ele._id === posts.editId);
     
             if (post) {
-                console.log("✅ Found post for editing:", post.postTitle);
-                console.log("Editing Post Data:", post);
-                console.log("Editing Post Contexts:", post.contexts);
-                console.log("Available contexts.data:", contexts?.data?.length || 0);
-            
+
             setSelectedContexts(
                 post.contexts && Array.isArray(post.contexts)
                     ? post.contexts.map(ctx => {
@@ -181,19 +166,6 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     : []
             );
             
-            // Debug log the processed contexts
-            console.log("🔄 Processed selectedContexts:", 
-                post.contexts && Array.isArray(post.contexts)
-                    ? post.contexts.map(ctx => {
-                        if (typeof ctx === 'string') {
-                            const contextData = contexts?.data?.find(c => c._id === ctx);
-                            return { type: 'ID', ctx, found: !!contextData, label: contextData?.contextTitle };
-                        } else {
-                            return { type: 'Object', ctx: ctx._id, label: ctx.contextTitle };
-                        }
-                    })
-                    : []
-            );
 
                 setPostTitle(post.postTitle);
                 setDate(format(parseISO(post.date), 'yyyy-MM-dd'));
@@ -252,7 +224,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     }).filter(Boolean) : []
                 );
                 setGoogleDriveUrl(post.googleDriveUrl || post.infographicsUrl || post.researchReportsUrl || ''); // Migrate from old fields
-                console.log('🔄 Setting imageUrl from post data:', post.imageUrl);
+
                 setImageUrl(post.imageUrl || ''); // Set image URL
                 if (post.tileTemplateId) {
                     const template = tileTemplates.find(t => t._id === post.tileTemplateId);
@@ -262,17 +234,13 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                 } else {
                     setTileTemplateId(null);
                 }
-            } else {
-                console.log("❌ Post not found in data for editId:", posts.editId);
-                console.log("Available posts:", posts.data.map(p => ({ id: p._id, title: p.postTitle })));
             }
         } else {
             // Reset form for new post
-            console.log("🔄 Resetting form for new post");
+
             resetForm();
         }
     }, [posts.editId, posts.data, contexts, tileTemplates, companies.data, sources.data]); 
-    
 
     // ✅ Ensure form does not disappear after reload
     useEffect(() => {
@@ -283,75 +251,49 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
     
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        console.log('🚀 FORM SUBMIT BUTTON CLICKED!');
-        console.log('🔄 Starting form submission with imageUrl:', imageUrl);
-        console.log('📋 Form validation check starting...');
     
         // Validation checks
-        console.log('🔍 Validation check - postTitle:', postTitle);
         if (!postTitle.trim()) {
-            console.log('❌ Validation failed: Post Title is required');
             toast.warn("⚠️ Post Title is required.");
             return;
         }
-        console.log('🔍 Validation check - date:', date);
         if (!date) {
-            console.log('❌ Validation failed: Date is required');
             toast.warn("⚠️ Date is required.");
             return;
         }
         if (new Date(date) > new Date(currentDateInIST)) {
-            console.log('❌ Validation failed: Date cannot be in the future');
             toast.warn("⚠️ Date cannot be in the future.");
             return;
         }
-        console.log('🔍 Validation check - postType:', postType);
         if (!postType) {
-            console.log('❌ Validation failed: Post Type is required');
             toast.warn("⚠️ Post Type is required.");
             return;
         }
-        console.log('🔍 Validation check - summary:', summary);
         if (!summary) {
-            console.log('❌ Validation failed: Summary is required');
             toast.warn("⚠️ Summary is required.");
             return;
         }
-        console.log('🔍 Validation check - sentiment:', sentiment);
         if (!sentiment) {
-            console.log('❌ Validation failed: Sentiment is required');
             toast.warn("⚠️ Sentiment is required.");
             return;
         }
-        console.log('🔍 Validation check - selectedContexts:', selectedContexts);
         if (selectedContexts.length === 0) {
-            console.log('❌ Validation failed: Please select at least one Context');
             toast.warn("⚠️ Please select at least one Context.");
             return;
         }
-        console.log('🔍 Validation check - selectedCountries:', selectedCountries);
         if (selectedCountries.length === 0) {
-            console.log('❌ Validation failed: Please select at least one Country');
             toast.warn("⚠️ Please select at least one Country.");
             return;
         }
-        console.log('🔍 Validation check - source:', source);
         if (source.length === 0) {
-            console.log('❌ Validation failed: Please select at least one Source');
             toast.warn("⚠️ Please select at least one Source.");
             return;
         }
-        console.log('🔍 Validation check - sourceUrls:', sourceUrls);
         if (sourceUrls.length === 0) {
-            console.log('❌ Validation failed: Please provide at least one Source URL');
             toast.warn("⚠️ Please provide at least one Source URL.");
             return;
         }
-        
-        console.log('✅ All validation checks passed! Proceeding with form submission...');
 
-    
         const formData = {
             postTitle,
             date,
@@ -371,18 +313,8 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
             marketDataDocuments: selectedMarketDataDocuments.map(md => md.value),
             tileTemplateId: tileTemplateId ? tileTemplateId.value : null,
             googleDriveUrl,
-            imageUrl: imageUrl || null, // Ensure imageUrl is explicitly set
+            imageUrl: imageUrl || null,
         };
-        
-        console.log('📝 Form data being submitted:', formData);
-        console.log('🖼️ ImageUrl in form data:', formData.imageUrl);
-        console.log('🔍 Form data keys:', Object.keys(formData));
-        console.log('🔍 ImageUrl type:', typeof formData.imageUrl);
-        console.log('🔍 ImageUrl value:', formData.imageUrl);
-        console.log('🔍 ImageUrl truthy:', !!formData.imageUrl);
-        console.log('🔍 ImageUrl length:', formData.imageUrl ? formData.imageUrl.length : 'null/undefined');
-        console.log('🔍 Current imageUrl state:', imageUrl);
-        console.log('🔍 State vs form data match:', imageUrl === formData.imageUrl);
     
         handleFormSubmit(formData, posts.editId);
     };
@@ -395,12 +327,10 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
         value: ctx._id,
         label: ctx.contextTitle
     }));
-    
-    
+
     const handleSelectChange = (selectedOptions) => {
         setSelectedContexts(selectedOptions || []); // ✅ Allow multiple selections
     };
-    
 
     const handleSummaryChange = (value) => {
         setSummary(value);
@@ -447,7 +377,6 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
         }
     };
 
-
     // Add refresh functions for companies and sources
     const refreshCompanies = async () => {
         // This can be moved to the context provider
@@ -476,7 +405,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
         setSelectedMarketDataDocuments([]); // Reset market data documents
         setTileTemplateId(null);
         setGoogleDriveUrl('');
-        console.log('🔄 Resetting imageUrl to empty string');
+
         setImageUrl(''); // Reset image URL
     }
 
@@ -536,16 +465,10 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                 
                 <ImageUpload
                     onImageUpload={(url) => {
-                        console.log('🖼️ Image uploaded, setting imageUrl to:', url);
                         setImageUrl(url);
-                        // Force a re-render to ensure state is updated
-                        setTimeout(() => {
-                            console.log('🔄 Verifying imageUrl state after upload:', url);
-                        }, 0);
                     }}
                     currentImageUrl={imageUrl}
                     onImageDelete={() => {
-                        console.log('🗑️ Image deleted, clearing imageUrl');
                         setImageUrl('');
                     }}
                     label="Post Image"

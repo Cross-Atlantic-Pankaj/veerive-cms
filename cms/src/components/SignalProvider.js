@@ -60,7 +60,6 @@ export const SignalProvider = ({ children }) => {
         const fetchSignals = async () => {
             const token = localStorage.getItem('token');  // ✅ Get token from localStorage
             if (!token) {
-                console.log("⏳ No token found. Skipping signal fetch.");
                 return;  // ✅ Skip API call if no token is available
             }
     
@@ -68,7 +67,6 @@ export const SignalProvider = ({ children }) => {
                 const response = await axios.get('/api/admin/signals', { 
                     headers: { Authorization: `Bearer ${token}` } 
                 });
-                console.log("✅ Signals Fetched:", response.data);
                 signalsDispatch({ type: 'SET_SIGNALS', payload: response.data });
             } catch (err) {
                 console.error("❌ Error Fetching Signals:", err);

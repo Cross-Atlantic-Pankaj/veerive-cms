@@ -60,19 +60,15 @@ useEffect(() => {
                     headers: { Authorization: `Bearer ${storedToken}` },
                 });
                 dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
-            } catch (err) {
-                console.error('Error fetching user data:', err);
-                
-                if (err.response && err.response.status === 401) { // ✅ Only remove token if unauthorized
-                    console.warn("Token expired or invalid. Removing from storage.");
-                    localStorage.removeItem('token'); 
-                }
+        } catch (err) {
+            if (err.response && err.response.status === 401) {
+                localStorage.removeItem('token'); 
             }
+        }
         }
         setLoading(false);
     })();
 }, []);
-
 
     // Function to handle user registration
         const handleRegister = async (formData) => {
@@ -81,7 +77,7 @@ useEffect(() => {
             toast(response.data.message || 'Successfully Registered', { autoClose: 2000 }); // Use response message if available
             navigate('/login');
         } catch (err) {
-            console.log(err);
+
         }
     };
     
@@ -138,28 +134,23 @@ const handleLogin = async (formData) => {
     try {
         const response = await axios.post('/api/users/login', formData, { withCredentials: true });
 
-        console.log("Login API Response:", response.data); // ✅ Log response to check if token is received
-
         if (response.data.token) {
-            localStorage.setItem('token', response.data.token); // ✅ Store token
-            console.log("Token stored:", localStorage.getItem('token')); // ✅ Check if stored properly
+            localStorage.setItem('token', response.data.token);
         } else {
-            console.error("❌ No token received from login API");
+            throw new Error('No token received from login API');
         }
 
         const userResponse = await axios.get('/api/users/account', {
             headers: { Authorization: `Bearer ${response.data.token}` },
         });
 
-        console.log("User Details API Response:", userResponse.data); // ✅ Log user details response
-
         dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
         setLoading(false);
         navigate('/admin-home');
     } catch (err) {
         setLoading(false);
-        console.error("❌ Error during login:", err);
         toast.error("Login failed. Please check credentials.");
+        throw err; // Re-throw the error so Login component can catch it
     }
 };
 
@@ -171,7 +162,6 @@ const handleLogin = async (formData) => {
         toast("Successfully logged out");
         navigate('/login'); // ✅ Redirect to login
     };
-    
 
     // Provide authentication state and functions to child components
     return (
@@ -182,6 +172,4 @@ const handleLogin = async (formData) => {
 }
 
 export default AuthProvider;
-
-
 

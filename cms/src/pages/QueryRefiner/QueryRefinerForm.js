@@ -27,7 +27,6 @@ export default function QueryRefinerForm() {
   }, [id]);
 
   useEffect(() => {
-    console.log('Sectors data:', sectors);
   }, [sectors]);
 
   // Reset sub-sector when sector changes (only for new records)
@@ -104,8 +103,6 @@ export default function QueryRefinerForm() {
 
   // Check if sectors data exists and has items
   const sectorOptions = sectors?.data || [];
-  console.log('Available sector options:', sectorOptions);
-
   return (
     <div className={styles.formContainer}>
       <button type="button" className={styles.cancelBtn} style={{ marginBottom: 20 }} onClick={() => navigate('/query-refiner')}>

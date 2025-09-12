@@ -23,7 +23,6 @@ export default function MarketDataForm() {
   const { sources } = useContext(SourceContext);
 
   useEffect(() => {
-    console.log('Sectors data:', sectors);
   }, [sectors]);
 
   // Fetch market data for edit mode
@@ -108,8 +107,6 @@ export default function MarketDataForm() {
 
   // Check if sectors data exists and has items
   const sectorOptions = sectors?.data || [];
-  console.log('Available sector options:', sectorOptions);
-
   if (isEdit && loading) {
     return (
       <div className={styles.formContainer}>

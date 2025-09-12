@@ -47,10 +47,6 @@ export default function ContextForm({ handleFormSubmit }) {
     
     // Debug imageUrl state changes
     useEffect(() => {
-        console.log('🔄 ContextForm: imageUrl state changed to:', imageUrl);
-        console.log('🔄 ContextForm: imageUrl type:', typeof imageUrl);
-        console.log('🔄 ContextForm: imageUrl length:', imageUrl ? imageUrl.length : 'null/undefined');
-        console.log('🔄 ContextForm: imageUrl truthy:', !!imageUrl);
     }, [imageUrl]);
     const [summary, setSummary] = useState('');
     const [postOptions, setPostOptions] = useState([]); // ✅ Store processed post options
@@ -82,13 +78,11 @@ export default function ContextForm({ handleFormSubmit }) {
         }
 
         try {
-            console.log("🔄 Fetching ALL posts inside ContextForm...");
             const response = await axios.get(`/api/admin/posts/all`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
             if (response.data.success) {
-                console.log("✅ Successfully fetched All Posts:", response.data.posts.length);
                 setPosts(response.data.posts); // ✅ Store posts locally inside ContextForm
             }
         } catch (err) {
@@ -98,30 +92,21 @@ export default function ContextForm({ handleFormSubmit }) {
 
     useEffect(() => {
         if (!posts || posts.length === 0) {
-            console.log("🔄 Fetching all posts for Context Form...");
             fetchAllPosts();
         } else {
-            console.log("✅ All posts already loaded in ContextForm:", posts.length);
         }
     }, [posts]);
 
     // Fetch tile templates on mount
     useEffect(() => {
         if (!tileTemplates || tileTemplates.length === 0) {
-            console.log("🔄 Fetching tile templates for Context Form...");
             fetchTileTemplates();
         }
     }, [tileTemplates, fetchTileTemplates]);
 
     useEffect(() => {
         const editId = editIdFromQuery || contexts.editId;
-        console.log('Effect running in ContextForm:');
-        console.log('editId:', editId);
-        console.log('contexts.data:', contexts.data);
-        console.log('posts:', posts);
-
         if (!editId) {
-            console.log('No edit ID found, clearing form');
             // Clear form when not editing
             setContextTitle('');
             setDate('');
@@ -159,20 +144,15 @@ export default function ContextForm({ handleFormSubmit }) {
 
         // Wait for both contexts.data and posts to be available
         if (!Array.isArray(contexts.data) || contexts.data.length === 0) {
-            console.log('Waiting for contexts data...');
             return;
         }
 
         if (!Array.isArray(posts) || posts.length === 0) {
-            console.log('Waiting for posts data...');
             return;
         }
 
         const context = contexts.data.find((ele) => ele._id === editId);
-        console.log('Found context:', context);
-
         if (context) {
-            console.log('Setting form data from context:', context);
             setContextTitle(context.contextTitle || '');
             setDate(context.date ? new Date(context.date).toISOString().substring(0, 10) : '');
             setContainerType(context.containerType || 'Type-One');
@@ -231,7 +211,6 @@ export default function ContextForm({ handleFormSubmit }) {
                 slide10: context.slide10 || { title: '', description: '' }
             });
         } else {
-            console.log('No context found for ID:', editId);
         }
     }, [editIdFromQuery, contexts.editId, contexts.data, posts, allThemes, tileTemplates]);
 
@@ -243,8 +222,6 @@ export default function ContextForm({ handleFormSubmit }) {
     const filteredSignalSubCategories = (subSignalsData?.data || []).filter(subSignal =>
         selectedSignalCategories.includes(subSignal.signalId)
     );
-
-    
 
     // Update selectedPosts when posts change
     useEffect(() => {
@@ -258,7 +235,6 @@ export default function ContextForm({ handleFormSubmit }) {
             })
         );
     }, [posts]);
-    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -291,8 +267,6 @@ export default function ContextForm({ handleFormSubmit }) {
         return;
     }
 
-
-    
         try {
             
             const updatedPosts = selectedPosts.length > 0 
@@ -302,14 +276,11 @@ export default function ContextForm({ handleFormSubmit }) {
                 }))
                 : []; // Ensures an empty array if no posts are selected
 
-    
             // ✅ Step 1: Safely fetch existing contexts tagged to each selected post
-            console.log("🔄 Starting Step 1: Fetching existing contexts for posts...");
             const existingContextUpdates = selectedPosts.length > 0 ? await Promise.all(
                 selectedPosts.map(async (post) => {
                     try {
                         const postId = post.value;
-                        console.log(`Fetching contexts for post: ${postId}`);
                         const response = await axios.get(`/api/admin/posts/${postId}/contexts`, {
                             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                         });
@@ -320,10 +291,7 @@ export default function ContextForm({ handleFormSubmit }) {
                     }
                 })
             ) : [];
-            console.log("✅ Step 1 completed");
-    
             // ✅ Step 2: Safely update contexts with merged posts
-            console.log("🔄 Starting Step 2: Updating contexts with merged posts...");
             try {
                 for (const taggedContexts of existingContextUpdates) {
                     if (Array.isArray(taggedContexts)) {
@@ -342,7 +310,6 @@ export default function ContextForm({ handleFormSubmit }) {
                                 await axios.put(`/api/admin/contexts/${taggedContext._id}`, {
                                     posts: uniquePosts,
                                 }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-                                console.log(`✅ Updated context ${taggedContext._id}`);
                             } catch (contextUpdateError) {
                                 console.error(`❌ Error updating context ${taggedContext._id}:`, contextUpdateError);
                                 // Continue with other contexts even if one fails
@@ -350,7 +317,6 @@ export default function ContextForm({ handleFormSubmit }) {
                         }
                     }
                 }
-                console.log("✅ Step 2 completed");
             } catch (step2Error) {
                 console.error("❌ Error in Step 2:", step2Error);
                 // Don't let Step 2 errors break the main context save
@@ -395,32 +361,19 @@ export default function ContextForm({ handleFormSubmit }) {
                 slide9: slides.slide9,
                 slide10: slides.slide10,
             };
-            
-            console.log('📝 Context form data being submitted:', formData);
-            console.log('🖼️ ImageUrl in context form data:', formData.imageUrl);
             console.log('🔍 Context form data keys:', Object.keys(formData));
-            console.log('🔍 Context imageUrl type:', typeof formData.imageUrl);
-            console.log('🔍 Context imageUrl truthy:', !!formData.imageUrl);
-            console.log('🔍 Context imageUrl length:', formData.imageUrl ? formData.imageUrl.length : 'null/undefined');
-            console.log('🔍 Current context imageUrl state:', imageUrl);
-            console.log('🔍 Context state vs form data match:', imageUrl === formData.imageUrl);
-    
             if (contexts.editId) {
                 const response = await axios.put(`/api/admin/contexts/${contexts.editId}`, formData, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                 });
-                console.log("✅ PUT Response received:", response.status, response.data);
-                
                 try {
                     contextsDispatch({ type: 'UPDATE_CONTEXT', payload: response.data });
-                    console.log("✅ Context dispatch successful");
                 } catch (dispatchError) {
                     console.error("❌ Error in contextsDispatch:", dispatchError);
                 }
                 
                 try {
                     handleFormSubmit('Context updated successfully');
-                    console.log("✅ handleFormSubmit called successfully");
                 } catch (formSubmitError) {
                     console.error("❌ Error in handleFormSubmit:", formSubmitError);
                 }
@@ -430,7 +383,6 @@ export default function ContextForm({ handleFormSubmit }) {
                 try {
                     if (fetchPosts && typeof fetchPosts === 'function') {
                         await fetchPosts();
-                        console.log("✅ fetchPosts completed");
                     } else {
                         console.warn("⚠️ fetchPosts is not available or not a function");
                     }
@@ -442,18 +394,14 @@ export default function ContextForm({ handleFormSubmit }) {
                 const response = await axios.post('/api/admin/contexts', formData, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                 });
-                console.log("✅ POST Response received:", response.status, response.data);
-                
                 try {
                     contextsDispatch({ type: 'ADD_CONTEXT', payload: response.data });
-                    console.log("✅ Context dispatch successful");
                 } catch (dispatchError) {
                     console.error("❌ Error in contextsDispatch:", dispatchError);
                 }
                 
                 try {
                     handleFormSubmit('Context added successfully');
-                    console.log("✅ handleFormSubmit called successfully");
                 } catch (formSubmitError) {
                     console.error("❌ Error in handleFormSubmit:", formSubmitError);
                 }
@@ -463,7 +411,6 @@ export default function ContextForm({ handleFormSubmit }) {
                 try {
                     if (fetchPosts && typeof fetchPosts === 'function') {
                         await fetchPosts();
-                        console.log("✅ fetchPosts completed");
                     } else {
                         console.warn("⚠️ fetchPosts is not available or not a function");
                     }
@@ -518,11 +465,8 @@ const tileTemplateOptions = (tileTemplates || []).map(template => ({
     label: template.name
 }));
 
-
-
 // ✅ Process `postOptions` AFTER `posts` state updates
 useEffect(() => {
-    console.log("🔄 Updating Post Options after fetching posts...");
     if (Array.isArray(posts) && posts.length > 0) {
         setPostOptions(posts.map(post => ({
             value: post._id, 
@@ -533,7 +477,6 @@ useEffect(() => {
     } else {
         setPostOptions([]); // ✅ Ensure an empty array if no posts
     }
-    console.log("🔍 Processed Post Options:", postOptions);
 }, [posts]); // ✅ Runs only when `posts` state updates
 
     // Custom MultiValueLabel for react-select to make selected themes clickable
@@ -554,7 +497,6 @@ useEffect(() => {
 
     // Custom MultiValueLabel for react-select to make selected posts clickable
     const PostMultiValueLabel = (props) => {
-        console.log('Post pill data:', props.data);
         const handleClick = (e) => {
             e.stopPropagation();
             window.open(`/posts?editId=${props.data.value}`, '_blank');
@@ -891,12 +833,10 @@ useEffect(() => {
                             <div style={{ flex: 1 }}>
                 <ImageUpload
                     onImageUpload={(url) => {
-                        console.log('🖼️ Context image uploaded, setting imageUrl to:', url);
                         setImageUrl(url);
                     }}
                     currentImageUrl={imageUrl}
                     onImageDelete={() => {
-                        console.log('🗑️ Context image deleted, clearing imageUrl');
                         setImageUrl('');
                     }}
                     label="Context Image"

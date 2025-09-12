@@ -58,13 +58,10 @@ export const CountryProvider = ({ children }) => {
                     const response = await axios.get('/api/admin/countries', { 
                         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                     });
-                    console.log("✅ Countries Fetched:", response.data);
                     countriesDispatch({ type: 'SET_COUNTRIES', payload: response.data });
                 } else {
-                    console.log("⏳ Waiting for regions before fetching countries...");
                 }
             } catch (err) {
-                console.log("❌ Error Fetching Countries:", err);
             }
         };
     

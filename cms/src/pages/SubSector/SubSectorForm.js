@@ -36,7 +36,6 @@ export default function SubSectorForm({ handleFormSubmit }) {
                 subSectorsDispatch({ type: 'UPDATE_SUB_SECTOR', payload: response.data });
                 handleFormSubmit('Sub-Sector updated successfully');
             } catch (err) {
-                console.log(err.message);
             }
         } else {
             try {
@@ -51,7 +50,6 @@ export default function SubSectorForm({ handleFormSubmit }) {
 
     const handleHomeNav = () => {
         setIsFormVisible(false);
-        console.log('form vis', isFormVisible);
     };
 
     const handleBackToList = () => {

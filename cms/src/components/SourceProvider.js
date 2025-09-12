@@ -60,7 +60,6 @@ export const SourceProvider = ({ children }) => {
         const fetchSources = async () => {
             const token = localStorage.getItem('token');  // ✅ Get token from localStorage
             if (!token) {
-                console.log("⏳ No token found. Skipping source fetch.");
                 return;  // ✅ Skip API call if no token is available
             }
     
@@ -68,7 +67,6 @@ export const SourceProvider = ({ children }) => {
                 const response = await axios.get('/api/admin/sources', { 
                     headers: { Authorization: `Bearer ${token}` } 
                 });
-                console.log("✅ Sources Fetched:", response.data);
                 sourcesDispatch({ type: 'SET_SOURCES', payload: response.data });
             } catch (err) {
                 console.error("❌ Error Fetching Sources:", err);

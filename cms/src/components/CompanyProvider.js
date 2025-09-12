@@ -60,7 +60,6 @@ export const CompanyProvider = ({ children }) => {
         const fetchCompanies = async () => {
             const token = localStorage.getItem('token'); // ✅ Check if token is stored
             if (!token) {
-                console.log("⏳ No token found. Skipping companies fetch.");
                 return; // ✅ Skip fetch if no token is available
             }
 
@@ -69,7 +68,6 @@ export const CompanyProvider = ({ children }) => {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 companiesDispatch({ type: 'SET_COMPANIES', payload: response.data });
-                console.log("✅ Companies Fetched:", response.data);
             } catch (err) {
                 console.error("❌ Error Fetching Companies:", err);
             }

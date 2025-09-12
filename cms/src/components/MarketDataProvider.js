@@ -43,7 +43,6 @@ export const MarketDataProvider = ({ children }) => {
             });
 
             if (response.data.marketData) {
-                console.log("✅ Fetched All Market Data:", response.data.marketData.length);
                 marketDataDispatch({ type: 'SET_MARKET_DATA', payload: response.data.marketData });
             }
         } catch (err) {

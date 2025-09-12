@@ -7,7 +7,6 @@ import SourceContext from '../context/SourceContext';
 import CompanyContext from '../context/CompanyContext';
 import MarketDataContext from '../context/MarketDataContext';
 
-
 const postReducer = (state, action) => {
     switch (action.type) {
         case 'SET_POSTS': 
@@ -44,7 +43,6 @@ const postReducer = (state, action) => {
             return state;
     }
 };
-
 
 // ✅ PostProvider Component
 export const PostProvider = ({ children }) => {
@@ -85,23 +83,18 @@ export const PostProvider = ({ children }) => {
         }
 
         try {
-            console.log("🔄 Fetching posts for page:", currentPage);
             const response = await axios.get(`/api/admin/posts?page=${currentPage}&limit=10`, {
                 headers: { Authorization: `Bearer ${token}` }, // ✅ Use token here
             });
 
             if (response.data.success) {
-                console.log("✅ Successfully fetched posts:", response.data.posts.length);
                 postsDispatch({ type: 'SET_POSTS', payload: response.data.posts });
                 setTotalPages(response.data.totalPages || 1);
             }
         } catch (err) {
-            console.error("❌ Error fetching posts:", err);
         }
     };
 
-  
-    
     const fetchAllPosts = async () => {
         const token = localStorage.getItem("token");
     
@@ -116,7 +109,7 @@ export const PostProvider = ({ children }) => {
             });
             console.log("🔍 Debug: API Response for fetchAllPosts()", response.data); // ✅ Log full response
             if (response.data.success) {
-                console.log("✅ Fetched All Posts:", response.data.posts.length);
+
                 postsDispatch({ type: 'SET_POSTS', payload: response.data.posts });
             }
         } catch (err) {
@@ -134,15 +127,14 @@ export const PostProvider = ({ children }) => {
         }
     
         try {
-            console.log("🔍 Fetching single post for edit:", postId);
+
             const response = await axios.get(`/api/admin/posts/${postId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             
             if (response.data.success) {
                 const post = response.data.post;
-                console.log("✅ Successfully fetched post for edit:", post.postTitle);
-                
+
                 // Convert populated objects back to IDs for form compatibility
                 const formattedPost = {
                     ...post,
@@ -153,8 +145,7 @@ export const PostProvider = ({ children }) => {
                     source: Array.isArray(post.source) ? post.source.map(src => typeof src === 'object' ? src._id : src) : [],
                     marketDataDocuments: Array.isArray(post.marketDataDocuments) ? post.marketDataDocuments.map(md => typeof md === 'object' ? md._id : md) : []
                 };
-                
-                console.log("🔄 Formatted post data for form:", formattedPost);
+
                 return formattedPost;
             } else {
                 console.error("❌ Failed to fetch post:", response.data.message);
@@ -165,8 +156,7 @@ export const PostProvider = ({ children }) => {
             return null;
         }
     };
-    
-    
+
     // ✅ Handle Add Click (New Post)
     const handleAddClick = () => {
         postsDispatch({ type: 'SET_EDIT_ID', payload: null }); // ✅ Remove edit mode
@@ -178,23 +168,15 @@ export const PostProvider = ({ children }) => {
     // ✅ Handle Edit Click
     const handleEditClick = async (id) => {
         try {
-            console.log("🔄 Starting edit process for post:", id);
-            console.log("📊 Current posts in state:", posts.data.length);
-            
+
             // Fetch the specific post data
             const postData = await fetchSinglePost(id);
             
             if (postData) {
-                console.log("📋 Fetched post data:", {
-                    id: postData._id,
-                    title: postData.postTitle,
-                    contexts: postData.contexts?.length || 0
-                });
-                
+
                 // Check if post exists in current state
                 const postExists = posts.data.some(p => p._id === id);
-                console.log("🔍 Post exists in current state:", postExists);
-                
+
                 // Update the posts state to include this post (in case it's not in current view)
                 postsDispatch({ type: 'REFRESH_POST_DATA', payload: postData });
                 
@@ -205,8 +187,7 @@ export const PostProvider = ({ children }) => {
         setIsFormVisible(true);
         localStorage.setItem("editId", id);  
         localStorage.setItem("isFormVisible", "true"); 
-                    
-                    console.log("✅ Edit mode activated for post:", postData.postTitle);
+
                 }, 100);
             } else {
                 console.error("❌ Failed to fetch post data for editing");
@@ -220,45 +201,21 @@ export const PostProvider = ({ children }) => {
     // ✅ Handle Form Submission
     const handleFormSubmit = async (formData, editId = null) => {
         try {
-            console.log('🚀 PostProvider: handleFormSubmit called with:', {
-                editId,
-                formDataKeys: Object.keys(formData),
-                imageUrl: formData.imageUrl,
-                imageUrlType: typeof formData.imageUrl,
-                imageUrlValue: formData.imageUrl,
-                imageUrlTruthy: !!formData.imageUrl,
-                imageUrlLength: formData.imageUrl ? formData.imageUrl.length : 'null/undefined'
-            });
-            console.log('🚀 PostProvider: Full formData object:', JSON.stringify(formData, null, 2));
-            console.log('🚀 PostProvider: About to make API call to backend...');
-            
             let response;
             if (editId) {
                 // Update existing post
-                console.log('🔄 PostProvider: Updating post with data:', formData);
-                console.log('🔄 PostProvider: Making PUT request to /api/admin/posts/' + editId);
-                console.log('🔄 PostProvider: Request payload imageUrl:', formData.imageUrl);
-                console.log('🔄 PostProvider: Request payload keys:', Object.keys(formData));
                 response = await axios.put(`/api/admin/posts/${editId}`, formData, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                 });
-                console.log('✅ PostProvider: Update response received:', response.status);
-                console.log('✅ PostProvider: Update response data:', response.data);
                 if (response.data.success) {
                     postsDispatch({ type: 'UPDATE_POST', payload: response.data.updatedPost });
                     setSuccessMessage('Post updated successfully!');
                 }
             } else {
                 // Create new post
-                console.log('🔄 PostProvider: Creating new post with data:', formData);
-                console.log('🔄 PostProvider: Making POST request to /api/admin/posts');
-                console.log('🔄 PostProvider: Request payload imageUrl:', formData.imageUrl);
-                console.log('🔄 PostProvider: Request payload keys:', Object.keys(formData));
                 response = await axios.post('/api/admin/posts', formData, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                 });
-                console.log('✅ PostProvider: Create response received:', response.status);
-                console.log('✅ PostProvider: Create response data:', response.data);
                 if (response.data.success) {
                     postsDispatch({ type: 'ADD_POST', payload: response.data.post });
                     setSuccessMessage('Post added successfully!');
@@ -273,10 +230,10 @@ export const PostProvider = ({ children }) => {
             setTimeout(() => setSuccessMessage(''), 3000);
 
         } catch (err) {
-            console.error("❌ Error submitting form:", err.response?.data || err);
+            console.error("Error submitting form:", err.response?.data || err);
             const errorMsg = err.response?.data?.message || "An unknown error occurred.";
-            setSuccessMessage(`Error: ${errorMsg}`); // Show specific error
-            setTimeout(() => setSuccessMessage(''), 5000); // Let error stay longer
+            setSuccessMessage(`Error: ${errorMsg}`);
+            setTimeout(() => setSuccessMessage(''), 5000);
         }
     };
 
