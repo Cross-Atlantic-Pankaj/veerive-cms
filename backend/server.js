@@ -287,6 +287,9 @@ app.get('/data-deletion.html', (req, res) => {
 
 app.get('/api/admin/contexts/edit-data', authenticateUser, contextsCltr.getEditContextData);
 
+const port = process.env.PORT || 3050
+
+// Initialize database and start server
 configDB()
   .then(() => {
     console.log('Database connected successfully');
@@ -294,14 +297,13 @@ configDB()
   })
   .then(() => {
     console.log('SuperAdmin ensured successfully');
+    
+    // Start server only after database is connected
+    app.listen(port, () => {
+      console.log('Server is running on port', port);
+    });
   })
   .catch((err) => {
     console.error('Failed to initialize database:', err);
     process.exit(1);
   });
-
-const port = process.env.PORT || 3050
-
-app.listen(port, () => {
-    console.log('server is running on port', port)
-})

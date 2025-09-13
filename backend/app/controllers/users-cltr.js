@@ -89,14 +89,6 @@ usersCltr.login = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // Check database connection before proceeding
-        if (mongoose.connection.readyState !== 1) {
-            console.error('❌ Database not connected, readyState:', mongoose.connection.readyState);
-            return res.status(503).json({ 
-                error: 'Database connection not available. Please try again.',
-                code: 'DB_NOT_CONNECTED'
-            });
-        }
         // Check both collections and find the user with matching password
         let user = null;
         let isCmsUser = false;
