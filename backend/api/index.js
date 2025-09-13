@@ -89,18 +89,29 @@ app.use(passport.initialize());
 
 // Initialize database connection (async)
 let dbConnected = false;
-configDB().then(() => {
-  console.log('Database connected successfully');
-  dbConnected = true;
-  // Initialize SuperAdmin after database connection
-  // ensureSuperAdmin();
-}).catch((error) => {
-  console.error('Database connection error:', error);
-  // Don't exit in Vercel environment
-  if (!process.env.VERCEL) {
-    process.exit(1);
+let dbConnectionAttempted = false;
+
+const initializeDatabase = async () => {
+  if (dbConnectionAttempted) return;
+  dbConnectionAttempted = true;
+  
+  try {
+    await configDB();
+    console.log('Database connected successfully');
+    dbConnected = true;
+    // Initialize SuperAdmin after database connection
+    // ensureSuperAdmin();
+  } catch (error) {
+    console.error('Database connection error:', error);
+    // Don't exit in Vercel environment, but mark as failed
+    if (!process.env.VERCEL) {
+      process.exit(1);
+    }
   }
-});
+};
+
+// Start database connection
+initializeDatabase();
 
 // Middleware to parse JSON
 app.use(express.json())
@@ -116,7 +127,10 @@ app.get('/api/health', (req, res) => {
 
 // Database connection check middleware
 app.use((req, res, next) => {
-  if (!dbConnected && req.path !== '/api/health') {
+  // Allow health check and some basic routes even if DB is not connected
+  const allowedPaths = ['/api/health', '/api/users/login', '/api/users/register'];
+  
+  if (!dbConnected && !allowedPaths.includes(req.path)) {
     return res.status(503).json({ 
       error: 'Database connection timeout. Please try again.',
       code: 'DB_TIMEOUT'

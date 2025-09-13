@@ -9,17 +9,42 @@ const configDB = async () => {
 
     // Optimized connection options for production
     const connectionOptions = {
-      maxPoolSize: process.env.VERCEL ? 5 : 10, // Fewer connections in Vercel
-      serverSelectionTimeoutMS: process.env.VERCEL ? 3000 : 5000, // Faster timeout in Vercel
-      socketTimeoutMS: process.env.VERCEL ? 10000 : 45000, // Shorter timeout in Vercel
-      maxIdleTimeMS: process.env.VERCEL ? 10000 : 30000, // Shorter idle time in Vercel
-      connectTimeoutMS: process.env.VERCEL ? 10000 : 20000, // Faster connection in Vercel
+      maxPoolSize: process.env.VERCEL ? 3 : 10, // Even fewer connections in Vercel
+      serverSelectionTimeoutMS: process.env.VERCEL ? 2000 : 5000, // Much faster timeout in Vercel
+      socketTimeoutMS: process.env.VERCEL ? 5000 : 45000, // Much shorter timeout in Vercel
+      maxIdleTimeMS: process.env.VERCEL ? 5000 : 30000, // Much shorter idle time in Vercel
+      connectTimeoutMS: process.env.VERCEL ? 5000 : 20000, // Much faster connection in Vercel
       retryWrites: true,
-      w: 'majority'
+      w: 'majority',
+      // Additional Vercel optimizations
+      ...(process.env.VERCEL && {
+        bufferMaxEntries: 0,
+        bufferCommands: false
+      })
     };
 
     console.log('🔗 Attempting to connect to MongoDB...');
-    const dbConnection = await mongoose.connect(mongoURI, connectionOptions);
+    
+    // Add timeout wrapper for Vercel
+    const connectWithTimeout = (mongoURI, options) => {
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Database connection timeout'));
+        }, process.env.VERCEL ? 8000 : 15000); // 8s timeout for Vercel, 15s for others
+        
+        mongoose.connect(mongoURI, options)
+          .then((connection) => {
+            clearTimeout(timeout);
+            resolve(connection);
+          })
+          .catch((error) => {
+            clearTimeout(timeout);
+            reject(error);
+          });
+      });
+    };
+    
+    const dbConnection = await connectWithTimeout(mongoURI, connectionOptions);
 
     const dbName = dbConnection.connection.name;
     console.log('✅ Connected to database:', dbName);
