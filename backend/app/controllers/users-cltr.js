@@ -92,9 +92,9 @@ usersCltr.login = async (req, res) => {
         let user = null;
         let isCmsUser = false;
         
-        // First check regular users collection
-        console.log('🔍 Checking regular users collection...');
-        const regularUser = await User.findOne({ email });
+        // First check users_cms collection with timeout and lean query
+        console.log('🔍 Checking users_cms collection...');
+        const regularUser = await User.findOne({ email }).maxTimeMS(5000).lean();
         console.log('Regular user found:', regularUser ? 'Yes' : 'No');
         if (regularUser) {
             console.log('Regular user password type:', regularUser.password ? (regularUser.password.startsWith('$2a$') ? 'bcrypt' : 'plain') : 'none');
@@ -162,6 +162,25 @@ usersCltr.login = async (req, res) => {
         });
     } catch (err) {
         console.error('Error during login:', err);
+        
+        // Handle specific MongoDB timeout errors
+        if (err.name === 'MongooseError' && err.message.includes('buffering timed out')) {
+            console.error('❌ Database timeout during login');
+            return res.status(503).json({ 
+                error: 'Database connection timeout. Please try again.',
+                code: 'DB_TIMEOUT'
+            });
+        }
+        
+        // Handle other MongoDB errors
+        if (err.name === 'MongoTimeoutError') {
+            console.error('❌ MongoDB timeout during login');
+            return res.status(503).json({ 
+                error: 'Database query timeout. Please try again.',
+                code: 'QUERY_TIMEOUT'
+            });
+        }
+        
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
