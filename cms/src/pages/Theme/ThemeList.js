@@ -22,7 +22,8 @@ export default function ThemeList() {
         themes, 
         themesDispatch, 
         fetchThemes,
-        fetchAllThemes, 
+        fetchAllThemes,
+        fetchThemesPageData, 
         handleAddClick, 
         handleEditClick, 
         sectors, 
@@ -53,7 +54,7 @@ export default function ThemeList() {
     const [isRefreshingThemes, setIsRefreshingThemes] = useState(false);
 
     useEffect(() => {
-        fetchAllThemes();
+        fetchThemesPageData();
     }, []);
 
     useEffect(() => {
@@ -183,7 +184,7 @@ export default function ThemeList() {
             
             if (response.data.success) {
                 toast.success(response.data.message || 'Theme deleted successfully!');
-                await fetchAllThemes(); // Refresh the themes list
+                await fetchThemesPageData(); // Refresh the themes list and ensure sectors/sub-sectors are loaded
             } else {
                 toast.error('Failed to delete theme');
             }

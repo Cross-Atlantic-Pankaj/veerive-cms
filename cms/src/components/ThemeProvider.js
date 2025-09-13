@@ -56,8 +56,8 @@ export const ThemeProvider = ({ children }) => {
         return parseInt(localStorage.getItem("currentPage")) || 1;
     });
 
-    const { sectors } = useContext(SectorContext);
-    const { subSectors } = useContext(SubSectorContext);
+    const { sectors, fetchSectors } = useContext(SectorContext);
+    const { subSectors, fetchSubSectors } = useContext(SubSectorContext);
 
     // ✅ Fetch ALL themes (for search) only once
     const fetchAllThemes = async () => {
@@ -72,6 +72,26 @@ export const ThemeProvider = ({ children }) => {
             themesDispatch({ type: 'SET_ALL_THEMES', payload: response.data.themes });
         } catch (err) {
             console.error("❌ Error Fetching All Themes:", err);
+        }
+    };
+
+    // ✅ Fetch all required data for themes page (themes, sectors, sub-sectors)
+    const fetchThemesPageData = async () => {
+        try {
+            // Fetch themes data
+            await fetchAllThemes();
+            
+            // Fetch sectors data if not already loaded
+            if (fetchSectors && sectors.data.length === 0) {
+                await fetchSectors();
+            }
+            
+            // Fetch sub-sectors data if not already loaded
+            if (fetchSubSectors && subSectors.data.length === 0) {
+                await fetchSubSectors();
+            }
+        } catch (err) {
+            console.error("❌ Error Fetching Themes Page Data:", err);
         }
     };
 
@@ -165,7 +185,8 @@ export const ThemeProvider = ({ children }) => {
             value={{ 
                 themes, 
                 fetchThemes,
-                fetchAllThemes, 
+                fetchAllThemes,
+                fetchThemesPageData, 
                 isFormVisible, 
                 setIsFormVisible,
                 themesDispatch, 
