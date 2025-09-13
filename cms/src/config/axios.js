@@ -23,10 +23,21 @@
 //   withCredentials: true, // Ensure cookies and headers are sent
 // });
 import axios from 'axios';
-const baseURL =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3050' // Backend running locally
-    : process.env.REACT_APP_API_URL || 'http://3.111.213.47:3050'; // Deployed backend
+
+// Debug logging to see what environment we're in
+console.log('🔍 Environment Debug:', {
+  NODE_ENV: process.env.NODE_ENV,
+  REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+  isDevelopment: process.env.NODE_ENV === 'development'
+});
+
+// Simple configuration - always use production URL
+const baseURL = 'http://3.111.213.47:3050';
+
+// If you want to use local development, uncomment the line below and comment the line above
+// const baseURL = 'http://localhost:3050';
+
+console.log('🌐 Using baseURL:', baseURL);
 
 const axiosInstance = axios.create({
   baseURL,
