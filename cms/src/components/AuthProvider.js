@@ -53,7 +53,7 @@ function AuthProvider(props) {
 useEffect(() => {
     // On mount, attempt to retrieve user
     (async () => {
-        const storedToken = localStorage.getItem('token');
+        const storedToken = sessionStorage.getItem('token');
         if (storedToken) {
             try {
                 const userResponse = await axios.get('/api/users/account', {
@@ -62,7 +62,7 @@ useEffect(() => {
                 dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
         } catch (err) {
             if (err.response && err.response.status === 401) {
-                localStorage.removeItem('token'); 
+                sessionStorage.removeItem('token'); 
             }
         }
         }
@@ -135,7 +135,7 @@ const handleLogin = async (formData) => {
         const response = await axios.post('/api/users/login', formData, { withCredentials: true });
 
         if (response.data.token) {
-            localStorage.setItem('token', response.data.token);
+            sessionStorage.setItem('token', response.data.token);
         } else {
             throw new Error('No token received from login API');
         }
@@ -156,7 +156,7 @@ const handleLogin = async (formData) => {
 
     // Function to handle user logout
     const handleLogout = () => {
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         localStorage.removeItem('currentPage'); // ✅ Reset stored page
         dispatch({ type: 'LOGOUT_USER' });
         toast("Successfully logged out");

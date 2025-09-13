@@ -85,7 +85,7 @@ const SettingsPage = () => {
             toast.success(response.data.message || "Password updated successfully. Please log in again.");
             setCurrentPassword("");
             setNewPassword("");
-            localStorage.removeItem('token'); 
+            sessionStorage.removeItem('token'); 
             
             // Log out user after password update for security
             setTimeout(() => {
