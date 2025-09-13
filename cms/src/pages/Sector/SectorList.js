@@ -7,7 +7,15 @@ import axios from '../../config/axios';
 import Papa from 'papaparse';
 
 export default function SectorList() {
-    const { sectors, sectorsDispatch, handleEditClick, handleAddClick } = useContext(SectorContext);
+    const { 
+        sectors, 
+        sectorsDispatch, 
+        handleEditClick, 
+        handleAddClick, 
+        loadSectors, 
+        loading, 
+        loaded 
+    } = useContext(SectorContext);
     const { state } = useContext(AuthContext);
     const userRole = state.user?.role;
     const [sortConfig, setSortConfig] = useState({ key: 'sectorName', direction: 'ascending' });
@@ -23,26 +31,23 @@ export default function SectorList() {
     });
     const itemsPerPage = 10;
 
-    // Fetch all sectors on mount
+    // Load sectors only when this component mounts (lazy loading)
     useEffect(() => {
-        const fetchAllSectors = async () => {
-            try {
-                const response = await axios.get('/api/admin/sectors', {
-                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
-                });
-                if (Array.isArray(response.data)) {
-                    setAllSectors(response.data);
-                } else if (response.data.sectors && Array.isArray(response.data.sectors)) {
-                    setAllSectors(response.data.sectors);
-                } else {
-                    setAllSectors([]);
-                }
-            } catch (err) {
-                setAllSectors([]);
-            }
-        };
-        fetchAllSectors();
-    }, []);
+        if (!loaded && !loading && loadSectors) {
+            loadSectors();
+        }
+    }, [loaded, loading, loadSectors]);
+
+    // Update local state when sectors data is loaded
+    useEffect(() => {
+        if (sectors.data && Array.isArray(sectors.data)) {
+            setAllSectors(sectors.data);
+        } else if (sectors.data && sectors.data.sectors && Array.isArray(sectors.data.sectors)) {
+            setAllSectors(sectors.data.sectors);
+        } else if (sectors.data) {
+            setAllSectors([]);
+        }
+    }, [sectors.data]);
 
     // Helper function to normalize text for sorting (remove non-letters, convert to lowercase)
     const normalizeForSorting = (text) => {

@@ -56,25 +56,27 @@ export const CompanyProvider = ({ children }) => {
     //     })();
     // }, []); // Empty dependency array means this effect runs once on component mount
 
-    useEffect(() => {
-        const fetchCompanies = async () => {
-            const token = sessionStorage.getItem('token'); // ✅ Check if token is stored
-            if (!token) {
-                return; // ✅ Skip fetch if no token is available
-            }
+    // ✅ Fetch function available for manual loading
+    const fetchCompanies = async () => {
+        const token = sessionStorage.getItem('token'); // ✅ Check if token is stored
+        if (!token) {
+            return; // ✅ Skip fetch if no token is available
+        }
 
-            try {
-                const response = await axios.get('/api/admin/companies', {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                companiesDispatch({ type: 'SET_COMPANIES', payload: response.data });
-            } catch (err) {
-                console.error("❌ Error Fetching Companies:", err);
-            }
-        };
+        try {
+            const response = await axios.get('/api/admin/companies', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            companiesDispatch({ type: 'SET_COMPANIES', payload: response.data });
+        } catch (err) {
+            console.error("❌ Error Fetching Companies:", err);
+        }
+    };
 
-        fetchCompanies();
-    }, []);
+    // ✅ DISABLED - Only load when Company page is accessed
+    // useEffect(() => {
+    //     fetchCompanies();
+    // }, []);
 
     // Function to handle the click event for adding a company
     const handleAddClick = () => {
@@ -98,7 +100,7 @@ export const CompanyProvider = ({ children }) => {
 
     // Provide company-related state and functions to child components through context
     return (
-        <CompanyContext.Provider value={{ companies, companiesDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit, countries, sectors, subSectors }}>
+        <CompanyContext.Provider value={{ companies, companiesDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit, fetchCompanies, countries, sectors, subSectors }}>
             {children} 
         </CompanyContext.Provider>
     );

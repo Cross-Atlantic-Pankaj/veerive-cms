@@ -105,14 +105,14 @@ export const ThemeProvider = ({ children }) => {
         }
     };
 
-    // ✅ Ensure correct `currentPage` is used before fetching themes
-    useEffect(() => {
-        if (!hasFetched.current) {
-            hasFetched.current = true;
-            fetchThemes(currentPage);
-            fetchAllThemes();
-        }
-    }, []);
+    // ✅ DISABLED - Only load when Theme page is accessed
+    // useEffect(() => {
+    //     if (!hasFetched.current) {
+    //         hasFetched.current = true;
+    //         fetchThemes(currentPage);
+    //         fetchAllThemes();
+    //     }
+    // }, []);
 
     // ✅ Corrected `setCurrentPage` to update both local state and context
     const updateCurrentPage = (newPage) => {

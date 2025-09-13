@@ -64,25 +64,26 @@ export const SubSectorProvider = ({ children }) => {
     //     })();
     // }, []); // Empty dependency array means this effect runs once on component mount
 
-    useEffect(() => {
-        const fetchSubSectors = async () => {
-            const token = sessionStorage.getItem('token'); // ✅ Check for token
-            if (!token) {
-                return;  // ✅ Skip API call if no token is available
-            }
+    // ✅ Fetch function available for manual loading
+    const fetchSubSectors = async () => {
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            return;
+        }
+        try {
+            const response = await axios.get('/api/admin/sub-sectors', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            subSectorsDispatch({ type: 'SET_SUB_SECTORS', payload: response.data });
+        } catch (err) {
+            console.error("❌ Error Fetching Sub-Sectors:", err);
+        }
+    };
 
-            try {
-                const response = await axios.get('/api/admin/sub-sectors', {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                subSectorsDispatch({ type: 'SET_SUB_SECTORS', payload: response.data });
-            } catch (err) {
-                console.error("❌ Error Fetching Sub-Sectors:", err);
-            }
-        };
-
-        fetchSubSectors();
-    }, []);
+    // ✅ DISABLED - Only load when SubSector page is accessed
+    // useEffect(() => {
+    //     fetchSubSectors();
+    // }, []);
     
     // Handler function to show the form and prepare for adding a new sub-sector
     const handleAddClick = () => {
@@ -106,7 +107,7 @@ export const SubSectorProvider = ({ children }) => {
 
     // Provide context value to child components
     return (
-        <SubSectorContext.Provider value={{ subSectors, subSectorsDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit }}>
+        <SubSectorContext.Provider value={{ subSectors, subSectorsDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit, fetchSubSectors }}>
             {children} 
         </SubSectorContext.Provider>
     );

@@ -63,11 +63,12 @@ function App() {
   const authPaths = ['/', '/login', '/forgot-password', '/reset-password'];
   const shouldShowHeader = state.isLoggedIn && !authPaths.includes(location.pathname);
 
-  useEffect(() => {
-    if (state.isLoggedIn && fetchPosts) {
-      fetchPosts(); // ✅ Fetch all posts only when logged in
-    }
-  }, [state.isLoggedIn, fetchPosts]);
+  // ✅ DISABLED - Only load posts when Post page is accessed
+  // useEffect(() => {
+  //   if (state.isLoggedIn && fetchPosts) {
+  //     fetchPosts(); // ✅ Fetch all posts only when logged in
+  //   }
+  // }, [state.isLoggedIn, fetchPosts]);
 
   // If loading is true, show a loading indicator
   if (loading) {

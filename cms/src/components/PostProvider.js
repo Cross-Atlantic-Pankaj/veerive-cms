@@ -66,9 +66,15 @@ export const PostProvider = ({ children }) => {
     const { sources } = useContext(SourceContext);
     const { marketData } = useContext(MarketDataContext);
 
-    useEffect(() => {
-        fetchPosts(page); // ✅ Fetch posts only for the correct page
-    }, [page]); // ✅ Only fetch when `page` changes
+    // ✅ Manual fetch function for lazy loading
+    const loadPostsData = () => {
+        fetchPosts(page);
+    };
+
+    // ✅ DISABLED AUTO-LOADING - Only load when Post page is accessed
+    // useEffect(() => {
+    //     fetchPosts(page); // ✅ Fetch posts only for the correct page
+    // }, [page]); // ✅ Only fetch when `page` changes
 
     useEffect(() => {
         localStorage.setItem("currentPage", page); // ✅ Store last visited page in localStorage

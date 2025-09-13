@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import Papa from 'papaparse';
 
 export default function CountryList() {
-    const { countries, countriesDispatch, handleEditClick, handleAddClick } = useContext(CountryContext);
+    const { countries, countriesDispatch, handleEditClick, handleAddClick, fetchCountries } = useContext(CountryContext);
     const { regions } = useContext(RegionContext);
     const { state } = useContext(AuthContext);
     const userRole = state.user?.role;
@@ -20,6 +20,7 @@ export default function CountryList() {
     const [sortConfig, setSortConfig] = useState({ key: 'countryName', direction: 'ascending' });
     const [searchQuery, setSearchQuery] = useState('');
     const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(true);
     const [confirmationModal, setConfirmationModal] = useState({
         isOpen: false,
         title: '',
@@ -29,23 +30,19 @@ export default function CountryList() {
     });
     const itemsPerPage = 10;
 
+    // ✅ Load countries when CountryList page is accessed
     useEffect(() => {
-        const fetchCountries = async () => {
-            setIsLoading(true);
-            try {
-                const response = await axios.get('/api/admin/countries', {
-                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
-                });
-                countriesDispatch({ type: 'SET_COUNTRIES', payload: response.data });
-            } catch (error) {
-                console.error("API Fetch Error:", error);
-                toast.error('Failed to fetch countries');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchCountries();
-    }, [countriesDispatch]);
+        if (fetchCountries && countries.data.length === 0) {
+            fetchCountries();
+        }
+    }, [fetchCountries, countries.data.length]);
+
+    // ✅ Set loading to false when countries data is available
+    useEffect(() => {
+        if (countries.data.length > 0) {
+            setLoading(false);
+        }
+    }, [countries.data.length]);
 
     const handleRemoveClick = (id, countryName) => {
         setConfirmationModal({
@@ -190,7 +187,7 @@ export default function CountryList() {
         URL.revokeObjectURL(url);
     };
 
-    if (isLoading) {
+    if (loading) {
         return (
             <div className={styles.loadingContainer}>
                 <div className={styles.loadingSpinner}></div>

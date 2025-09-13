@@ -57,25 +57,27 @@ export const RegionProvider = ({ children }) => {
     //     })();
     // }, []); // Empty dependency array means this effect runs once on component mount
 
-    useEffect(() => {
-        const fetchRegions = async () => {
-            const token = sessionStorage.getItem('token'); // ✅ Get token from localStorage
-            if (!token) {
-                return; // ✅ Exit early if token is missing
-            }
-    
-            try {
-                const response = await axios.get('/api/admin/regions', { 
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                regionsDispatch({ type: 'SET_REGIONS', payload: response.data });
-            } catch (err) {
-                console.error("❌ Error Fetching Regions:", err);
-            }
-        };
-    
-        fetchRegions(); // ✅ Call only if token exists
-    }, []); // Runs once when the component mounts
+    // ✅ Fetch function available for manual loading
+    const fetchRegions = async () => {
+        const token = sessionStorage.getItem('token'); // ✅ Get token from localStorage
+        if (!token) {
+            return; // ✅ Exit early if token is missing
+        }
+
+        try {
+            const response = await axios.get('/api/admin/regions', { 
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            regionsDispatch({ type: 'SET_REGIONS', payload: response.data });
+        } catch (err) {
+            console.error("❌ Error Fetching Regions:", err);
+        }
+    };
+
+    // ✅ DISABLED - Only load when Region page is accessed
+    // useEffect(() => {
+    //     fetchRegions();
+    // }, []);
 
     // Handler function to show the form and prepare for adding a new region
     const handleAddClick = () => {
@@ -99,7 +101,7 @@ export const RegionProvider = ({ children }) => {
 
     // Provide context value to child components
     return (
-        <RegionContext.Provider value={{ regions, regionsDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit }}>
+        <RegionContext.Provider value={{ regions, regionsDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit, fetchRegions }}>
             {successMessage && ( // ✅ Display message only when it's set
             <div className="success-message" style={{ background: "green", color: "white", padding: "8px", textAlign: "center", marginBottom: "10px" }}>
                 {successMessage}

@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import Papa from 'papaparse';
 
 export default function RegionList() {
-    const { regions, regionsDispatch, handleEditClick, handleAddClick } = useContext(RegionContext);
+    const { regions, regionsDispatch, handleEditClick, handleAddClick, fetchRegions } = useContext(RegionContext);
     const { state } = useContext(AuthContext);
     const userRole = state.user?.role;
     const [searchQuery, setSearchQuery] = useState('');
@@ -22,6 +22,13 @@ export default function RegionList() {
         itemToDelete: null
     });
     const itemsPerPage = 10;
+
+    // ✅ Load regions when RegionList page is accessed
+    useEffect(() => {
+        if (fetchRegions && regions.data.length === 0) {
+            fetchRegions();
+        }
+    }, [fetchRegions, regions.data.length]);
 
     const handleDeleteClick = (id, regionName) => {
         setConfirmationModal({
@@ -102,10 +109,6 @@ export default function RegionList() {
                         aValue = normalizeForSorting(a.generalComment);
                         bValue = normalizeForSorting(b.generalComment);
                         break;
-                    case 'createdAt':
-                        aValue = new Date(a.createdAt || 0);
-                        bValue = new Date(b.createdAt || 0);
-                        break;
                     default:
                         aValue = normalizeForSorting(a[sortConfig.key]);
                         bValue = normalizeForSorting(b[sortConfig.key]);
@@ -116,15 +119,9 @@ export default function RegionList() {
                 if (aValue === null || aValue === undefined) aValue = '';
                 if (bValue === null || bValue === undefined) bValue = '';
                 
-                if (sortConfig.key === 'createdAt') {
-                    if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
-                    if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
-                    return 0;
-                } else {
-                    if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
-                    if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
-                    return 0;
-                }
+                if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
+                if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
+                return 0;
             });
         }
         
@@ -164,7 +161,6 @@ export default function RegionList() {
         const csvData = processedRegions.map(region => ({
             'Region Name': region.regionName || '',
             'General Comment': region.generalComment || '',
-            'Created At': region.createdAt ? new Date(region.createdAt).toLocaleDateString() : '',
             'Updated At': region.updatedAt ? new Date(region.updatedAt).toLocaleDateString() : ''
         }));
         
@@ -222,9 +218,6 @@ export default function RegionList() {
                 <table className={styles.dataTable}>
                     <thead>
                         <tr>
-                            <th onClick={() => requestSort('createdAt')}>
-                                Created At {sortConfig.key === 'createdAt' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
-                            </th>
                             <th onClick={() => requestSort('regionName')}>
                                 Region Name {sortConfig.key === 'regionName' && (sortConfig.direction === 'ascending' ? '🔼' : '🔽')}
                             </th>
@@ -237,14 +230,13 @@ export default function RegionList() {
                     <tbody>
                         {paginatedRegions.length === 0 ? (
                             <tr>
-                                <td colSpan="4" className={styles.emptyMessage}>
+                                <td colSpan="3" className={styles.emptyMessage}>
                                     {searchQuery.trim() ? 'No regions found matching your search' : 'No regions found'}
                                 </td>
                             </tr>
                         ) : (
                             paginatedRegions.map((region) => (
                                 <tr key={region._id}>
-                                    <td>{region.createdAt ? new Date(region.createdAt).toLocaleDateString() : 'N/A'}</td>
                                     <td>{region.regionName}</td>
                                     <td>{region.generalComment}</td>
                                     <td>

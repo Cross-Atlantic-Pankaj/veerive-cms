@@ -10,6 +10,7 @@ import { useLocation } from 'react-router-dom';
 import { saveAs } from 'file-saver';
 import AuthContext from '../../context/AuthContext';
 import ConfirmationModal from '../../components/ConfirmationModal';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -45,7 +46,8 @@ export default function PostList() {
             });
             
             if (response.data.success) {
-                setAllPosts(response.data.posts || response.data.data || []);
+                const postsData = response.data.posts || response.data.data || [];
+                setAllPosts(postsData);
             } else {
                 toast.error("Failed to fetch all posts");
                 setAllPosts([]);
@@ -234,9 +236,6 @@ export default function PostList() {
         if (currentPage > 1) setPage(currentPage - 1);
     };
 
-    if (isLoading && (!contexts?.data || contexts.data.length === 0)) {
-        return <h3>Loading Contexts... (But showing posts)</h3>;
-    }
     
     const handleRemoveClick = (id, postTitle) => {
         setConfirmationModal({
@@ -497,6 +496,11 @@ export default function PostList() {
     };
 
     const currentDateInIST = getCurrentDateInIST();
+
+    // Show loading spinner while data is being fetched
+    if (loading) {
+        return <LoadingSpinner />;
+    }
 
     return (
         <div className="post-list-container">

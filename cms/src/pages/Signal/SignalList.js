@@ -1,5 +1,5 @@
 // pages/Signal/SignalList.js
-import React, { useContext, useState, useMemo } from 'react';
+import React, { useContext, useState, useMemo, useEffect } from 'react';
 import SignalContext from '../../context/SignalContext';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import axios from '../../config/axios';
@@ -7,7 +7,7 @@ import AuthContext from '../../context/AuthContext';
 import styles from '../../html/css/Signal.module.css';
 
 export default function SignalList() {
-    const { signals, signalsDispatch, handleEditClick } = useContext(SignalContext);
+    const { signals, signalsDispatch, handleEditClick, fetchSignals } = useContext(SignalContext);
     const { state } = useContext(AuthContext);
     const userRole = state.user?.role;
     const [searchTerm, setSearchTerm] = useState('');
@@ -20,6 +20,13 @@ export default function SignalList() {
         onConfirm: null,
         itemToDelete: null
     });
+
+    // ✅ Load signals when SignalList page is accessed
+    useEffect(() => {
+        if (fetchSignals && signals.data.length === 0) {
+            fetchSignals();
+        }
+    }, [fetchSignals, signals.data.length]);
 
     const handleRemoveClick = (id, signalName) => {
         setConfirmationModal({

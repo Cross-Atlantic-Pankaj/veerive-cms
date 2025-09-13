@@ -1,4 +1,4 @@
-import React, { useContext, useState, useMemo } from 'react';
+import React, { useContext, useState, useMemo, useEffect } from 'react';
 import SubSignalContext from '../../context/SubSignalContext';
 import SignalContext from '../../context/SignalContext';
 import ConfirmationModal from '../../components/ConfirmationModal';
@@ -7,8 +7,8 @@ import styles from '../../html/css/SubSignal.module.css';
 import AuthContext from '../../context/AuthContext';
 
 export default function SubSignalList() {
-    const { subSignals, subSignalsDispatch, handleEditClick } = useContext(SubSignalContext);
-    const { signals } = useContext(SignalContext);
+    const { subSignals, subSignalsDispatch, handleEditClick, fetchSubSignals } = useContext(SubSignalContext);
+    const { signals, fetchSignals } = useContext(SignalContext);
     const { state } = useContext(SubSignalContext);
     const { state: authState } = useContext(AuthContext);
     const userRole = authState.user?.role;
@@ -24,6 +24,16 @@ export default function SubSignalList() {
         onConfirm: null,
         itemToDelete: null
     });
+
+    // ✅ Load sub-signals and signals when SubSignalList page is accessed
+    useEffect(() => {
+        if (fetchSubSignals && subSignals.data.length === 0) {
+            fetchSubSignals();
+        }
+        if (fetchSignals && signals.data.length === 0) {
+            fetchSignals(); // Load signals for dropdown
+        }
+    }, [fetchSubSignals, subSignals.data.length, fetchSignals, signals.data.length]);
 
     const handleRemoveClick = (id, subSignalName) => {
         setConfirmationModal({

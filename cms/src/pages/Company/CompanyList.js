@@ -1,5 +1,8 @@
 import React, { useContext, useState, useEffect } from 'react'; // Import React and hooks from React
 import CompanyContext from '../../context/CompanyContext'; // Import CompanyContext for managing company-related state
+import CountryContext from '../../context/CountryContext'; // Import CountryContext for country data
+import SectorContext from '../../context/SectorContext'; // Import SectorContext for sector data
+import SubSectorContext from '../../context/SubSectorContext'; // Import SubSectorContext for sub-sector data
 import axios from '../../config/axios'; // Import axios instance for making HTTP requests
 import styles from '../../html/css/Company.module.css'; // Import CSS modules for styling the CompanyList component
 import AuthContext from '../../context/AuthContext';
@@ -8,8 +11,13 @@ import Papa from 'papaparse';
 
 export default function CompanyList() {
     // Use CompanyContext to access context values and dispatch actions
-    const { companies, companiesDispatch, handleAddClick, handleEditClick, countries, sectors, subSectors, state } = useContext(CompanyContext);
+    const { companies, companiesDispatch, handleAddClick, handleEditClick, fetchCompanies, countries, sectors, subSectors, state } = useContext(CompanyContext);
     const { state: authState } = useContext(AuthContext);
+    
+    // Get fetch functions from dependency contexts
+    const { fetchCountries } = useContext(CountryContext);
+    const { fetchSectors } = useContext(SectorContext);
+    const { fetchSubSectors } = useContext(SubSectorContext);
     const userRole = authState.user?.role;
 
     // State variables for search query, sorting column, and sorting order
@@ -25,6 +33,22 @@ export default function CompanyList() {
         itemToDelete: null
     });
     const itemsPerPage = 10;
+
+    // ✅ Load companies and dependencies when CompanyList page is accessed
+    useEffect(() => {
+        if (fetchCompanies && companies.data.length === 0) {
+            fetchCompanies();
+        }
+        if (fetchCountries && countries.data.length === 0) {
+            fetchCountries(); // Load countries for dropdown
+        }
+        if (fetchSectors && sectors.data.length === 0) {
+            fetchSectors(); // Load sectors for dropdown
+        }
+        if (fetchSubSectors && subSectors.data.length === 0) {
+            fetchSubSectors(); // Load sub-sectors for dropdown
+        }
+    }, [fetchCompanies, companies.data.length, fetchCountries, countries.data.length, fetchSectors, sectors.data.length, fetchSubSectors, subSectors.data.length]);
 
     // Helper function to normalize text for sorting (remove non-letters, convert to lowercase)
     const normalizeForSorting = (text) => {

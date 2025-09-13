@@ -7,7 +7,7 @@ import axios from '../../config/axios';
 import Papa from 'papaparse';
 
 export default function SourceList() {
-    const { sourcesDispatch, handleEditClick, handleAddClick } = useContext(SourceContext);
+    const { sources, sourcesDispatch, handleEditClick, handleAddClick, fetchSources } = useContext(SourceContext);
     const { state } = useContext(AuthContext);
     const userRole = state.user?.role;
     const [sortConfig, setSortConfig] = useState({ key: 'sourceName', direction: 'ascending' });
@@ -23,26 +23,23 @@ export default function SourceList() {
     });
     const itemsPerPage = 10;
 
-    // Fetch all sources on mount
+    // ✅ Load sources when SourceList page is accessed
     useEffect(() => {
-        const fetchAllSources = async () => {
-            try {
-                const response = await axios.get('/api/admin/sources', {
-                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
-                });
-                if (Array.isArray(response.data)) {
-                    setAllSources(response.data);
-                } else if (response.data.sources && Array.isArray(response.data.sources)) {
-                    setAllSources(response.data.sources);
-                } else {
-                    setAllSources([]);
-                }
-            } catch (err) {
-                setAllSources([]);
-            }
-        };
-        fetchAllSources();
-    }, []);
+        if (fetchSources && sources.data.length === 0) {
+            fetchSources();
+        }
+    }, [fetchSources, sources.data.length]);
+
+    // Update local state when sources data is loaded
+    useEffect(() => {
+        if (sources.data && Array.isArray(sources.data)) {
+            setAllSources(sources.data);
+        } else if (sources.data && sources.data.sources && Array.isArray(sources.data.sources)) {
+            setAllSources(sources.data.sources);
+        } else if (sources.data) {
+            setAllSources([]);
+        }
+    }, [sources.data]);
 
     // Helper function to normalize text for sorting (remove non-letters, convert to lowercase)
     const normalizeForSorting = (text) => {

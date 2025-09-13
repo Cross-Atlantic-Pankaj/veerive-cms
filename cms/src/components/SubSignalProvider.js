@@ -59,25 +59,26 @@ export const SubSignalProvider = ({ children }) => {
     //     })();
     // }, []); // Empty dependency array ensures this effect runs only once on mount
 
-    useEffect(() => {
-        const fetchSubSignals = async () => {
-            const token = sessionStorage.getItem('token'); // ✅ Check for token
-            if (!token) {
-                return; // ✅ Don't call the API if there's no token
-            }
+    // ✅ Fetch function available for manual loading
+    const fetchSubSignals = async () => {
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            return;
+        }
+        try {
+            const response = await axios.get('/api/admin/sub-signals', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            subSignalsDispatch({ type: 'SET_SUBSIGNALS', payload: response.data });
+        } catch (err) {
+            console.error("❌ Error Fetching Sub-Signals:", err);
+        }
+    };
 
-            try {
-                const response = await axios.get('/api/admin/sub-signals', {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                subSignalsDispatch({ type: 'SET_SUBSIGNALS', payload: response.data });
-            } catch (err) {
-                console.error("❌ Error Fetching Sub-Signals:", err);
-            }
-        };
-
-        fetchSubSignals();
-    }, []); // Runs once on mount
+    // ✅ DISABLED - Only load when SubSignal page is accessed
+    // useEffect(() => {
+    //     fetchSubSignals();
+    // }, []); // Runs once on mount
     
     // Handler function to show the form and prepare for adding a new sub-signal
     const handleAddClick = () => {
@@ -101,7 +102,7 @@ export const SubSignalProvider = ({ children }) => {
 
     // Provide context to child components
     return (
-        <SubSignalContext.Provider value={{ subSignals, subSignalsDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit }}>
+        <SubSignalContext.Provider value={{ subSignals, subSignalsDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit, fetchSubSignals }}>
             {children} 
         </SubSignalContext.Provider>
     );

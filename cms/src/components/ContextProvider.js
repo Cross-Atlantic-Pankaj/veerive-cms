@@ -123,14 +123,23 @@ export const ContextProvider = ({ children }) => {
         }
     };
 
-// ✅ Now `fetchContexts` is defined before it's used in useEffect
-useEffect(() => {
+// ✅ Load contexts only when Context page is accessed via a trigger
+const loadContextData = () => {
     if (state.isLoggedIn) {
         fetchContexts();
         fetchPosts();
         fetchAllThemes();
     }
-}, [state.isLoggedIn, page, searchQuery]); // ✅ Fetch only when `page` or `searchQuery` changes
+};
+
+// ✅ DISABLED AUTO-LOADING - Only load when Context page is accessed
+// useEffect(() => {
+//     if (state.isLoggedIn) {
+//         fetchContexts();
+//         fetchPosts();
+//         fetchAllThemes();
+//     }
+// }, [state.isLoggedIn, page, searchQuery]);
 
 // Call fetchAllThemes once when the component mounts
 // useEffect(() => {

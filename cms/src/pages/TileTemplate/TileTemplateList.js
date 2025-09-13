@@ -1,4 +1,4 @@
-import React, { useContext, useState, useMemo } from 'react';
+import React, { useContext, useState, useMemo, useEffect } from 'react';
 import TileTemplateContext from '../../context/TileTemplateContext';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -7,7 +7,7 @@ import Tile from '../../components/Tile';
 import styles from '../../html/css/TileTemplate.module.css';
 
 const TileTemplateList = () => {
-    const { tileTemplates, loading, initialLoading, deleteTileTemplate } = useContext(TileTemplateContext);
+    const { tileTemplates, loading, initialLoading, deleteTileTemplate, fetchTileTemplates } = useContext(TileTemplateContext);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [confirmationModal, setConfirmationModal] = useState({
@@ -19,6 +19,13 @@ const TileTemplateList = () => {
     });
     
     const itemsPerPage = 10;
+
+    // ✅ Load tile templates when TileTemplateList page is accessed
+    useEffect(() => {
+        if (fetchTileTemplates && tileTemplates.length === 0) {
+            fetchTileTemplates();
+        }
+    }, [fetchTileTemplates, tileTemplates.length]);
 
     const handleDeleteClick = (id, templateName) => {
         setConfirmationModal({

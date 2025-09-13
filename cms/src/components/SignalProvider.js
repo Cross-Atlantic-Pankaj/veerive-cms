@@ -56,25 +56,26 @@ export const SignalProvider = ({ children }) => {
     //     })();
     // }, []); // Empty dependency array means this effect runs once on component mount
 
-    useEffect(() => {
-        const fetchSignals = async () => {
-            const token = sessionStorage.getItem('token');  // ✅ Get token from localStorage
-            if (!token) {
-                return;  // ✅ Skip API call if no token is available
-            }
-    
-            try {
-                const response = await axios.get('/api/admin/signals', { 
-                    headers: { Authorization: `Bearer ${token}` } 
-                });
-                signalsDispatch({ type: 'SET_SIGNALS', payload: response.data });
-            } catch (err) {
-                console.error("❌ Error Fetching Signals:", err);
-            }
-        };
-    
-        fetchSignals(); // ✅ Only fetch when token exists
-    }, []);
+    // ✅ Fetch function available for manual loading
+    const fetchSignals = async () => {
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            return;
+        }
+        try {
+            const response = await axios.get('/api/admin/signals', { 
+                headers: { Authorization: `Bearer ${token}` } 
+            });
+            signalsDispatch({ type: 'SET_SIGNALS', payload: response.data });
+        } catch (err) {
+            console.error("❌ Error Fetching Signals:", err);
+        }
+    };
+
+    // ✅ DISABLED - Only load when Signal page is accessed
+    // useEffect(() => {
+    //     fetchSignals();
+    // }, []);
     
     // Handler function to show the form and prepare for adding a new signal
     const handleAddClick = () => {
@@ -98,7 +99,7 @@ export const SignalProvider = ({ children }) => {
 
     // Provide context value to child components
     return (
-        <SignalContext.Provider value={{ signals, signalsDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit }}>
+        <SignalContext.Provider value={{ signals, signalsDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit, fetchSignals }}>
             {children} 
         </SignalContext.Provider>
     );

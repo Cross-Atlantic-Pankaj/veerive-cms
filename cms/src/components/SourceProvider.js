@@ -56,25 +56,27 @@ export const SourceProvider = ({ children }) => {
     //     })();
     // }, []); // Empty dependency array means this effect runs once on component mount
 
-    useEffect(() => {
-        const fetchSources = async () => {
-            const token = sessionStorage.getItem('token');  // ✅ Get token from localStorage
-            if (!token) {
-                return;  // ✅ Skip API call if no token is available
-            }
-    
-            try {
-                const response = await axios.get('/api/admin/sources', { 
-                    headers: { Authorization: `Bearer ${token}` } 
-                });
-                sourcesDispatch({ type: 'SET_SOURCES', payload: response.data });
-            } catch (err) {
-                console.error("❌ Error Fetching Sources:", err);
-            }
-        };
-    
-        fetchSources(); // ✅ Only fetch when token exists
-    }, []);
+    // ✅ Fetch function available for manual loading
+    const fetchSources = async () => {
+        const token = sessionStorage.getItem('token');  // ✅ Get token from localStorage
+        if (!token) {
+            return;  // ✅ Skip API call if no token is available
+        }
+
+        try {
+            const response = await axios.get('/api/admin/sources', { 
+                headers: { Authorization: `Bearer ${token}` } 
+            });
+            sourcesDispatch({ type: 'SET_SOURCES', payload: response.data });
+        } catch (err) {
+            console.error("❌ Error Fetching Sources:", err);
+        }
+    };
+
+    // ✅ DISABLED - Only load when Source page is accessed
+    // useEffect(() => {
+    //     fetchSources();
+    // }, []);
     
     // Handler function to show the form and prepare for adding a new source
     const handleAddClick = () => {
@@ -98,7 +100,7 @@ export const SourceProvider = ({ children }) => {
 
     // Provide context value to child components
     return (
-        <SourceContext.Provider value={{ sources, sourcesDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit }}>
+        <SourceContext.Provider value={{ sources, sourcesDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit, fetchSources }}>
             {children} 
         </SourceContext.Provider>
     );

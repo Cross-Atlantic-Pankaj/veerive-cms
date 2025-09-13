@@ -25,9 +25,10 @@ const marketDataReducer = (state, action) => {
 export const MarketDataProvider = ({ children }) => {
     const [marketData, marketDataDispatch] = useReducer(marketDataReducer, { data: [] });
 
-    useEffect(() => {
-        fetchAllMarketData();
-    }, []);
+    // ✅ DISABLED AUTO-LOADING - Only load when MarketData page is accessed
+    // useEffect(() => {
+    //     fetchAllMarketData();
+    // }, []);
 
     const fetchAllMarketData = async () => {
         const token = localStorage.getItem("token");

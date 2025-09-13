@@ -51,24 +51,26 @@ export const CountryProvider = ({ children }) => {
     //     })();
     // }, []); // Empty dependency array means this effect runs once when the component mounts
 
-    useEffect(() => {
-        const fetchCountries = async () => {
-            try {
-                if (regions?.data?.length > 0) { // ✅ Wait until regions are loaded
-                    const response = await axios.get('/api/admin/countries', { 
-                        headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
-                    });
-                    countriesDispatch({ type: 'SET_COUNTRIES', payload: response.data });
-                } else {
-                }
-            } catch (err) {
-            }
-        };
-    
-        if (regions?.data?.length > 0) {
-            fetchCountries(); // ✅ Fetch only when regions are available
+    // ✅ Fetch function available for manual loading
+    const fetchCountries = async () => {
+        try {
+            console.log('🔍 Fetching countries...');
+            const response = await axios.get('/api/admin/countries', { 
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
+            });
+            console.log('🔍 Countries API response:', response.data);
+            countriesDispatch({ type: 'SET_COUNTRIES', payload: response.data });
+        } catch (err) {
+            console.error("❌ Error Fetching Countries:", err);
         }
-    }, [regions]); // ✅ Runs only when regions are updated
+    };
+
+    // ✅ DISABLED - Only load when Country page is accessed
+    // useEffect(() => {
+    //     if (regions?.data?.length > 0) {
+    //         fetchCountries();
+    //     }
+    // }, [regions]);
     
     // useEffect(() => {
     //     console.log("✅ Available Regions in CountryProvider:", regions?.data);
@@ -102,7 +104,7 @@ export const CountryProvider = ({ children }) => {
 
     // Provide country-related state and functions to child components through CountryContext
     return (
-        <CountryContext.Provider value={{ countries, countriesDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit }}>
+        <CountryContext.Provider value={{ countries, countriesDispatch, isFormVisible, setIsFormVisible, handleAddClick, handleEditClick, handleFormSubmit, fetchCountries }}>
             {successMessage && ( // ✅ Display message only when it's set
             <div className="success-message" style={{ background: "green", color: "white", padding: "8px", textAlign: "center", marginBottom: "10px" }}>
                 {successMessage}

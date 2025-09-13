@@ -41,16 +41,17 @@ export const ContainerProvider = ({ children }) => {
     const { companies } = useContext(CompanyContext);
     const { sources } = useContext(SourceContext);
 
-    useEffect(() => {
-        (async () => {
-            try {
-                const response = await axios.get('/api/posts', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }});
-                containersDispatch({ type: 'SET_CONTAINERS', payload: response.data });
-            } catch (err) {
-                console.error('Error fetching containers:', err);
-            }
-        })();
-    }, []);
+    // ✅ DISABLED - Only load when Container page is accessed
+    // useEffect(() => {
+    //     (async () => {
+    //         try {
+    //             const response = await axios.get('/api/posts', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }});
+    //             containersDispatch({ type: 'SET_CONTAINERS', payload: response.data });
+    //         } catch (err) {
+    //             console.error('Error fetching containers:', err);
+    //         }
+    //     })();
+    // }, []);
 
     const handleAddContainer = async (container) => {
         try {

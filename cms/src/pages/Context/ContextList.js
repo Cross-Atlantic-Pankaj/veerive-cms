@@ -1,5 +1,10 @@
 import React, { useContext, useState, useMemo, useEffect, useCallback } from 'react'; // Importing necessary hooks and components from React
 import ContextContext from '../../context/ContextContext'; // Importing the context for managing global state
+import SectorContext from '../../context/SectorContext';
+import SubSectorContext from '../../context/SubSectorContext';
+import SignalContext from '../../context/SignalContext';
+import SubSignalContext from '../../context/SubSignalContext';
+import ThemeContext from '../../context/ThemeContext';
 import axios from '../../config/axios'; // Importing axios instance for making HTTP requests
 import '../../html/css/Context.css'; // Importing the CSS file for styling the component
 import { format } from 'date-fns';
@@ -24,6 +29,13 @@ export default function ContextList() {
     const { allThemes } = useContext(ContextContext); // ✅ Use allThemes
     const { state } = useContext(AuthContext);
     const userRole = state.user?.role;
+    
+    // ✅ Get fetch functions from dependency contexts
+    const { fetchSectors } = useContext(SectorContext);
+    const { fetchSubSectors } = useContext(SubSectorContext);
+    const { fetchSignals } = useContext(SignalContext);
+    const { fetchSubSignals } = useContext(SubSignalContext);
+    const { fetchThemes } = useContext(ThemeContext);
     
     // Local state to manage the search query and sorting configuration
     const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'descending' });
@@ -55,6 +67,25 @@ export default function ContextList() {
         filterContextIds,
         filterActive: filterContextIds.length > 0
     });
+
+    // ✅ Load all dependencies when ContextList page is accessed
+    useEffect(() => {
+        if (fetchSectors && sectors.data.length === 0) {
+            fetchSectors(); // Load sectors for dropdown
+        }
+        if (fetchSubSectors && subSectors.data.length === 0) {
+            fetchSubSectors(); // Load sub-sectors for dropdown
+        }
+        if (fetchSignals && signals.data.length === 0) {
+            fetchSignals(); // Load signals for dropdown
+        }
+        if (fetchSubSignals && subSignals.data.length === 0) {
+            fetchSubSignals(); // Load sub-signals for dropdown
+        }
+        if (fetchThemes && themes.data.length === 0) {
+            fetchThemes(); // Load themes for dropdown
+        }
+    }, [fetchSectors, sectors.data.length, fetchSubSectors, subSectors.data.length, fetchSignals, signals.data.length, fetchSubSignals, subSignals.data.length, fetchThemes, themes.data.length]);
 
     // Fetch all contexts when component mounts
     useEffect(() => {

@@ -8,8 +8,8 @@ import axios from '../../config/axios';
 import Papa from 'papaparse';
 
 export default function SubSectorList() {
-    const { subSectors, subSectorsDispatch, handleEditClick, handleAddClick } = useContext(SubSectorContext);
-    const { sectors } = useContext(SectorContext);
+    const { subSectors, subSectorsDispatch, handleEditClick, handleAddClick, fetchSubSectors } = useContext(SubSectorContext);
+    const { sectors, fetchSectors } = useContext(SectorContext);
     const { state } = useContext(AuthContext);
     const userRole = state.user?.role;
 
@@ -24,6 +24,16 @@ export default function SubSectorList() {
         itemToDelete: null
     });
     const itemsPerPage = 10;
+
+    // ✅ Load sub-sectors and sectors when SubSectorList page is accessed
+    useEffect(() => {
+        if (fetchSubSectors && subSectors.data.length === 0) {
+            fetchSubSectors();
+        }
+        if (fetchSectors && sectors.data.length === 0) {
+            fetchSectors(); // Load sectors for dropdown
+        }
+    }, [fetchSubSectors, subSectors.data.length, fetchSectors, sectors.data.length]);
 
     const handleDeleteClick = (id, subSectorName) => {
         setConfirmationModal({

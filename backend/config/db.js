@@ -1,24 +1,11 @@
 import mongoose from 'mongoose';
+import mongoConnection from '../utils/mongoConnection.js';
 
 const configDB = async () => {
   try {
-    const mongoURI =
-      process.env.NODE_ENV === 'production'
-        ? process.env.DB_URL_PRODUCTION || process.env.DB_URL // Use the veerive database in production
-        : process.env.DB_URL_LOCAL || process.env.DB_URL; // Use the local database in development
-
-    // Increased timeout options for better reliability
-    const connectionOptions = {
-      maxPoolSize: 5, // Maintain up to 5 socket connections
-      serverSelectionTimeoutMS: 20000, // Keep trying to send operations for 20 seconds
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      connectTimeoutMS: 25000, // Give up initial connection after 25 seconds
-      retryWrites: true,
-      w: 'majority'
-    };
-
-    const dbConnection = await mongoose.connect(mongoURI, connectionOptions);
-
+    // Use singleton connection
+    const dbConnection = await mongoConnection.connect();
+    
     const dbName = dbConnection.connection.name;
     console.log('Connected to database:', dbName);
     

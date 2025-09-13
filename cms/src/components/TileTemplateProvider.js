@@ -24,9 +24,10 @@ export const TileTemplateProvider = ({ children }) => {
         }
     }, []);
 
-    useEffect(() => {
-        fetchTileTemplates();
-    }, [fetchTileTemplates]);
+    // ✅ DISABLED - Only load when TileTemplate page is accessed
+    // useEffect(() => {
+    //     fetchTileTemplates();
+    // }, [fetchTileTemplates]);
 
     const addTileTemplate = async (templateData) => {
         setLoading(true);
