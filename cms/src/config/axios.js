@@ -26,7 +26,7 @@ import axios from 'axios';
 const baseURL =
   process.env.NODE_ENV === 'development'
     ? 'http://localhost:3050' // Backend running locally
-    : 'http://3.111.213.47:3050'; // Deployed backend
+    : process.env.REACT_APP_API_URL || 'http://3.111.213.47:3050'; // Deployed backend
 
 const axiosInstance = axios.create({
   baseURL,
