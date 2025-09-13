@@ -59,25 +59,15 @@ console.log('Environment Variables:', {
   EMAIL_USER: process.env.EMAIL_USER,
 });
 
-const allowedOrigins = [
-  'http://localhost:3000', // User frontend
-  'http://localhost:3001', // Admin Development
-  'https://veerive-oct7.vercel.app', // Staging
-  'https://veerive-frontend.vercel.app', // Production
-];
-
+// Allow all origins for maximum compatibility
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true); // Allow requests from whitelisted origins
-      } else {
-        callback(new Error('Not allowed by CORS')); // Reject other origins
-      }
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Explicitly allowed HTTP methods
+    origin: true, // Allow all origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], // Explicitly allowed HTTP methods
     credentials: true, // Allow cookies or credentials
-    allowedHeaders: ['Content-Type', 'Authorization'], // Allow headers for secure requests
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'], // Allow headers for secure requests
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    maxAge: 86400, // Cache preflight response for 24 hours
   })
 );
 
