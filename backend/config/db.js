@@ -18,12 +18,14 @@ const configDB = async () => {
       w: 'majority'
     };
 
+    console.log('🔗 Attempting to connect to MongoDB...');
     const dbConnection = await mongoose.connect(mongoURI, connectionOptions);
 
     const dbName = dbConnection.connection.name;
-    console.log('Connected to database:', dbName);
+    console.log('✅ Connected to database:', dbName);
     
     // Create indexes for better performance
+    console.log('📊 Creating database indexes...');
     await createIndexes();
     
   } catch (err) {
@@ -40,6 +42,10 @@ const createIndexes = async () => {
     // Create index on users_cms collection for email field
     await db.collection('users_cms').createIndex({ email: 1 }, { unique: true });
     console.log('✅ Created index on users_cms.email');
+    
+    // Check if users_cms collection has data
+    const userCount = await db.collection('users_cms').countDocuments();
+    console.log(`📊 users_cms collection has ${userCount} users`);
     
     // Create other useful indexes
     await db.collection('posts').createIndex({ createdAt: -1 });

@@ -1,5 +1,4 @@
 import User from "../models/user-model.js";
-import UserCms from "../models/user-cms-model.js";
 import { validationResult } from "express-validator";
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -88,60 +87,32 @@ usersCltr.login = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // Check both collections and find the user with matching password
-        let user = null;
-        let isCmsUser = false;
-        
-        // First check users_cms collection with timeout and lean query
+        // Use only the User model (configured for users_cms collection)
         console.log('🔍 Checking users_cms collection...');
-        const regularUser = await User.findOne({ email }).maxTimeMS(5000).lean();
-        console.log('Regular user found:', regularUser ? 'Yes' : 'No');
-        if (regularUser) {
-            console.log('Regular user password type:', regularUser.password ? (regularUser.password.startsWith('$2a$') ? 'bcrypt' : 'plain') : 'none');
-            // Check if password matches for regular user
-            let passwordMatch = false;
-            if (regularUser.password) {
-                if (regularUser.password.startsWith('$2a$')) {
-                    passwordMatch = await bcryptjs.compare(password, regularUser.password);
-                } else {
-                    passwordMatch = (password === regularUser.password);
-                }
-            }
-            console.log('Regular user password match:', passwordMatch);
-            if (passwordMatch) {
-                user = regularUser;
-                isCmsUser = false;
-            }
-        }
-        
-        // If no match in regular users, check CMS users collection
-        if (!user) {
-            console.log('🔍 Checking CMS users collection...');
-            const cmsUser = await UserCms.findOne({ email });
-            console.log('CMS user found:', cmsUser ? 'Yes' : 'No');
-            if (cmsUser) {
-                console.log('CMS user password type:', cmsUser.password ? (cmsUser.password.startsWith('$2a$') ? 'bcrypt' : 'plain') : 'none');
-                console.log('CMS user password:', cmsUser.password);
-                console.log('Provided password:', password);
-                // Check if password matches for CMS user
-                let passwordMatch = false;
-                if (cmsUser.password) {
-                    if (cmsUser.password.startsWith('$2a$')) {
-                        passwordMatch = await bcryptjs.compare(password, cmsUser.password);
-                    } else {
-                        passwordMatch = (password === cmsUser.password);
-                    }
-                }
-                console.log('CMS user password match:', passwordMatch);
-                if (passwordMatch) {
-                    user = cmsUser;
-                    isCmsUser = true;
-                }
-            }
-        }
+        const user = await User.findOne({ email }).maxTimeMS(5000).lean();
+        console.log('User found:', user ? 'Yes' : 'No');
         
         if (!user) {
-            return res.status(404).json({ error: 'Invalid email or password' });
+            console.log('❌ User not found');
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+        
+        console.log('User password type:', user.password ? (user.password.startsWith('$2a$') ? 'bcrypt' : 'plain') : 'none');
+        
+        // Check if password matches
+        let passwordMatch = false;
+        if (user.password) {
+            if (user.password.startsWith('$2a$')) {
+                passwordMatch = await bcryptjs.compare(password, user.password);
+            } else {
+                passwordMatch = (password === user.password);
+            }
+        }
+        console.log('Password match:', passwordMatch);
+        
+        if (!passwordMatch) {
+            console.log('❌ Password mismatch');
+            return res.status(401).json({ error: 'Invalid email or password' });
         }
 
         // Password already verified above, proceed with token generation
@@ -347,13 +318,11 @@ usersCltr.list = async (req, res) => {
 
 usersCltr.account = async (req, res) => {
     try {
-        // Check both collections for the user
-        let user = await User.findById(req.user.userId).select("email role name");
-        
-        // If not found in regular users collection, check CMS users collection
-        if (!user) {
-            user = await UserCms.findById(req.user.userId).select("email role name");
-        }
+        // Use only the User model (configured for users_cms collection)
+        const user = await User.findById(req.user.userId)
+            .select("email role name")
+            .maxTimeMS(5000)
+            .lean();
         
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
