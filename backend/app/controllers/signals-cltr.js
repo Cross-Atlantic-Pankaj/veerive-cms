@@ -5,9 +5,8 @@ signalsCltr.list = async (req, res) => {
     try{
         const response = await Signal.find({})
         res.json(response)
-        console.log(response)
     } catch(err) {
-        console.log(err)
+        console.error("Error:", err)
         res.json(err)
     }
     
@@ -20,7 +19,7 @@ signalsCltr.create = async (req, res) => {
         await signal.save()
         res.status(201).json(signal)
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -39,7 +38,7 @@ signalsCltr.update = async (req, res) => {
         return res.json(signal)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -57,7 +56,7 @@ signalsCltr.delete = async (req, res) => {
         return res.json(signal)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }

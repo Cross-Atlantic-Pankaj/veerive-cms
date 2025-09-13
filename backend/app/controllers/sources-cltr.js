@@ -5,9 +5,8 @@ sourcesCltr.list = async (req, res) => {
     try{
         const response = await Source.find({})
         res.json(response)
-        console.log(response)
     } catch(err) {
-        console.log(err)
+        console.error("Error:", err)
         res.json(err)
     }
     
@@ -20,7 +19,7 @@ sourcesCltr.create = async (req, res) => {
         await source.save()
         res.status(201).json(source)
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -39,7 +38,7 @@ sourcesCltr.update = async (req, res) => {
         return res.json(source)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -57,7 +56,7 @@ sourcesCltr.delete = async (req, res) => {
         return res.json(source)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }

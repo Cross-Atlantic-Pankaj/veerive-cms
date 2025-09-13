@@ -2,14 +2,12 @@ import axios from 'axios';
 
 const testLogin = async () => {
     try {
-        console.log('🧪 Testing login API...');
         
         const loginData = {
             email: 'info@veerive.com',
             password: 'admin123'
         };
         
-        console.log('Sending login request:', loginData);
         
         const response = await axios.post('http://localhost:3050/api/users/login', loginData, {
             headers: {
@@ -17,8 +15,6 @@ const testLogin = async () => {
             }
         });
         
-        console.log('✅ Login successful!');
-        console.log('Response:', response.data);
         
     } catch (error) {
         console.error('❌ Login failed:');

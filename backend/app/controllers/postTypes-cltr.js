@@ -5,9 +5,8 @@ postTypesCltr.list = async (req, res) => {
     try{
         const response = await PostType.find({})
         res.json(response)
-        console.log(response)
     } catch(err) {
-        console.log(err)
+        console.error("Error:", err)
         res.json(err)
     }
     
@@ -20,7 +19,7 @@ postTypesCltr.create = async (req, res) => {
         await postType.save()
         res.status(201).json(postType)
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -39,7 +38,7 @@ postTypesCltr.update = async (req, res) => {
         return res.json(postType)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -57,7 +56,7 @@ postTypesCltr.delete = async (req, res) => {
         return res.json(postType)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }

@@ -598,7 +598,6 @@ export default function PostList() {
                                     <button 
                                         className="show-contexts-btn" 
                                         onClick={() => {
-                                            console.log('Post data:', post); // Debug log
                                             handleShowPostContexts(post._id);
                                         }}
                                     >

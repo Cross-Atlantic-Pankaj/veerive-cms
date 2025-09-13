@@ -5,9 +5,8 @@ profilesCltr.list = async (req, res) => {
     try{
         const profiles = await Profile.find({user: req.userId})
         res.json(profiles)
-        console.log(profiles)
     } catch(err) {
-        console.log(err)
+        console.error("Error:", err)
         res.json(err)
     }
     
@@ -23,7 +22,7 @@ profilesCltr.show = async (req, res) => {
         res.json(profile)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -35,7 +34,7 @@ profilesCltr.create = async (req, res) => {
         await profile.save()
         res.status(201).json(profile)
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -54,7 +53,7 @@ profilesCltr.update = async (req, res) => {
         return res.json(profile)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -72,7 +71,7 @@ profilesCltr.delete = async (req, res) => {
         return res.json(profile)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }

@@ -6,7 +6,7 @@ regionsCltr.list = async (req, res) => {
         const response = await Region.find({})
         res.json(response)
     } catch(err) {
-        console.log(err)
+        console.error("Error:", err)
         res.json(err)
     }
     
@@ -19,7 +19,7 @@ regionsCltr.create = async (req, res) => {
         await region.save()
         res.status(201).json(region)
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -38,7 +38,7 @@ regionsCltr.update = async (req, res) => {
         return res.json(region)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -56,7 +56,7 @@ regionsCltr.delete = async (req, res) => {
         return res.json(region)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }

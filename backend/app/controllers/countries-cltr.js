@@ -6,7 +6,7 @@ countriesCltr.list = async (req, res) => {
         const response = await Country.find({})
         res.json(response)
     } catch(err) {
-        console.log(err)
+        console.error("Error:", err)
         res.json(err)
     }
     
@@ -19,7 +19,7 @@ countriesCltr.create = async (req, res) => {
         await country.save()
         res.status(201).json(country)
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -38,7 +38,7 @@ countriesCltr.update = async (req, res) => {
         return res.json(country)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -56,7 +56,7 @@ countriesCltr.delete = async (req, res) => {
         return res.json(country)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }

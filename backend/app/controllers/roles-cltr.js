@@ -5,9 +5,8 @@ rolesCltr.list = async (req, res) => {
     try{
         const response = await Role.find({})
         res.json(response)
-        console.log(response)
     } catch(err) {
-        console.log(err)
+        console.error("Error:", err)
         res.json(err)
     }
     
@@ -20,7 +19,7 @@ rolesCltr.create = async (req, res) => {
         await role.save()
         res.status(201).json(role)
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -39,7 +38,7 @@ rolesCltr.update = async (req, res) => {
         return res.json(role)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -57,7 +56,7 @@ rolesCltr.delete = async (req, res) => {
         return res.json(role)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }

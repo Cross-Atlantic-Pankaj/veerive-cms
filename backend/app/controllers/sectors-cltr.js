@@ -5,9 +5,8 @@ sectorsCltr.list = async (req, res) => {
     try{
         const response = await Sector.find({})
         res.json(response)
-        console.log(response)
     } catch(err) {
-        console.log(err)
+        console.error("Error:", err)
         res.json(err)
     }
     
@@ -20,7 +19,7 @@ sectorsCltr.create = async (req, res) => {
         await sector.save()
         res.status(201).json(sector)
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -39,7 +38,7 @@ sectorsCltr.update = async (req, res) => {
         return res.json(sector)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -57,7 +56,7 @@ sectorsCltr.delete = async (req, res) => {
         return res.json(sector)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }

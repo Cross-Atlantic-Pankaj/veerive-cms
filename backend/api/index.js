@@ -78,7 +78,6 @@ app.use(passport.initialize());
 
 // Initialize database connection (async)
 configDB().then(() => {
-  console.log('Database connected successfully');
 }).catch((error) => {
   console.error('Database connection error:', error);
 });
@@ -89,13 +88,6 @@ app.use(express.json())
 // Debug middleware to log all incoming requests
 app.use((req, res, next) => {
     if (req.path.includes('/posts') || req.path.includes('/contexts')) {
-        console.log('🔍 Incoming request:', {
-            method: req.method,
-            path: req.path,
-            bodyKeys: Object.keys(req.body || {}),
-            hasImageUrl: 'imageUrl' in (req.body || {}),
-            imageUrlValue: req.body?.imageUrl
-        });
     }
     next();
 });

@@ -5,9 +5,8 @@ companiesCltr.list = async (req, res) => {
     try{
         const companies = await Company.find({})
         res.json(companies)
-        console.log(companies)
     } catch(err) {
-        console.log(err)
+        console.error("Error:", err)
         res.json(err)
     }
     
@@ -20,7 +19,7 @@ companiesCltr.create = async (req, res) => {
         await company.save()
         res.status(201).json(company)
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -39,7 +38,7 @@ companiesCltr.update = async (req, res) => {
         return res.json(company)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -57,7 +56,7 @@ companiesCltr.delete = async (req, res) => {
         return res.json(company)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }

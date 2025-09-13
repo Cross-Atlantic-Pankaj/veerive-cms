@@ -27,7 +27,7 @@ registerCltr.create = async (req, res) => {
     return res.status(201).json({message:'new user registered successfully'})
 
     }catch(err) {
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({message:'something went wrong'})
     }
 }
