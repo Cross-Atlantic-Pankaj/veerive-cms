@@ -104,7 +104,7 @@ export default function ContextList() {
                     ? `/api/admin/contexts/all`
                     : `/api/admin/contexts?page=${page}&limit=10`;
                 const response = await axios.get(apiUrl, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
                 });
     
                 if (response.data.success) {
@@ -415,7 +415,7 @@ export default function ContextList() {
                 : `/api/admin/contexts?page=${page}&limit=10`;
 
             const response = await axios.get(apiUrl, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
             });
 
             if (response.data.success) {

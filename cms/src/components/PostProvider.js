@@ -75,7 +75,7 @@ export const PostProvider = ({ children }) => {
     }, [page]);
 
     const fetchPosts = async (currentPage) => {
-        const token = localStorage.getItem("token"); // ✅ Get token
+        const token = sessionStorage.getItem("token"); // ✅ Get token
 
         if (!token) {
             //console.error("❌ No token found, user might be logged out.");
@@ -96,7 +96,7 @@ export const PostProvider = ({ children }) => {
     };
 
     const fetchAllPosts = async () => {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
     
         if (!token) {
             console.error("❌ No token found, user might be logged out.");
@@ -119,7 +119,7 @@ export const PostProvider = ({ children }) => {
 
     // ✅ New function to fetch a single post for editing
     const fetchSinglePost = async (postId) => {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
     
         if (!token) {
             console.error("❌ No token found, user might be logged out.");

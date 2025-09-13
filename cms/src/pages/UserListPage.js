@@ -33,7 +33,7 @@ const UserManagementPage = () => {
   const fetchUsers = async () => {
     try {
       const response = await axios.get("/api/users/list", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
       });
       setUsers(response.data);
       setLoading(false);
@@ -82,7 +82,7 @@ const UserManagementPage = () => {
     setIsCreatingUser(true);
     try {
       const response = await axios.post('/api/users/register', newUser, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
       });
       setSuccess('User created successfully!');
       setNewUser({ email: '', password: '', role: 'User', name: '' });
@@ -138,7 +138,7 @@ const UserManagementPage = () => {
       }
 
       const response = await axios.put(`/api/users/update/${editingUser._id}`, updateData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
       });
       
       setSuccess('User updated successfully!');
@@ -166,7 +166,7 @@ const UserManagementPage = () => {
     if (newRole === 'SuperAdmin') return; // Prevent assigning SuperAdmin
     try {
       await axios.put(`/api/users/change-role/${userId}`, { role: newRole }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
       });
       setAlertState({ open: true, message: 'Role updated successfully.', severity: 'success' });
       fetchUsers();
@@ -190,7 +190,7 @@ const UserManagementPage = () => {
   const handleDeleteAccount = async (userId, userEmail) => {
     try {
       await axios.delete(`/api/users/${userId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
       });
       setAlertState({ open: true, message: 'User deleted successfully.', severity: 'success' });
       fetchUsers();

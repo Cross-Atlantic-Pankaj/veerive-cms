@@ -19,7 +19,7 @@ const SettingsPage = () => {
     const fetchAdminDetails = async () => {
         try {
             const response = await axios.get("/api/users/account", {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
             });
             setAdminDetails(response.data);
             setEmail(response.data.email);
@@ -42,7 +42,7 @@ const SettingsPage = () => {
                 "/api/users/update-email",
                 { email },
                 {
-                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
                 }
             );
             toast.success("Email updated successfully. Please log in again.");
@@ -78,7 +78,7 @@ const SettingsPage = () => {
                 "/api/users/update-password",
                 { currentPassword, newPassword },
                 {
-                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
                 }
             );
     

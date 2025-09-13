@@ -30,7 +30,7 @@ export const MarketDataProvider = ({ children }) => {
     }, []);
 
     const fetchAllMarketData = async () => {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
 
         if (!token) {
             console.error("❌ No token found, user might be logged out.");

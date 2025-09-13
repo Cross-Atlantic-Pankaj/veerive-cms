@@ -60,11 +60,11 @@ useEffect(() => {
                     headers: { Authorization: `Bearer ${storedToken}` },
                 });
                 dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
-        } catch (err) {
-            if (err.response && err.response.status === 401) {
-                sessionStorage.removeItem('token'); 
+            } catch (err) {
+                if (err.response && err.response.status === 401) {
+                    sessionStorage.removeItem('token'); 
+                }
             }
-        }
         }
         setLoading(false);
     })();
@@ -132,22 +132,30 @@ useEffect(() => {
 const handleLogin = async (formData) => {
     setLoading(true);
     try {
+        console.log('🔐 Attempting login with:', formData.email);
         const response = await axios.post('/api/users/login', formData, { withCredentials: true });
+        console.log('✅ Login API response:', response.data);
 
         if (response.data.token) {
             sessionStorage.setItem('token', response.data.token);
+            console.log('💾 Token stored in sessionStorage');
         } else {
             throw new Error('No token received from login API');
         }
 
+        console.log('👤 Fetching user account...');
         const userResponse = await axios.get('/api/users/account', {
             headers: { Authorization: `Bearer ${response.data.token}` },
         });
+        console.log('✅ Account API response:', userResponse.data);
 
         dispatch({ type: 'LOGIN_USER', payload: userResponse.data });
         setLoading(false);
+        console.log('🚀 Navigating to admin home...');
+        console.log('🔍 Current state after login:', { isLoggedIn: true, user: userResponse.data });
         navigate('/admin-home');
     } catch (err) {
+        console.error('❌ Login error:', err);
         setLoading(false);
         toast.error("Login failed. Please check credentials.");
         throw err; // Re-throw the error so Login component can catch it

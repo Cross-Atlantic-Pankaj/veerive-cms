@@ -109,7 +109,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
     const fetchAllContexts = async () => {
         try {
             const response = await axios.get("/api/admin/contexts/all", {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
             });
     
             if (response.data.success && Array.isArray(response.data.contexts)) {
