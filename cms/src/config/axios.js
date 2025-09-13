@@ -34,7 +34,7 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true, // Ensure cookies and headers are sent
-  timeout: 10000, // 10 second timeout
+  timeout: 30000, // 30 second timeout
 });
 
 // ✅ Automatically add Authorization header to every request

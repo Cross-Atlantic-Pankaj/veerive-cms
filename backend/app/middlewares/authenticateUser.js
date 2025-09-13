@@ -47,7 +47,7 @@ const authenticateUser = (req, res, next) => {
 const conditionalAuth = async (req, res, next) => {
     try {
         // Check if any admin exists in the database
-        const adminCount = await User.countDocuments({ role: 'Admin' });
+        const adminCount = await User.countDocuments({ role: 'Admin' }).maxTimeMS(15000);
 
         if (adminCount === 0) {
             // No Admin exists; allow the first admin registration
@@ -67,7 +67,7 @@ const conditionalAuth = async (req, res, next) => {
 const checkPasswordExpiry = async (req, res, next) => {
     if (req.user && req.user.role === 'Admin') {
         try {
-            const user = await User.findById(req.user.userId);
+            const user = await User.findById(req.user.userId).maxTimeMS(15000);
             if (!user) {
                 return res.status(404).json({ error: 'User not found' });
             }

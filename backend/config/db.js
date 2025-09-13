@@ -7,12 +7,12 @@ const configDB = async () => {
         ? process.env.DB_URL_PRODUCTION || process.env.DB_URL // Use the veerive database in production
         : process.env.DB_URL_LOCAL || process.env.DB_URL; // Use the local database in development
 
-    // Simplified connection options for reliability
+    // Increased timeout options for better reliability
     const connectionOptions = {
       maxPoolSize: 5, // Maintain up to 5 socket connections
-      serverSelectionTimeoutMS: 10000, // Keep trying to send operations for 10 seconds
-      socketTimeoutMS: 30000, // Close sockets after 30 seconds of inactivity
-      connectTimeoutMS: 15000, // Give up initial connection after 15 seconds
+      serverSelectionTimeoutMS: 20000, // Keep trying to send operations for 20 seconds
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+      connectTimeoutMS: 25000, // Give up initial connection after 25 seconds
       retryWrites: true,
       w: 'majority'
     };

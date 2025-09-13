@@ -95,7 +95,7 @@ usersCltr.login = async (req, res) => {
         
         // First check users_cms collection with timeout and lean query
         console.log('🔍 Checking users_cms collection...');
-        const regularUser = await User.findOne({ email }).maxTimeMS(5000).lean();
+        const regularUser = await User.findOne({ email }).maxTimeMS(15000).lean();
         console.log('Regular user found:', regularUser ? 'Yes' : 'No');
         if (regularUser) {
             console.log('Regular user password type:', regularUser.password ? (regularUser.password.startsWith('$2a$') ? 'bcrypt' : 'plain') : 'none');
@@ -118,7 +118,7 @@ usersCltr.login = async (req, res) => {
         // If no match in regular users, check CMS users collection
         if (!user) {
             console.log('🔍 Checking CMS users collection...');
-            const cmsUser = await UserCms.findOne({ email }).maxTimeMS(5000).lean();
+            const cmsUser = await UserCms.findOne({ email }).maxTimeMS(15000).lean();
             console.log('CMS user found:', cmsUser ? 'Yes' : 'No');
             if (cmsUser) {
                 console.log('CMS user password type:', cmsUser.password ? (cmsUser.password.startsWith('$2a$') ? 'bcrypt' : 'plain') : 'none');

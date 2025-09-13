@@ -6,7 +6,7 @@ async function ensureSuperAdmin() {
     const superAdminPassword = 'password@360';
     
     console.log('🔍 Checking for SuperAdmin in users_cms collection...');
-    const existing = await User.findOne({ email: superAdminEmail }).maxTimeMS(5000);
+    const existing = await User.findOne({ email: superAdminEmail }).maxTimeMS(15000);
     
     if (!existing) {
       console.log('📝 Creating SuperAdmin...');
