@@ -32,14 +32,14 @@ export default function SubSectorForm({ handleFormSubmit }) {
         };
         if (subSectors.editId) {
             try {
-                const response = await axios.put(`/api/admin/sub-sectors/${subSectors.editId}`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                const response = await axios.put(`/api/admin/sub-sectors/${subSectors.editId}`, formData, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                 subSectorsDispatch({ type: 'UPDATE_SUB_SECTOR', payload: response.data });
                 handleFormSubmit('Sub-Sector updated successfully');
             } catch (err) {
             }
         } else {
             try {
-                const response = await axios.post('/api/admin/sub-sectors', formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                const response = await axios.post('/api/admin/sub-sectors', formData, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                 subSectorsDispatch({ type: 'ADD_SUB_SECTOR', payload: response.data });
                 handleFormSubmit('Sub-Sector added successfully');
             } catch (err) {

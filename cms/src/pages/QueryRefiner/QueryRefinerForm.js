@@ -40,7 +40,7 @@ export default function QueryRefinerForm() {
     try {
       setLoading(true);
       const response = await axios.get(`/api/admin/query-refiner/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
       });
       
       const data = response.data;
@@ -73,12 +73,12 @@ export default function QueryRefinerForm() {
 
       if (isEditing) {
         await axios.put(`/api/admin/query-refiner/${id}`, payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
         });
         toast.success('Query refiner updated successfully!');
       } else {
         await axios.post('/api/admin/query-refiner', payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
         });
         toast.success('Query refiner added successfully!');
       }

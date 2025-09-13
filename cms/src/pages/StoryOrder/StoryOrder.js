@@ -86,7 +86,7 @@ export default function StoryOrder() {
         
         try {
             const response = await axios.get('/api/admin/posts/all', {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
     
             if (response.data.success) {
@@ -128,7 +128,7 @@ export default function StoryOrder() {
             do {
                 const response = await axios.get('/api/admin/contexts/all', {
                     params: { postIds, page: currentPage, limit },
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                 });
     
                 if (Array.isArray(response.data.contexts)) {
@@ -160,7 +160,7 @@ export default function StoryOrder() {
         try {
             const response = await axios.get('/api/admin/story-orders', {
                 params: { startDate, endDate },
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
     
             const orders = response.data;
@@ -215,7 +215,7 @@ export default function StoryOrder() {
         try {
             const existingOrdersResponse = await axios.get('/api/admin/story-orders', {
                 params: { startDate, endDate, publishDate },
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             const existingOrders = existingOrdersResponse.data;
     
@@ -242,7 +242,7 @@ export default function StoryOrder() {
                         contextId: order.contextId,
                         rank: parseInt(order.rank)
                     }, {
-                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                        headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                     });
                 } else {
                     await axios.post('/api/admin/story-orders', {
@@ -250,7 +250,7 @@ export default function StoryOrder() {
                         contextId: order.contextId,
                         rank: order.rank
                     }, {
-                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                        headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                     });
                 }
             }));

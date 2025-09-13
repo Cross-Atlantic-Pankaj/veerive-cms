@@ -39,7 +39,7 @@ const MarketDataList = () => {
         try {
             setLoading(true);
             const response = await axios.get(`/api/admin/market-data?page=${page}&limit=${itemsPerPage}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             setMarketData({
                 data: response.data.marketData || [],
@@ -59,7 +59,7 @@ const MarketDataList = () => {
     const fetchAllMarketData = useCallback(async () => {
         try {
             const response = await axios.get('/api/admin/market-data/all', {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             setAllMarketData(response.data.marketData || []);
         } catch (error) {
@@ -279,7 +279,7 @@ const MarketDataList = () => {
     const handleDelete = async (id) => {
         try {
             await axios.delete(`/api/admin/market-data/${id}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             
             toast.success('Market data deleted successfully!');

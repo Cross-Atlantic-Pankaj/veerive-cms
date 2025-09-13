@@ -65,12 +65,12 @@ export default function CompanyForm() {
         try {
             if (companies.editId) {
                 // If editing an existing company, send a PUT request
-                const response = await axios.put(`/api/admin/companies/${companies.editId}`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                const response = await axios.put(`/api/admin/companies/${companies.editId}`, formData, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                 companiesDispatch({ type: 'UPDATE_COMPANY', payload: response.data }); // Dispatch update action
                 handleFormSubmit('Company updated successfully'); // Notify success
             } else {
                 // If creating a new company, send a POST request
-                const response = await axios.post('/api/admin/companies', formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                const response = await axios.post('/api/admin/companies', formData, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                 console.log('adding comp', response); // Log response for debugging
                 companiesDispatch({ type: 'ADD_COMPANY', payload: response.data }); // Dispatch add action
                 handleFormSubmit('Company added successfully'); // Notify success

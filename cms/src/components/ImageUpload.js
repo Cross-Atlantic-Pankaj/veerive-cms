@@ -54,7 +54,7 @@ const ImageUpload = ({
       const response = await axios.post('/api/images/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
         },
       });
 
@@ -81,7 +81,7 @@ const ImageUpload = ({
       await axios.delete('/api/images/delete', {
         data: { imageUrl: currentImageUrl },
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
         },
       });
       

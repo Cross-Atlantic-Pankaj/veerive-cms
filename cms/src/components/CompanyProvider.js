@@ -46,7 +46,7 @@ export const CompanyProvider = ({ children }) => {
     //     (async () => {
     //         try {
     //             // Make API call to fetch companies
-    //             const response = await axios.get('/api/admin/companies', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             const response = await axios.get('/api/admin/companies', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
     //             // Dispatch action to update the state with the fetched companies
     //             companiesDispatch({ type: 'SET_COMPANIES', payload: response.data });
     //         } catch (err) {
@@ -58,7 +58,7 @@ export const CompanyProvider = ({ children }) => {
 
     useEffect(() => {
         const fetchCompanies = async () => {
-            const token = localStorage.getItem('token'); // ✅ Check if token is stored
+            const token = sessionStorage.getItem('token'); // ✅ Check if token is stored
             if (!token) {
                 return; // ✅ Skip fetch if no token is available
             }

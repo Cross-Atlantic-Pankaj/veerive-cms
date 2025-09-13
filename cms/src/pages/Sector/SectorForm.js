@@ -26,14 +26,14 @@ export default function SectorForm({ handleFormSubmit }) {
         };
         if (sectors.editId) {
             try {
-                const response = await axios.put(`/api/admin/sectors/${sectors.editId}`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                const response = await axios.put(`/api/admin/sectors/${sectors.editId}`, formData, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                 sectorsDispatch({ type: 'UPDATE_SECTOR', payload: response.data });
                 handleFormSubmit('Sector updated successfully');
             } catch (err) {
             }
         } else {
             try {
-                const response = await axios.post('/api/admin/sectors', formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                const response = await axios.post('/api/admin/sectors', formData, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                 sectorsDispatch({ type: 'ADD_SECTOR', payload: response.data });
                 handleFormSubmit('Sector added successfully');
             } catch (err) {

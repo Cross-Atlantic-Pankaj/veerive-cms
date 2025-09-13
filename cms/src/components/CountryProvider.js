@@ -41,7 +41,7 @@ export const CountryProvider = ({ children }) => {
     //     (async () => {
     //         try {
     //             // Make API call to fetch countries
-    //             const response = await axios.get('/api/admin/countries', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             const response = await axios.get('/api/admin/countries', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
     //             // Dispatch action to update state with the fetched countries
     //             countriesDispatch({ type: 'SET_COUNTRIES', payload: response.data });
     //         } catch (err) {
@@ -56,7 +56,7 @@ export const CountryProvider = ({ children }) => {
             try {
                 if (regions?.data?.length > 0) { // ✅ Wait until regions are loaded
                     const response = await axios.get('/api/admin/countries', { 
-                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                        headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                     });
                     countriesDispatch({ type: 'SET_COUNTRIES', payload: response.data });
                 } else {

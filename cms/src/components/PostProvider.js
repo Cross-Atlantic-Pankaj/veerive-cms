@@ -75,7 +75,7 @@ export const PostProvider = ({ children }) => {
     }, [page]);
 
     const fetchPosts = async (currentPage) => {
-        const token = sessionStorage.getItem("token"); // ✅ Get token
+        const token = localStorage.getItem("token"); // ✅ Get token
 
         if (!token) {
             //console.error("❌ No token found, user might be logged out.");
@@ -96,7 +96,7 @@ export const PostProvider = ({ children }) => {
     };
 
     const fetchAllPosts = async () => {
-        const token = sessionStorage.getItem("token");
+        const token = localStorage.getItem("token");
     
         if (!token) {
             console.error("❌ No token found, user might be logged out.");
@@ -119,7 +119,7 @@ export const PostProvider = ({ children }) => {
 
     // ✅ New function to fetch a single post for editing
     const fetchSinglePost = async (postId) => {
-        const token = sessionStorage.getItem("token");
+        const token = localStorage.getItem("token");
     
         if (!token) {
             console.error("❌ No token found, user might be logged out.");
@@ -205,7 +205,7 @@ export const PostProvider = ({ children }) => {
             if (editId) {
                 // Update existing post
                 response = await axios.put(`/api/admin/posts/${editId}`, formData, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                 });
                 if (response.data.success) {
                     postsDispatch({ type: 'UPDATE_POST', payload: response.data.updatedPost });
@@ -214,7 +214,7 @@ export const PostProvider = ({ children }) => {
             } else {
                 // Create new post
                 response = await axios.post('/api/admin/posts', formData, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                 });
                 if (response.data.success) {
                     postsDispatch({ type: 'ADD_POST', payload: response.data.post });

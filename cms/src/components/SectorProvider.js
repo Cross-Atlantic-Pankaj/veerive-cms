@@ -46,7 +46,7 @@ export const SectorProvider = ({ children }) => {
     //     (async () => {
     //         try {
     //             // Fetch sectors data from the API with authorization token
-    //             const response = await axios.get('/api/admin/sectors', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             const response = await axios.get('/api/admin/sectors', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
     //             // Dispatch action to update sectors state with fetched data
     //             sectorsDispatch({ type: 'SET_SECTORS', payload: response.data });
     //             console.log('sector resp', response); // Log the response for debugging
@@ -59,7 +59,7 @@ export const SectorProvider = ({ children }) => {
 
     useEffect(() => {
         const fetchSectors = async () => {
-            const token = localStorage.getItem('token');  // ✅ Get token from localStorage
+            const token = sessionStorage.getItem('token');  // ✅ Get token from localStorage
             if (!token) {
                 return;  // ✅ Skip API call if no token is available
             }

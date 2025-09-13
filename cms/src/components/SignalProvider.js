@@ -46,7 +46,7 @@ export const SignalProvider = ({ children }) => {
     //     (async () => {
     //         try {
     //             // Fetch signals data from the API with authorization token
-    //             const response = await axios.get('/api/admin/signals', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             const response = await axios.get('/api/admin/signals', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
     //             // Dispatch action to update signals state with fetched data
     //             signalsDispatch({ type: 'SET_SIGNALS', payload: response.data });
     //         } catch (err) {
@@ -58,7 +58,7 @@ export const SignalProvider = ({ children }) => {
 
     useEffect(() => {
         const fetchSignals = async () => {
-            const token = localStorage.getItem('token');  // ✅ Get token from localStorage
+            const token = sessionStorage.getItem('token');  // ✅ Get token from localStorage
             if (!token) {
                 return;  // ✅ Skip API call if no token is available
             }

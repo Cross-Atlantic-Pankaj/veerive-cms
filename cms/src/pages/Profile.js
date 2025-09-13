@@ -9,7 +9,7 @@ export default function Profile(){
     useEffect (() => {
         const fetchProfile = async () => {
             try {
-              const { data } = await axios.get(`/api/profile/${userId}`, {headers: {'Authorization': localStorage.getItem('token')}});
+              const { data } = await axios.get(`/api/profile/${userId}`, {headers: {'Authorization': sessionStorage.getItem('token')}});
               setProfile(data);
             } catch (error) {
               console.error('Error fetching profile', error);

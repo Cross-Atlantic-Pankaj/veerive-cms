@@ -12,7 +12,7 @@ export const TileTemplateProvider = ({ children }) => {
         try {
             const response = await axios.get('/api/admin/tile-templates', {
                 headers: {
-                    Authorization: localStorage.getItem('token'),
+                    Authorization: sessionStorage.getItem('token'),
                 },
             });
             setTileTemplates(response.data);
@@ -33,7 +33,7 @@ export const TileTemplateProvider = ({ children }) => {
         try {
             const response = await axios.post('/api/admin/tile-templates', templateData, {
                 headers: {
-                    Authorization: localStorage.getItem('token'),
+                    Authorization: sessionStorage.getItem('token'),
                 },
             });
             setTileTemplates([...tileTemplates, response.data]);
@@ -51,7 +51,7 @@ export const TileTemplateProvider = ({ children }) => {
         try {
             const response = await axios.put(`/api/admin/tile-templates/${id}`, templateData, {
                 headers: {
-                    Authorization: localStorage.getItem('token'),
+                    Authorization: sessionStorage.getItem('token'),
                 },
             });
             setTileTemplates(
@@ -73,7 +73,7 @@ export const TileTemplateProvider = ({ children }) => {
         try {
             await axios.delete(`/api/admin/tile-templates/${id}`, {
                 headers: {
-                    Authorization: localStorage.getItem('token'),
+                    Authorization: sessionStorage.getItem('token'),
                 },
             });
             setTileTemplates(tileTemplates.filter((template) => template._id !== id));

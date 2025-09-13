@@ -54,7 +54,7 @@ export const SubSectorProvider = ({ children }) => {
     //     (async () => {
     //         try {
     //             // Fetch sub-sector data from the API with authorization token
-    //             const response = await axios.get('/api/admin/sub-sectors', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             const response = await axios.get('/api/admin/sub-sectors', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
     //             // Dispatch action to update sub-sectors state with fetched data
     //             subSectorsDispatch({ type: 'SET_SUB_SECTORS', payload: response.data });
     //         } catch (err) {
@@ -66,7 +66,7 @@ export const SubSectorProvider = ({ children }) => {
 
     useEffect(() => {
         const fetchSubSectors = async () => {
-            const token = localStorage.getItem('token'); // ✅ Check for token
+            const token = sessionStorage.getItem('token'); // ✅ Check for token
             if (!token) {
                 return;  // ✅ Skip API call if no token is available
             }

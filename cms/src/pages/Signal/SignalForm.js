@@ -28,13 +28,13 @@ export default function SignalForm({ handleFormSubmit }) {
         try {
             if (signals.editId) {
                 const response = await axios.put(`/api/admin/signals/${signals.editId}`, formData, { 
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } 
                 });
                 signalsDispatch({ type: 'UPDATE_SIGNAL', payload: response.data });
                 handleFormSubmit('Signal updated successfully');
             } else {
                 const response = await axios.post('/api/admin/signals', formData, { 
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } 
                 });
                 signalsDispatch({ type: 'ADD_SIGNAL', payload: response.data });
                 handleFormSubmit('Signal added successfully');

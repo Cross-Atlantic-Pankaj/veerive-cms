@@ -36,7 +36,7 @@ export default function RegionList() {
     const handleRemove = async (id) => {
         try {
             const response = await axios.delete(`/api/admin/regions/${id}`, { 
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } 
             });
             regionsDispatch({ type: 'REMOVE_REGION', payload: response.data._id });
             toast.success('Region deleted successfully!');

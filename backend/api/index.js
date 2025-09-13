@@ -88,56 +88,14 @@ setupOAuthStrategies();
 app.use(passport.initialize());
 
 // Initialize database connection (async)
-let dbConnected = false;
-let dbConnectionAttempted = false;
-
-const initializeDatabase = async () => {
-  if (dbConnectionAttempted) return;
-  dbConnectionAttempted = true;
-  
-  try {
-    await configDB();
-    console.log('Database connected successfully');
-    dbConnected = true;
-    // Initialize SuperAdmin after database connection
-    // ensureSuperAdmin();
-  } catch (error) {
-    console.error('Database connection error:', error);
-    // Don't exit in Vercel environment, but mark as failed
-    if (!process.env.VERCEL) {
-      process.exit(1);
-    }
-  }
-};
-
-// Start database connection
-initializeDatabase();
+configDB().then(() => {
+  console.log('Database connected successfully');
+}).catch((error) => {
+  console.error('Database connection error:', error);
+});
 
 // Middleware to parse JSON
 app.use(express.json())
-
-// Health check endpoint (doesn't require database)
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    database: dbConnected ? 'connected' : 'connecting'
-  });
-});
-
-// Database connection check middleware
-app.use((req, res, next) => {
-  // Allow health check and some basic routes even if DB is not connected
-  const allowedPaths = ['/api/health', '/api/users/login', '/api/users/register'];
-  
-  if (!dbConnected && !allowedPaths.includes(req.path)) {
-    return res.status(503).json({ 
-      error: 'Database connection timeout. Please try again.',
-      code: 'DB_TIMEOUT'
-    });
-  }
-  next();
-});
 
 // Debug middleware to log all incoming requests
 app.use((req, res, next) => {
@@ -354,6 +312,14 @@ app.get('/data-deletion.html', (req, res) => {
 
 app.get('/api/admin/contexts/edit-data', authenticateUser, contextsCltr.getEditContextData);
 
+// Initialize SuperAdmin after database connection (only in non-Vercel environments)
+if (!process.env.VERCEL) {
+  configDB().then(() => {
+    ensureSuperAdmin();
+  }).catch((error) => {
+    console.error('Error initializing SuperAdmin:', error);
+  });
+}
 
 // Export the Express app for Vercel
 export default app; 

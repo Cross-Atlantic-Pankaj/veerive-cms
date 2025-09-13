@@ -46,7 +46,7 @@ export const RegionProvider = ({ children }) => {
     //     (async () => {
     //         try {
     //             // Fetch regions data from the API with authorization token
-    //             const response = await axios.get('/api/admin/regions', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             const response = await axios.get('/api/admin/regions', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
     //             // Dispatch action to update regions state with fetched data
     //             console.log("✅ Fetched Regions:", response.data); // 🔍 Debugging log
     //             regionsDispatch({ type: 'SET_REGIONS', payload: response.data });
@@ -59,7 +59,7 @@ export const RegionProvider = ({ children }) => {
 
     useEffect(() => {
         const fetchRegions = async () => {
-            const token = localStorage.getItem('token'); // ✅ Get token from localStorage
+            const token = sessionStorage.getItem('token'); // ✅ Get token from localStorage
             if (!token) {
                 return; // ✅ Exit early if token is missing
             }

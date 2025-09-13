@@ -62,7 +62,7 @@ export const ThemeProvider = ({ children }) => {
     // ✅ Fetch ALL themes (for search) only once
     const fetchAllThemes = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             if (!token) return;
 
             const response = await axios.get(`/api/admin/themes/all`, {
@@ -77,7 +77,7 @@ export const ThemeProvider = ({ children }) => {
 
     // ✅ Fetch Themes only if token is present
     const fetchThemes = async (page, limit = 10) => {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         if (!token) {
             return;
         }
@@ -131,7 +131,7 @@ export const ThemeProvider = ({ children }) => {
     const handleEditClick = async (id) => {
         try {
             // First fetch the specific theme to ensure we have the latest data
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             if (!token) return;
 
             const response = await axios.get(`/api/admin/themes/${id}`, {

@@ -27,7 +27,7 @@ const CSVUploader = ({
             if (!lookupCache[config.collection]) {
                 lookupCache[config.collection] = {};
                 const promise = axios.get(`/api/admin/${config.collection}`, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                 }).then(response => {
                     const items = response.data.data || response.data;
                     items.forEach(item => {
@@ -88,7 +88,7 @@ const CSVUploader = ({
             await axios.post(endpoint, {
                 data: processedData
             }, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
 
             toast.success('CSV uploaded successfully!');

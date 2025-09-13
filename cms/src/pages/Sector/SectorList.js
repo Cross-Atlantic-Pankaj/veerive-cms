@@ -28,7 +28,7 @@ export default function SectorList() {
         const fetchAllSectors = async () => {
             try {
                 const response = await axios.get('/api/admin/sectors', {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                 });
                 if (Array.isArray(response.data)) {
                     setAllSectors(response.data);
@@ -90,7 +90,7 @@ export default function SectorList() {
     const handleRemove = async (id) => {
         try {
             const response = await axios.delete(`/api/admin/sectors/${id}`, { 
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } 
             });
             sectorsDispatch({ type: 'REMOVE_SECTOR', payload: response.data._id });
             setAllSectors(prev => prev.filter(s => s._id !== id));

@@ -28,7 +28,7 @@ export default function SourceList() {
         const fetchAllSources = async () => {
             try {
                 const response = await axios.get('/api/admin/sources', {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                 });
                 if (Array.isArray(response.data)) {
                     setAllSources(response.data);
@@ -95,7 +95,7 @@ export default function SourceList() {
         }
         try {
             const response = await axios.delete(`/api/admin/sources/${id}`, { 
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } 
             });
             sourcesDispatch({ type: 'REMOVE_SOURCE', payload: response.data._id });
             setAllSources(prev => prev.filter(s => s._id !== id));

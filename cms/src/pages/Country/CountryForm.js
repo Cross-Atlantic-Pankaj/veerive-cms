@@ -28,7 +28,7 @@ export default function CountryForm() {
             setIsLoading(true);
             try {
                 const response = await axios.get(`/api/admin/countries/${countries.editId}`, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                 });
                 
                 if (response.data.success) {
@@ -61,7 +61,7 @@ export default function CountryForm() {
                 const response = await axios.put(
                     `/api/admin/countries/${countries.editId}`, 
                     formData, 
-                    { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                    { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }
                 );
                 countriesDispatch({ type: 'UPDATE_COUNTRY', payload: response.data });
                 toast.success('Country updated successfully');
@@ -69,7 +69,7 @@ export default function CountryForm() {
                 const response = await axios.post(
                     '/api/admin/countries', 
                     formData, 
-                    { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                    { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }
                 );
                 countriesDispatch({ type: 'ADD_COUNTRY', payload: response.data });
                 toast.success('Country added successfully');

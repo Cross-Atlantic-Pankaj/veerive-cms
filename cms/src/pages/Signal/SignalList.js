@@ -33,7 +33,7 @@ export default function SignalList() {
 
     const handleRemove = async (id) => {
         try {
-            const response = await axios.delete(`/api/admin/signals/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+            const response = await axios.delete(`/api/admin/signals/${id}`, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
             signalsDispatch({ type: 'REMOVE_SIGNAL', payload: response.data._id });
         } catch (err) {
             alert(err.message);

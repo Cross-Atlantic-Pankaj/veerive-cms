@@ -29,7 +29,7 @@ export default function SubSignalForm({ handleFormSubmit }) {
             try {
                 setIsLoadingSignals(true);
                 const response = await axios.get('/api/admin/signals', { 
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } 
                 });
                 setSignals(response.data);
             } catch (err) {
@@ -50,13 +50,13 @@ export default function SubSignalForm({ handleFormSubmit }) {
         try {
             if (subSignals.editId) {
                 const response = await axios.put(`/api/admin/sub-signals/${subSignals.editId}`, formData, { 
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } 
                 });
                 subSignalsDispatch({ type: 'UPDATE_SUBSIGNAL', payload: response.data });
                 handleFormSubmit('Sub-Signal updated successfully');
             } else {
                 const response = await axios.post('/api/admin/sub-signals', formData, { 
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } 
                 });
                 subSignalsDispatch({ type: 'ADD_SUBSIGNAL', payload: response.data });
                 handleFormSubmit('Sub-Signal added successfully');

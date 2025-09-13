@@ -49,7 +49,7 @@ export const SubSignalProvider = ({ children }) => {
     //     (async () => {
     //         try {
     //             // Make an API request to get sub-signal data
-    //             const response = await axios.get('/api/admin/sub-signals', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
+    //             const response = await axios.get('/api/admin/sub-signals', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }});
     //             // Dispatch action to set the fetched sub-signal data in the state
     //             subSignalsDispatch({ type: 'SET_SUBSIGNALS', payload: response.data });
     //         } catch (err) {
@@ -61,7 +61,7 @@ export const SubSignalProvider = ({ children }) => {
 
     useEffect(() => {
         const fetchSubSignals = async () => {
-            const token = localStorage.getItem('token'); // ✅ Check for token
+            const token = sessionStorage.getItem('token'); // ✅ Check for token
             if (!token) {
                 return; // ✅ Don't call the API if there's no token
             }

@@ -41,7 +41,7 @@ export default function PostList() {
         try {
             setLoading(true);
             const response = await axios.get(`/api/admin/posts/all`, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
             
             if (response.data.success) {
@@ -84,7 +84,7 @@ export default function PostList() {
     }, [page]);
 
     useEffect(() => {
-        if (!sessionStorage.getItem("token")) {
+        if (!localStorage.getItem("token")) {
             setPage(1);
             localStorage.removeItem("currentPage");
         }
@@ -251,7 +251,7 @@ export default function PostList() {
     const handleRemove = async (id) => {
         try {
             const response = await axios.delete(`/api/admin/posts/${id}`, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
     
             if (response.status === 200) {
@@ -317,7 +317,7 @@ export default function PostList() {
         try {
             // Fetch fresh data directly instead of relying on state
             const response = await axios.get(`/api/admin/posts/all`, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
             
             if (!response.data.success) {
@@ -444,7 +444,7 @@ export default function PostList() {
             const response = await axios.post(`/api/admin/contexts/by-post`, {
                 postId: postId
             }, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
             if (response.data.success && response.data.contexts) {
                 const contextTitles = response.data.contexts.map(ctx => ctx.contextTitle);

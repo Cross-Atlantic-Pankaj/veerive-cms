@@ -32,7 +32,7 @@ export default function MarketDataForm() {
     try {
       setLoading(true);
       const response = await axios.get(`/api/admin/market-data/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
       });
       
       const data = response.data;
@@ -80,12 +80,12 @@ export default function MarketDataForm() {
 
       if (isEdit) {
         await axios.put(`/api/admin/market-data/${id}`, requestData, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
         });
         toast.success('Market data updated successfully!');
       } else {
         await axios.post('/api/admin/market-data', requestData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
       });
       toast.success('Market data added successfully!');
       }

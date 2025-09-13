@@ -85,7 +85,7 @@ export const ContextProvider = ({ children }) => {
     
         try {
             const response = await axios.get(`/api/admin/contexts?page=${page}&limit=10&search=${encodeURIComponent(searchQuery)}`, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
     
             if (response.data.success) {
@@ -112,7 +112,7 @@ export const ContextProvider = ({ children }) => {
     const fetchAllThemes = async () => {
         try {
             const response = await axios.get('/api/admin/themes/all', {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
     
             if (response.data.success) {
@@ -150,7 +150,7 @@ useEffect(() => {
         const fetchContext = async () => {
             try {
                 const response = await axios.get(`/api/admin/contexts/${id}`, {
-                    headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
                 });
                 if (response.data.success) {
                     contextsDispatch({ 

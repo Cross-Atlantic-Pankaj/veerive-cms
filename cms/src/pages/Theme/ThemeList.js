@@ -178,7 +178,7 @@ export default function ThemeList() {
     const handleRemove = async (id) => {
         try {
             const response = await axios.delete(`/api/admin/themes/${id}`, { 
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } 
             });
             
             if (response.data.success) {

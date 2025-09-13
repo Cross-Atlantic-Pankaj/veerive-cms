@@ -38,7 +38,7 @@ export default function SubSignalList() {
     const handleRemove = async (id) => {
         try {
             const response = await axios.delete(`/api/admin/sub-signals/${id}`, { 
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } 
             });
             subSignalsDispatch({ type: 'REMOVE_SUBSIGNAL', payload: response.data._id });
         } catch (err) {

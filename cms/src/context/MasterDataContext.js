@@ -25,16 +25,16 @@ export const MasterDataProvider = ({ children }) => {
         const loadMasterData = async () => {
             try {
                 const [contexts, countries, companies, regions, themes, sectors, subSectors, signals, subSignals, sources] = await Promise.all([
-                    axios.get('/api/admin/contexts', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-                    axios.get('/api/admin/countries', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-                    axios.get('/api/admin/companies', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-                    axios.get('/api/admin/regions', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-                    axios.get('/api/admin/themes', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-                    axios.get('/api/admin/sectors', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-                    axios.get('/api/admin/sub-sectors', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-                    axios.get('/api/admin/signals', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-                    axios.get('/api/admin/sub-signals', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
-                    axios.get('/api/admin/sources', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
+                    axios.get('/api/admin/contexts', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }),
+                    axios.get('/api/admin/countries', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }),
+                    axios.get('/api/admin/companies', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }),
+                    axios.get('/api/admin/regions', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }),
+                    axios.get('/api/admin/themes', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }),
+                    axios.get('/api/admin/sectors', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }),
+                    axios.get('/api/admin/sub-sectors', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }),
+                    axios.get('/api/admin/signals', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }),
+                    axios.get('/api/admin/sub-signals', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }),
+                    axios.get('/api/admin/sources', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }),
                 ]);
 
                 setMasterData({

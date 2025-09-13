@@ -44,7 +44,7 @@ export const ContainerProvider = ({ children }) => {
     useEffect(() => {
         (async () => {
             try {
-                const response = await axios.get('/api/posts', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
+                const response = await axios.get('/api/posts', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }});
                 containersDispatch({ type: 'SET_CONTAINERS', payload: response.data });
             } catch (err) {
                 console.error('Error fetching containers:', err);
@@ -54,7 +54,7 @@ export const ContainerProvider = ({ children }) => {
 
     const handleAddContainer = async (container) => {
         try {
-            const response = await axios.post('/api/posts', container, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}`} });
+            const response = await axios.post('/api/posts', container, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}`} });
             containersDispatch({ type: 'ADD_CONTAINER', payload: response.data });
             setSuccessMessage('Container added successfully!');
             setIsFormVisible(false);
@@ -65,7 +65,7 @@ export const ContainerProvider = ({ children }) => {
 
     const handleRemoveContainer = async (containerId) => {
         try {
-            await axios.delete(`/api/posts/${containerId}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}`} });
+            await axios.delete(`/api/posts/${containerId}`, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}`} });
             containersDispatch({ type: 'REMOVE_CONTAINER', payload: containerId });
             setSuccessMessage('Container removed successfully!');
         } catch (err) {
@@ -75,7 +75,7 @@ export const ContainerProvider = ({ children }) => {
 
     const handleUpdateContainer = async (container) => {
         try {
-            const response = await axios.put(`/api/posts/${container._id}`, container, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+            const response = await axios.put(`/api/posts/${container._id}`, container, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
             containersDispatch({ type: 'UPDATE_CONTAINER', payload: response.data });
             setSuccessMessage('Container updated successfully!');
         } catch (err) {
@@ -93,7 +93,7 @@ export const ContainerProvider = ({ children }) => {
         }
         try {
             const response = await axios.get(`/api/posts?context=${selectedContextId}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}`}
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}`}
             });
             setPostsForContext(response.data);
             setIsFormVisible(true);

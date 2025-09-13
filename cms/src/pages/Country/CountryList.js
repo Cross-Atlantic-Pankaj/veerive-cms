@@ -34,7 +34,7 @@ export default function CountryList() {
             setIsLoading(true);
             try {
                 const response = await axios.get('/api/admin/countries', {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                 });
                 countriesDispatch({ type: 'SET_COUNTRIES', payload: response.data });
             } catch (error) {
@@ -60,7 +60,7 @@ export default function CountryList() {
     const handleRemove = async (id) => {
         try {
             const response = await axios.delete(`/api/admin/countries/${id}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             countriesDispatch({ type: 'REMOVE_COUNTRY', payload: response.data._id });
             toast.success('Country removed successfully');

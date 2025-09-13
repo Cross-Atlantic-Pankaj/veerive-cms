@@ -38,7 +38,7 @@ export default function SubSectorList() {
     const handleRemove = async (id) => {
         try {
             const response = await axios.delete(`/api/admin/sub-sectors/${id}`, { 
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } 
             });
             subSectorsDispatch({ type: 'REMOVE_SUB_SECTOR', payload: response.data._id });
         } catch (err) {

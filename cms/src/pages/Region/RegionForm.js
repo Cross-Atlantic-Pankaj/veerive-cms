@@ -27,14 +27,14 @@ export default function RegionForm() {
         };
         if (regions.editId) {
             try {
-                const response = await axios.put(`/api/admin/regions/${regions.editId}`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                const response = await axios.put(`/api/admin/regions/${regions.editId}`, formData, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                 regionsDispatch({ type: 'UPDATE_REGION', payload: response.data });
                 handleFormSubmit('Region updated successfully');
             } catch (err) {
             }
         } else {
             try {
-                const response = await axios.post('/api/admin/regions', formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                const response = await axios.post('/api/admin/regions', formData, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                 regionsDispatch({ type: 'ADD_REGION', payload: response.data });
                 handleFormSubmit('Region added successfully');
             } catch (err) {

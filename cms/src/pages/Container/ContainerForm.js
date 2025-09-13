@@ -16,7 +16,7 @@ export default function ContainerForm() {
             const fetchContext = async () => {
                 try {
                     const response = await axios.get(`/api/admin/contexts/${selectedContextId}`, {
-                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                        headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                     });
                     const contextData = response.data;
                     setSelectedType(contextData.containerType || ''); // Set containerType or default to empty
@@ -53,13 +53,13 @@ export default function ContainerForm() {
             await Promise.all(
                 filteredPosts.map(post =>
                     axios.put(`/api/admin/posts/${post._id}`, { includeInContainer: post.includeInContainer }, {
-                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                        headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                     })
                 )
             );
             // Update contexts with containerType field
             await axios.put(`/api/admin/contexts/${selectedContextId}`, { containerType: selectedType }, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
         } catch (err) {
             console.error('Error saving updates:', err);

@@ -9,48 +9,21 @@ const configDB = async () => {
 
     // Optimized connection options for production
     const connectionOptions = {
-      maxPoolSize: process.env.VERCEL ? 3 : 10, // Even fewer connections in Vercel
-      serverSelectionTimeoutMS: process.env.VERCEL ? 2000 : 5000, // Much faster timeout in Vercel
-      socketTimeoutMS: process.env.VERCEL ? 5000 : 45000, // Much shorter timeout in Vercel
-      maxIdleTimeMS: process.env.VERCEL ? 5000 : 30000, // Much shorter idle time in Vercel
-      connectTimeoutMS: process.env.VERCEL ? 5000 : 20000, // Much faster connection in Vercel
+      maxPoolSize: 10, // Maintain up to 10 socket connections
+      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+      maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
+      connectTimeoutMS: 10000, // Give up initial connection after 10 seconds
       retryWrites: true,
-      w: 'majority',
-      // Additional Vercel optimizations
-      ...(process.env.VERCEL && {
-        bufferMaxEntries: 0,
-        bufferCommands: false
-      })
+      w: 'majority'
     };
 
-    console.log('🔗 Attempting to connect to MongoDB...');
-    
-    // Add timeout wrapper for Vercel
-    const connectWithTimeout = (mongoURI, options) => {
-      return new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Database connection timeout'));
-        }, process.env.VERCEL ? 8000 : 15000); // 8s timeout for Vercel, 15s for others
-        
-        mongoose.connect(mongoURI, options)
-          .then((connection) => {
-            clearTimeout(timeout);
-            resolve(connection);
-          })
-          .catch((error) => {
-            clearTimeout(timeout);
-            reject(error);
-          });
-      });
-    };
-    
-    const dbConnection = await connectWithTimeout(mongoURI, connectionOptions);
+    const dbConnection = await mongoose.connect(mongoURI, connectionOptions);
 
     const dbName = dbConnection.connection.name;
-    console.log('✅ Connected to database:', dbName);
+    console.log('Connected to database:', dbName);
     
     // Create indexes for better performance
-    console.log('📊 Creating database indexes...');
     await createIndexes();
     
   } catch (err) {
@@ -67,10 +40,6 @@ const createIndexes = async () => {
     // Create index on users_cms collection for email field
     await db.collection('users_cms').createIndex({ email: 1 }, { unique: true });
     console.log('✅ Created index on users_cms.email');
-    
-    // Check if users_cms collection has data
-    const userCount = await db.collection('users_cms').countDocuments();
-    console.log(`📊 users_cms collection has ${userCount} users`);
     
     // Create other useful indexes
     await db.collection('posts').createIndex({ createdAt: -1 });

@@ -128,11 +128,11 @@ export default function ThemeForm({ handleFormSubmit }) {
 
         try {
             if (themes.editId) {
-                const response = await axios.put(`/api/admin/themes/${themes.editId}`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                const response = await axios.put(`/api/admin/themes/${themes.editId}`, formData, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                 themesDispatch({ type: 'UPDATE_THEME', payload: response.data });
                 handleFormSubmit('Theme updated successfully');
             } else {
-                const response = await axios.post('/api/admin/themes', formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                const response = await axios.post('/api/admin/themes', formData, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                 themesDispatch({ type: 'ADD_THEME', payload: response.data });
                 handleFormSubmit('Theme added successfully');
             }

@@ -70,7 +70,7 @@ export default function ContextForm({ handleFormSubmit }) {
    // ✅ Fix: Fetch posts only if they are not already fetched
 
     const fetchAllPosts = async () => {
-        const token = sessionStorage.getItem("token");
+        const token = localStorage.getItem("token");
 
         if (!token) {
             console.error("❌ No token found, user might be logged out.");
@@ -282,7 +282,7 @@ export default function ContextForm({ handleFormSubmit }) {
                     try {
                         const postId = post.value;
                         const response = await axios.get(`/api/admin/posts/${postId}/contexts`, {
-                            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                            headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
                         });
                         return response.data || []; // tagged contexts for the post
                     } catch (error) {
@@ -309,7 +309,7 @@ export default function ContextForm({ handleFormSubmit }) {
                                 // Update the context with the new list of posts
                                 await axios.put(`/api/admin/contexts/${taggedContext._id}`, {
                                     posts: uniquePosts,
-                                }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                                }, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                             } catch (contextUpdateError) {
                                 console.error(`❌ Error updating context ${taggedContext._id}:`, contextUpdateError);
                                 // Continue with other contexts even if one fails
@@ -364,7 +364,7 @@ export default function ContextForm({ handleFormSubmit }) {
             console.log('🔍 Context form data keys:', Object.keys(formData));
             if (contexts.editId) {
                 const response = await axios.put(`/api/admin/contexts/${contexts.editId}`, formData, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
                 });
                 try {
                     contextsDispatch({ type: 'UPDATE_CONTEXT', payload: response.data });
@@ -392,7 +392,7 @@ export default function ContextForm({ handleFormSubmit }) {
                 }
             } else {
                 const response = await axios.post('/api/admin/contexts', formData, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
                 });
                 try {
                     contextsDispatch({ type: 'ADD_CONTEXT', payload: response.data });

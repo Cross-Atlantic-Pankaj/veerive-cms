@@ -40,7 +40,7 @@ export default function StoryView() {
         try {
             const response = await axios.get('/api/admin/story-orders', {
                 params: { startDate, endDate },
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
     
             let orders = response.data;
@@ -79,7 +79,7 @@ export default function StoryView() {
             do {
                 const response = await axios.get('/api/contexts', {
                     params: { page: currentPage, limit: 999 }, // ✅ Increase limit to fetch more at once
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                 });
     
                 if (response.data.success && Array.isArray(response.data.contexts)) {

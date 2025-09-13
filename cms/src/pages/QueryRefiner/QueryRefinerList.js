@@ -39,7 +39,7 @@ const QueryRefinerList = () => {
         try {
             setLoading(true);
             const response = await axios.get(`/api/admin/query-refiner?page=${page}&limit=${itemsPerPage}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             setRefiners({
                 data: response.data.refiners || [],
@@ -59,7 +59,7 @@ const QueryRefinerList = () => {
     const fetchAllRefiners = useCallback(async () => {
         try {
             const response = await axios.get('/api/admin/query-refiner/all', {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             setAllRefiners(response.data.refiners || []);
         } catch (error) {
@@ -273,7 +273,7 @@ const QueryRefinerList = () => {
     const handleDelete = async (id) => {
         try {
             await axios.delete(`/api/admin/query-refiner/${id}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             
             toast.success('Query refiner deleted successfully!');

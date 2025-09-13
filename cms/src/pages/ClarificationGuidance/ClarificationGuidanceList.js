@@ -39,7 +39,7 @@ const ClarificationGuidanceList = () => {
         try {
             setLoading(true);
             const response = await axios.get(`/api/admin/clarification-guidance?page=${page}&limit=${itemsPerPage}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             setGuidances({
                 data: response.data.guidances || [],
@@ -59,7 +59,7 @@ const ClarificationGuidanceList = () => {
     const fetchAllGuidances = useCallback(async () => {
         try {
             const response = await axios.get('/api/admin/clarification-guidance/all', {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             setAllGuidances(response.data.guidances || []);
         } catch (error) {
@@ -266,7 +266,7 @@ const ClarificationGuidanceList = () => {
     const handleDelete = async (id) => {
         try {
             await axios.delete(`/api/admin/clarification-guidance/${id}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             
             toast.success('Clarification guidance deleted successfully!');

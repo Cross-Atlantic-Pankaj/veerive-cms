@@ -151,7 +151,7 @@ export default function CompanyList() {
 
     const handleRemove = async (id) => {
         try {
-            const response = await axios.delete(`/api/admin/companies/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }); // Make API request to delete company
+            const response = await axios.delete(`/api/admin/companies/${id}`, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }); // Make API request to delete company
             companiesDispatch({ type: 'REMOVE_COMPANY', payload: response.data._id }); // Dispatch action to remove company from context
         } catch (err) {
             alert(err.message); // Show error message if deletion fails

@@ -28,14 +28,14 @@ export default function SourceForm() {
         };
         if (sources.editId) {
             try {
-                const response = await axios.put(`/api/admin/sources/${sources.editId}`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                const response = await axios.put(`/api/admin/sources/${sources.editId}`, formData, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                 sourcesDispatch({ type: 'UPDATE_SOURCE', payload: response.data });
                 handleFormSubmit('Source updated successfully');
             } catch (err) {
             }
         } else {
             try {
-                const response = await axios.post('/api/admin/sources', formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                const response = await axios.post('/api/admin/sources', formData, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                 sourcesDispatch({ type: 'ADD_SOURCE', payload: response.data });
                 handleFormSubmit('Source added successfully');
             } catch (err) {

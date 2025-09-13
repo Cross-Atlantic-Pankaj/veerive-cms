@@ -46,7 +46,7 @@ export const SourceProvider = ({ children }) => {
     //     (async () => {
     //         try {
     //             // Fetch sources data from the API with authorization token
-    //             const response = await axios.get('/api/admin/sources', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    //             const response = await axios.get('/api/admin/sources', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
     //             // Dispatch action to update sources state with fetched data
     //             sourcesDispatch({ type: 'SET_SOURCES', payload: response.data });
     //         } catch (err) {
@@ -58,7 +58,7 @@ export const SourceProvider = ({ children }) => {
 
     useEffect(() => {
         const fetchSources = async () => {
-            const token = localStorage.getItem('token');  // ✅ Get token from localStorage
+            const token = sessionStorage.getItem('token');  // ✅ Get token from localStorage
             if (!token) {
                 return;  // ✅ Skip API call if no token is available
             }

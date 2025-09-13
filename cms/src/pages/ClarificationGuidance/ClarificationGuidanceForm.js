@@ -28,7 +28,7 @@ export default function ClarificationGuidanceForm() {
     try {
       setLoading(true);
       const response = await axios.get(`/api/admin/clarification-guidance/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
       });
       
       const guidance = response.data;
@@ -82,12 +82,12 @@ export default function ClarificationGuidanceForm() {
 
       if (isEdit) {
         await axios.put(`/api/admin/clarification-guidance/${id}`, requestData, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
         });
         toast.success('Clarification guidance updated successfully!');
       } else {
         await axios.post('/api/admin/clarification-guidance', requestData, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
         });
         toast.success('Clarification guidance added successfully!');
       }

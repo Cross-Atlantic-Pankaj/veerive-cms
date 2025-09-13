@@ -61,7 +61,7 @@ export default function ContextList() {
         const fetchAllContexts = async () => {
             try {
                 const response = await axios.get('/api/admin/contexts/all', {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                 });
                 if (response.data.success) {
                     setAllContexts(response.data.contexts || []);
@@ -104,7 +104,7 @@ export default function ContextList() {
                     ? `/api/admin/contexts/all`
                     : `/api/admin/contexts?page=${page}&limit=10`;
                 const response = await axios.get(apiUrl, {
-                    headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
                 });
     
                 if (response.data.success) {
@@ -372,7 +372,7 @@ export default function ContextList() {
     const handleRemove = async (id) => {
         try {
             const response = await axios.delete(`/api/admin/contexts/${id}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
 
             if (response.status === 200) {
@@ -402,7 +402,7 @@ export default function ContextList() {
         try {
             // Refresh all contexts data
             const allContextsResponse = await axios.get('/api/admin/contexts/all', {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             if (allContextsResponse.data.success) {
                 setAllContexts(allContextsResponse.data.contexts || []);
@@ -415,7 +415,7 @@ export default function ContextList() {
                 : `/api/admin/contexts?page=${page}&limit=10`;
 
             const response = await axios.get(apiUrl, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
 
             if (response.data.success) {
@@ -486,7 +486,7 @@ export default function ContextList() {
         const fetchPosts = async () => {
             try {
                 const response = await axios.get('/api/admin/posts/all', {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                 });
                 if (response.data.success) {
                     const posts = response.data.posts || [];
@@ -542,7 +542,7 @@ export default function ContextList() {
             if (params.length > 0) apiUrl += '?' + params.join('&');
 
             const response = await axios.get(apiUrl, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             const allContexts = response.data.contexts || response.data || [];
 
