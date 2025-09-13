@@ -88,14 +88,42 @@ setupOAuthStrategies();
 app.use(passport.initialize());
 
 // Initialize database connection (async)
+let dbConnected = false;
 configDB().then(() => {
   console.log('Database connected successfully');
+  dbConnected = true;
+  // Initialize SuperAdmin after database connection
+  // ensureSuperAdmin();
 }).catch((error) => {
   console.error('Database connection error:', error);
+  // Don't exit in Vercel environment
+  if (!process.env.VERCEL) {
+    process.exit(1);
+  }
 });
 
 // Middleware to parse JSON
 app.use(express.json())
+
+// Health check endpoint (doesn't require database)
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    database: dbConnected ? 'connected' : 'connecting'
+  });
+});
+
+// Database connection check middleware
+app.use((req, res, next) => {
+  if (!dbConnected && req.path !== '/api/health') {
+    return res.status(503).json({ 
+      error: 'Database connection timeout. Please try again.',
+      code: 'DB_TIMEOUT'
+    });
+  }
+  next();
+});
 
 // Debug middleware to log all incoming requests
 app.use((req, res, next) => {
@@ -312,14 +340,6 @@ app.get('/data-deletion.html', (req, res) => {
 
 app.get('/api/admin/contexts/edit-data', authenticateUser, contextsCltr.getEditContextData);
 
-// Initialize SuperAdmin after database connection (only in non-Vercel environments)
-if (!process.env.VERCEL) {
-  configDB().then(() => {
-    ensureSuperAdmin();
-  }).catch((error) => {
-    console.error('Error initializing SuperAdmin:', error);
-  });
-}
 
 // Export the Express app for Vercel
 export default app; 

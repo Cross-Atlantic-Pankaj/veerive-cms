@@ -9,11 +9,11 @@ const configDB = async () => {
 
     // Optimized connection options for production
     const connectionOptions = {
-      maxPoolSize: 10, // Maintain up to 10 socket connections
-      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
-      connectTimeoutMS: 20000, // Give up initial connection after 10 seconds
+      maxPoolSize: process.env.VERCEL ? 5 : 10, // Fewer connections in Vercel
+      serverSelectionTimeoutMS: process.env.VERCEL ? 3000 : 5000, // Faster timeout in Vercel
+      socketTimeoutMS: process.env.VERCEL ? 10000 : 45000, // Shorter timeout in Vercel
+      maxIdleTimeMS: process.env.VERCEL ? 10000 : 30000, // Shorter idle time in Vercel
+      connectTimeoutMS: process.env.VERCEL ? 10000 : 20000, // Faster connection in Vercel
       retryWrites: true,
       w: 'majority'
     };
