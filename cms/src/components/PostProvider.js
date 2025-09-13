@@ -84,7 +84,6 @@ export const PostProvider = ({ children }) => {
         const token = localStorage.getItem("token"); // ✅ Get token
 
         if (!token) {
-            //console.error("❌ No token found, user might be logged out.");
             return; // Stop API call if no token
         }
 
@@ -98,6 +97,7 @@ export const PostProvider = ({ children }) => {
                 setTotalPages(response.data.totalPages || 1);
             }
         } catch (err) {
+            console.error("Error fetching posts:", err);
         }
     };
 
@@ -113,9 +113,7 @@ export const PostProvider = ({ children }) => {
             const response = await axios.get(`/api/admin/posts/all`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            console.log("🔍 Debug: API Response for fetchAllPosts()", response.data); // ✅ Log full response
             if (response.data.success) {
-
                 postsDispatch({ type: 'SET_POSTS', payload: response.data.posts });
             }
         } catch (err) {
@@ -133,7 +131,6 @@ export const PostProvider = ({ children }) => {
         }
     
         try {
-
             const response = await axios.get(`/api/admin/posts/${postId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -174,12 +171,10 @@ export const PostProvider = ({ children }) => {
     // ✅ Handle Edit Click
     const handleEditClick = async (id) => {
         try {
-
             // Fetch the specific post data
             const postData = await fetchSinglePost(id);
             
             if (postData) {
-
                 // Check if post exists in current state
                 const postExists = posts.data.some(p => p._id === id);
 
@@ -189,18 +184,16 @@ export const PostProvider = ({ children }) => {
                 // Small delay to ensure state update before setting edit mode
                 setTimeout(() => {
                     // Set edit mode
-        postsDispatch({ type: 'SET_EDIT_ID', payload: id });
-        setIsFormVisible(true);
-        localStorage.setItem("editId", id);  
-        localStorage.setItem("isFormVisible", "true"); 
-
+                    postsDispatch({ type: 'SET_EDIT_ID', payload: id });
+                    setIsFormVisible(true);
+                    localStorage.setItem("editId", id);  
+                    localStorage.setItem("isFormVisible", "true"); 
                 }, 100);
             } else {
-                console.error("❌ Failed to fetch post data for editing");
-                // You might want to show a user-friendly error message here
+                console.error("Failed to fetch post data for editing");
             }
         } catch (error) {
-            console.error("❌ Error in handleEditClick:", error);
+            console.error("Error in handleEditClick:", error);
         }
     };
 

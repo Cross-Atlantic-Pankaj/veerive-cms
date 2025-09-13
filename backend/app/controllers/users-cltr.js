@@ -78,11 +78,8 @@ usersCltr.register = async (req, res) => {
 };
 
 usersCltr.login = async (req, res) => {
-    console.log('🔍 Login attempt:', { email: req.body.email, password: req.body.password ? '***' : 'missing' });
-    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        console.log('❌ Validation errors:', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
 
@@ -94,11 +91,8 @@ usersCltr.login = async (req, res) => {
         let isCmsUser = false;
         
         // First check users_cms collection with timeout and lean query
-        console.log('🔍 Checking users_cms collection...');
         const regularUser = await User.findOne({ email }).maxTimeMS(15000).lean();
-        console.log('Regular user found:', regularUser ? 'Yes' : 'No');
         if (regularUser) {
-            console.log('Regular user password type:', regularUser.password ? (regularUser.password.startsWith('$2a$') ? 'bcrypt' : 'plain') : 'none');
             // Check if password matches for regular user
             let passwordMatch = false;
             if (regularUser.password) {
@@ -108,7 +102,6 @@ usersCltr.login = async (req, res) => {
                     passwordMatch = (password === regularUser.password);
                 }
             }
-            console.log('Regular user password match:', passwordMatch);
             if (passwordMatch) {
                 user = regularUser;
                 isCmsUser = false;
@@ -117,13 +110,8 @@ usersCltr.login = async (req, res) => {
         
         // If no match in regular users, check CMS users collection
         if (!user) {
-            console.log('🔍 Checking CMS users collection...');
             const cmsUser = await UserCms.findOne({ email }).maxTimeMS(15000).lean();
-            console.log('CMS user found:', cmsUser ? 'Yes' : 'No');
             if (cmsUser) {
-                console.log('CMS user password type:', cmsUser.password ? (cmsUser.password.startsWith('$2a$') ? 'bcrypt' : 'plain') : 'none');
-                console.log('CMS user password:', cmsUser.password);
-                console.log('Provided password:', password);
                 // Check if password matches for CMS user
                 let passwordMatch = false;
                 if (cmsUser.password) {
@@ -133,7 +121,6 @@ usersCltr.login = async (req, res) => {
                         passwordMatch = (password === cmsUser.password);
                     }
                 }
-                console.log('CMS user password match:', passwordMatch);
                 if (passwordMatch) {
                     user = cmsUser;
                     isCmsUser = true;
@@ -166,7 +153,7 @@ usersCltr.login = async (req, res) => {
         
         // Handle specific MongoDB timeout errors
         if (err.name === 'MongooseError' && err.message.includes('buffering timed out')) {
-            console.error('❌ Database timeout during login');
+            console.error('Database timeout during login');
             return res.status(503).json({ 
                 error: 'Database connection timeout. Please try again.',
                 code: 'DB_TIMEOUT'
@@ -175,7 +162,7 @@ usersCltr.login = async (req, res) => {
         
         // Handle other MongoDB errors
         if (err.name === 'MongoTimeoutError') {
-            console.error('❌ MongoDB timeout during login');
+            console.error('MongoDB timeout during login');
             return res.status(503).json({ 
                 error: 'Database query timeout. Please try again.',
                 code: 'QUERY_TIMEOUT'
@@ -297,7 +284,6 @@ usersCltr.updateEmail = async (req, res) => {
     try {
         const userId = req.user?.userId; // Access userId from req.user
         if (!userId) {
-            console.error('User ID is missing from request.');
             return res.status(401).json({ error: 'User ID is missing from the request' });
         }
 

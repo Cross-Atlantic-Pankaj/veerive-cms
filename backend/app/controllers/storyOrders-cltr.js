@@ -25,11 +25,9 @@ storyOrdersCltr.list = async (req, res) => {
             query.publishDate = { $eq: publish };
         }
 
-        console.log("Fetching Story Orders with Query:", query);
 
         const response = await StoryOrder.find(query);
         res.json(response);
-        console.log("Filtered Response:", response);
     } catch (err) {
         console.error("Error fetching story orders:", err);
         res.status(500).json({ error: "Something went wrong" });
@@ -76,7 +74,6 @@ storyOrdersCltr.update = async (req, res) => {
             return res.status(400).json({ error: "Invalid Publish Date format." });
         }
 
-        console.log("Updating Story Order:", id, { publishDate, contextId, rank });
 
         const updatedStoryOrder = await StoryOrder.findByIdAndUpdate(
             id,
@@ -108,7 +105,7 @@ storyOrdersCltr.delete = async (req, res) => {
         return res.json(storyOrder)
 
     }catch(err){
-        console.log(err)
+        console.error("Error updating story order:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }

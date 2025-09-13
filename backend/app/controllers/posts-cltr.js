@@ -64,7 +64,7 @@ postsCltr.list = async (req, res) => {
             posts
         });
     } catch (err) {
-        console.error("❌ Error fetching posts:", err);
+        console.error("Error fetching posts:", err);
         res.status(500).json({ error: "Server Error" });
     }
 };
@@ -130,9 +130,8 @@ postsCltr.create = async (req, res) => {
                 );
 
                 await Promise.all(contextUpdates);
-                console.log(`✅ Successfully tagged post ${post._id} to ${req.body.contexts.length} contexts`);
             } catch (contextError) {
-                console.error("❌ Error updating contexts with post:", contextError);
+                console.error("Error updating contexts with post:", contextError);
                 // Don't fail the post creation if context update fails
             }
         }
@@ -143,7 +142,7 @@ postsCltr.create = async (req, res) => {
         res.status(201).json({ success: true, message: "Post created successfully and tagged to contexts.", post });
 
     } catch (err) {
-        console.error("❌ Error creating post:", err);
+        console.error("Error creating post:", err);
         res.status(500).json({ 
             error: "Something went wrong",
             message: err.message,
@@ -214,10 +213,9 @@ postsCltr.update = async (req, res) => {
                     );
 
                     await Promise.all(contextUpdates);
-                    console.log(`✅ Successfully updated post ${id} contexts: removed from all, added to ${body.contexts.length} contexts`);
                 }
             } catch (contextError) {
-                console.error("❌ Error updating contexts with post:", contextError);
+                console.error("Error updating contexts with post:", contextError);
                 // Don't fail the post update if context update fails
             }
         }
@@ -229,7 +227,7 @@ postsCltr.update = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("❌ Error updating post:", err);
+        console.error("Error updating post:", err);
         res.status(500).json({ 
             error: "Server Error",
             message: err.message,
@@ -279,7 +277,7 @@ postsCltr.getAllPosts = async (req, res) => {
 
         res.json({ success: true, posts });
     } catch (err) {
-        console.error("❌ Error fetching all posts:", err);
+        console.error("Error fetching all posts:", err);
         res.status(500).json({ error: "Server Error" });
     }
 };
@@ -315,7 +313,7 @@ postsCltr.getOne = async (req, res) => {
 
         res.json({ success: true, post });
     } catch (err) {
-        console.error("❌ Error fetching single post:", err);
+        console.error("Error fetching single post:", err);
         res.status(500).json({ 
             success: false, 
             error: "Server Error",

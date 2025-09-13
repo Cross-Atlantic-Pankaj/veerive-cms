@@ -360,7 +360,6 @@ export default function PostList() {
                         try {
                             return resolveField(field, type);
                         } catch (err) {
-                            console.warn(`Error resolving ${type} field:`, err);
                             return String(field || '');
                         }
                     };
@@ -427,7 +426,7 @@ export default function PostList() {
             saveAs(blob, filename);
             toast.success(`Successfully downloaded ${rows.length} posts`);
         } catch (error) {
-            console.error('❌ CSV Download Error:', error);
+            console.error('CSV Download Error:', error);
             console.error('Error details:', {
                 message: error.message,
                 stack: error.stack
@@ -438,7 +437,6 @@ export default function PostList() {
 
     const handleShowPostContexts = async (postId) => {
         try {
-            console.log('🔍 Fetching contexts for post...'); // Debug log without exposing ID
             // Query the context collection to find all contexts that contain this post ID
             const response = await axios.post(`/api/admin/contexts/by-post`, {
                 postId: postId
@@ -448,7 +446,6 @@ export default function PostList() {
             if (response.data.success && response.data.contexts) {
                 const contextTitles = response.data.contexts.map(ctx => ctx.contextTitle);
                 
-                console.log('✅ Found contexts:', contextTitles.length); // Debug log without exposing IDs
 
                 if (contextTitles.length === 0) {
                     toast.info("No contexts associated with this post");
@@ -469,14 +466,13 @@ export default function PostList() {
                         toast.success(`Opening ${contextTitles.length} context(s) in new tab`);
                     } else {
                         // Fallback: navigate in the same tab if popup was blocked
-                        console.warn('⚠️ Popup blocked or failed, providing manual link');
                         toast.info(`Found ${contextTitles.length} context(s). Click here to view them.`, {
                             onClick: () => window.location.href = contextUrl,
                             autoClose: 10000
                         });
                     }
                 } catch (navError) {
-                    console.error('❌ Navigation error:', navError);
+                    console.error('Navigation error:', navError);
                     toast.error('Failed to open contexts. Please try again.');
                 }
             } else {

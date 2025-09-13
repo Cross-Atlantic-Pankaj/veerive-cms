@@ -7,7 +7,7 @@ const themesCltr = {}
 //         res.json(allThemes)
 //         console.log(allThemes)
 //     } catch(err) {
-//         console.log(err)
+//         console.error("Error creating theme:", err)
 //         res.json(err)
 //     }
     
@@ -20,7 +20,7 @@ themesCltr.create = async (req, res) => {
         await theme.save()
         res.status(201).json(theme)
     }catch(err){
-        console.log(err)
+        console.error("Error creating theme:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -39,7 +39,7 @@ themesCltr.update = async (req, res) => {
         return res.json(theme)
 
     }catch(err){
-        console.log(err)
+        console.error("Error creating theme:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -63,7 +63,6 @@ themesCltr.delete = async (req, res) => {
             { $pull: { themes: id } }
         );
 
-        console.log(`✅ Removed theme ${theme.themeTitle} from all contexts`);
 
         // Now delete the theme
         await Theme.findByIdAndDelete(id)
@@ -75,7 +74,7 @@ themesCltr.delete = async (req, res) => {
         })
 
     }catch(err){
-        console.log(err)
+        console.error("Error creating theme:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -115,7 +114,7 @@ themesCltr.list = async (req, res) => {
         });
 
     } catch (err) {
-        console.log(err);
+        console.error("Error creating theme:", err);
         res.status(500).json({ error: 'Something went wrong' });
     }
 };

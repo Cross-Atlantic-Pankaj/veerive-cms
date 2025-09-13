@@ -51,7 +51,6 @@ dotenv.config()
 
 const app = express()
 
-console.log('Environment Variables:', {
   PORT: process.env.PORT,
   DB_URL: process.env.DB_URL,
   EMAIL_HOST: process.env.EMAIL_HOST,

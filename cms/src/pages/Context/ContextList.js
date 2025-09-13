@@ -61,12 +61,6 @@ export default function ContextList() {
     const filterContextIds = query.get('filterContexts')?.split(',').filter(Boolean) || [];
 
     // Debug logging for filter parameter
-    console.log('🔍 URL Filter Debug:', {
-        urlParams: location.search,
-        filterContextsParam: query.get('filterContexts'),
-        filterContextIds,
-        filterActive: filterContextIds.length > 0
-    });
 
     // ✅ Load all dependencies when ContextList page is accessed
     useEffect(() => {
@@ -242,11 +236,6 @@ export default function ContextList() {
         
         // Apply context ID filter if present
         if (filterContextIds.length > 0) {
-            console.log('🔍 Filtering contexts:', {
-                filterContextIds,
-                totalContextsBefore: data.length,
-                sampleContextIds: data.slice(0, 5).map(c => ({ id: c._id, title: c.contextTitle?.substring(0, 30) }))
-            });
             
             data = data.filter(context => {
                 const contextId = String(context._id);
@@ -260,10 +249,6 @@ export default function ContextList() {
                 return isMatch;
             });
             
-            console.log('🔍 After filtering:', {
-                totalContextsAfter: data.length,
-                matchedContexts: data.map(c => ({ title: c.contextTitle })) // Don't log IDs for security
-            });
         }
 
         // Apply search filter using localSearchQuery

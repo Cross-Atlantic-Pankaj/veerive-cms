@@ -5,9 +5,8 @@ subSectorsCltr.list = async (req, res) => {
     try{
         const response = await SubSector.find({})
         res.json(response)
-        console.log(response)
     } catch(err) {
-        console.log(err)
+        console.error("Error:", err)
         res.json(err)
     }
     
@@ -20,7 +19,7 @@ subSectorsCltr.create = async (req, res) => {
         await subSector.save()
         res.status(201).json(subSector)
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -39,7 +38,7 @@ subSectorsCltr.update = async (req, res) => {
         return res.json(subSector)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -57,7 +56,7 @@ subSectorsCltr.delete = async (req, res) => {
         return res.json(subSector)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }

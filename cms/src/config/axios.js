@@ -24,20 +24,11 @@
 // });
 import axios from 'axios';
 
-// Debug logging to see what environment we're in
-console.log('🔍 Environment Debug:', {
-  NODE_ENV: process.env.NODE_ENV,
-  REACT_APP_API_URL: process.env.REACT_APP_API_URL,
-  isDevelopment: process.env.NODE_ENV === 'development'
-});
-
 // Simple configuration - always use production URL
 const baseURL = 'http://3.111.213.47:3050';
 
 // If you want to use local development, uncomment the line below and comment the line above
 // const baseURL = 'http://localhost:3050';
-
-console.log('🌐 Using baseURL:', baseURL);
 
 const axiosInstance = axios.create({
   baseURL,
@@ -66,7 +57,6 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token is invalid or expired
-      console.log('🔒 Token invalid, clearing session storage');
       sessionStorage.removeItem('token');
       
       // Redirect to login if not already there
@@ -78,7 +68,6 @@ axiosInstance.interceptors.response.use(
     // Handle JWT malformed errors specifically
     if (error.response?.data?.error?.includes('jwt malformed') || 
         error.response?.data?.error?.includes('Invalid token')) {
-      console.log('🔒 JWT malformed, clearing session storage');
       sessionStorage.removeItem('token');
       
       if (window.location.pathname !== '/login') {

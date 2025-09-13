@@ -7,7 +7,6 @@ const configDB = async () => {
     const dbConnection = await mongoConnection.connect();
     
     const dbName = dbConnection.connection.name;
-    console.log('Connected to database:', dbName);
     
     // Create indexes for better performance
     await createIndexes();
@@ -25,16 +24,13 @@ const createIndexes = async () => {
     
     // Create index on users_cms collection for email field
     await db.collection('users_cms').createIndex({ email: 1 }, { unique: true });
-    console.log('✅ Created index on users_cms.email');
     
     // Create other useful indexes
     await db.collection('posts').createIndex({ createdAt: -1 });
     await db.collection('contexts').createIndex({ createdAt: -1 });
     await db.collection('themes').createIndex({ createdAt: -1 });
     
-    console.log('✅ Database indexes created successfully');
   } catch (error) {
-    console.log('⚠️ Index creation error (might already exist):', error.message);
   }
 };
 

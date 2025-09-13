@@ -8,7 +8,6 @@ const ensureConnection = async (req, res, next) => {
   try {
     // Ensure connection is available
     if (!mongoConnection.isConnected()) {
-      console.log('🔄 Re-establishing MongoDB connection...');
       await mongoConnection.connect();
     }
     

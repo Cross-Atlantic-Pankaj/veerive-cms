@@ -20,7 +20,6 @@ const transporter = nodemailer.createTransport({
 // Middleware to authenticate users
 const authenticateUser = (req, res, next) => {
     const authHeader = req.headers['authorization']; // Retrieve Authorization header
-    //console.log('Authorization Header:', authHeader); // Log the header for debugging
 
     if (!authHeader) {
         return res.status(401).json({ error: 'Token is required' });
@@ -34,9 +33,7 @@ const authenticateUser = (req, res, next) => {
     try {
         const jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key-for-development';
         const tokenData = jwt.verify(token, jwtSecret); // Verify the token
-        // console.log('Decoded Token Data:', tokenData); // Log the decoded data
         req.user = { userId: tokenData.userId, role: tokenData.role }; // Attach decoded data to req
-        // console.log('Request User:', req.user); // Debug log
         next();
     } catch (err) {
         console.error('Invalid Token:', err.message); // Log error for debugging
@@ -51,11 +48,9 @@ const conditionalAuth = async (req, res, next) => {
 
         if (adminCount === 0) {
             // No Admin exists; allow the first admin registration
-            console.log('No Admins found. Bypassing authentication for registration.');
             next();
         } else {
             // Admin exists, but no authentication required for registration
-            console.log('Admins found. Bypassing authentication for all registrations.');
             next();
         }
     } catch (err) {
@@ -78,7 +73,6 @@ const checkPasswordExpiry = async (req, res, next) => {
             // Reminder email: Send during the last 5 days before expiry
             if (daysSinceLastUpdate >= 25 && daysSinceLastUpdate < 30) {
                 try {
-                    console.log('Sending password nearing expiry reminder.');
                     const mailOptions = {
                         from: 'info@veerive.com', // Hardcoded sender email
                         to: user.email,
@@ -93,7 +87,6 @@ const checkPasswordExpiry = async (req, res, next) => {
 
             // Password expired: Block further actions
             if (daysSinceLastUpdate >= 30) {
-                console.log('Password expired.');
                 return res.status(403).json({ error: 'Password expired. Please update your password to continue.' });
             }
 

@@ -45,9 +45,6 @@ export default function ContextForm({ handleFormSubmit }) {
     const [dataForTypeNum, setDataForTypeNum] = useState('');
     const [imageUrl, setImageUrl] = useState(''); // Image URL for context
     
-    // Debug imageUrl state changes
-    useEffect(() => {
-    }, [imageUrl]);
     const [summary, setSummary] = useState('');
     const [postOptions, setPostOptions] = useState([]); // ✅ Store processed post options
     const [hasSlider, setHasSlider] = useState(false);
@@ -73,7 +70,6 @@ export default function ContextForm({ handleFormSubmit }) {
         const token = localStorage.getItem("token");
 
         if (!token) {
-            console.error("❌ No token found, user might be logged out.");
             return;
         }
 
@@ -86,14 +82,13 @@ export default function ContextForm({ handleFormSubmit }) {
                 setPosts(response.data.posts); // ✅ Store posts locally inside ContextForm
             }
         } catch (err) {
-            console.error("❌ Error fetching all posts:", err);
+            console.error("Error fetching all posts:", err);
         }
     };
 
     useEffect(() => {
         if (!posts || posts.length === 0) {
             fetchAllPosts();
-        } else {
         }
     }, [posts]);
 
@@ -210,7 +205,6 @@ export default function ContextForm({ handleFormSubmit }) {
                 slide9: context.slide9 || { title: '', description: '' },
                 slide10: context.slide10 || { title: '', description: '' }
             });
-        } else {
         }
     }, [editIdFromQuery, contexts.editId, contexts.data, posts, allThemes, tileTemplates]);
 
@@ -286,7 +280,7 @@ export default function ContextForm({ handleFormSubmit }) {
                         });
                         return response.data || []; // tagged contexts for the post
                     } catch (error) {
-                        console.error(`❌ Error fetching contexts for post ${post.value}:`, error);
+                        console.error(`Error fetching contexts for post ${post.value}:`, error);
                         return []; // Return empty array on error
                     }
                 })
@@ -311,14 +305,14 @@ export default function ContextForm({ handleFormSubmit }) {
                                     posts: uniquePosts,
                                 }, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
                             } catch (contextUpdateError) {
-                                console.error(`❌ Error updating context ${taggedContext._id}:`, contextUpdateError);
+                                console.error(`Error updating context ${taggedContext._id}:`, contextUpdateError);
                                 // Continue with other contexts even if one fails
                             }
                         }
                     }
                 }
             } catch (step2Error) {
-                console.error("❌ Error in Step 2:", step2Error);
+                console.error("Error in Step 2:", step2Error);
                 // Don't let Step 2 errors break the main context save
             }
     
@@ -361,7 +355,6 @@ export default function ContextForm({ handleFormSubmit }) {
                 slide9: slides.slide9,
                 slide10: slides.slide10,
             };
-            console.log('🔍 Context form data keys:', Object.keys(formData));
             if (contexts.editId) {
                 const response = await axios.put(`/api/admin/contexts/${contexts.editId}`, formData, {
                     headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
@@ -369,13 +362,13 @@ export default function ContextForm({ handleFormSubmit }) {
                 try {
                     contextsDispatch({ type: 'UPDATE_CONTEXT', payload: response.data });
                 } catch (dispatchError) {
-                    console.error("❌ Error in contextsDispatch:", dispatchError);
+                    console.error("Error in contextsDispatch:", dispatchError);
                 }
                 
                 try {
                     handleFormSubmit('Context updated successfully');
                 } catch (formSubmitError) {
-                    console.error("❌ Error in handleFormSubmit:", formSubmitError);
+                    console.error("Error in handleFormSubmit:", formSubmitError);
                 }
                 
                 toast.success("✅ Context updated successfully!");
@@ -384,10 +377,10 @@ export default function ContextForm({ handleFormSubmit }) {
                     if (fetchPosts && typeof fetchPosts === 'function') {
                         await fetchPosts();
                     } else {
-                        console.warn("⚠️ fetchPosts is not available or not a function");
+                        console.warn("fetchPosts is not available or not a function");
                     }
                 } catch (fetchError) {
-                    console.error("❌ Error in fetchPosts:", fetchError);
+                    console.error("Error in fetchPosts:", fetchError);
                     // Don't let fetchPosts error break the success flow
                 }
             } else {
@@ -397,13 +390,13 @@ export default function ContextForm({ handleFormSubmit }) {
                 try {
                     contextsDispatch({ type: 'ADD_CONTEXT', payload: response.data });
                 } catch (dispatchError) {
-                    console.error("❌ Error in contextsDispatch:", dispatchError);
+                    console.error("Error in contextsDispatch:", dispatchError);
                 }
                 
                 try {
                     handleFormSubmit('Context added successfully');
                 } catch (formSubmitError) {
-                    console.error("❌ Error in handleFormSubmit:", formSubmitError);
+                    console.error("Error in handleFormSubmit:", formSubmitError);
                 }
                 
                 toast.success("✅ Context added successfully!");
@@ -412,10 +405,10 @@ export default function ContextForm({ handleFormSubmit }) {
                     if (fetchPosts && typeof fetchPosts === 'function') {
                         await fetchPosts();
                     } else {
-                        console.warn("⚠️ fetchPosts is not available or not a function");
+                        console.warn("fetchPosts is not available or not a function");
                     }
                 } catch (fetchError) {
-                    console.error("❌ Error in fetchPosts:", fetchError);
+                    console.error("Error in fetchPosts:", fetchError);
                     // Don't let fetchPosts error break the success flow
                 }
             }

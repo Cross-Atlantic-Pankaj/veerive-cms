@@ -13,18 +13,15 @@ class MongoConnection {
   async connect() {
     // If already connected, return existing connection
     if (this.connection && mongoose.connection.readyState === 1) {
-      console.log('♻️ Reusing existing MongoDB connection');
       return this.connection;
     }
 
     // If connection is in progress, wait for it
     if (this.connectionPromise) {
-      console.log('⏳ Waiting for MongoDB connection in progress...');
       return this.connectionPromise;
     }
 
     // Create new connection
-    console.log('🔗 Creating new MongoDB connection...');
     this.connectionPromise = this.createConnection();
     
     try {
@@ -57,7 +54,6 @@ class MongoConnection {
 
     const connection = await mongoose.connect(mongoURI, connectionOptions);
     
-    console.log('✅ MongoDB connected:', connection.connection.name);
     
     // Handle connection events
     mongoose.connection.on('error', (err) => {
@@ -67,7 +63,6 @@ class MongoConnection {
     });
 
     mongoose.connection.on('disconnected', () => {
-      console.log('⚠️ MongoDB disconnected');
       this.connection = null;
       this.connectionPromise = null;
     });
@@ -80,7 +75,6 @@ class MongoConnection {
       await mongoose.disconnect();
       this.connection = null;
       this.connectionPromise = null;
-      console.log('🔌 MongoDB disconnected');
     }
   }
 

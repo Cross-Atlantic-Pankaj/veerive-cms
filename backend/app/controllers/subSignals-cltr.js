@@ -5,9 +5,8 @@ subSignalsCltr.list = async (req, res) => {
     try{
         const response = await SubSignal.find({})
         res.json(response)
-        console.log(response)
     } catch(err) {
-        console.log(err)
+        console.error("Error:", err)
         res.json(err)
     }
     
@@ -20,7 +19,7 @@ subSignalsCltr.create = async (req, res) => {
         await subSignal.save()
         res.status(201).json(subSignal)
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -39,7 +38,7 @@ subSignalsCltr.update = async (req, res) => {
         return res.json(subSignal)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
@@ -57,7 +56,7 @@ subSignalsCltr.delete = async (req, res) => {
         return res.json(subSignal)
 
     }catch(err){
-        console.log(err)
+        console.error("Error:", err)
         res.status(500).json({error: 'something went wrong'})
     }
 }
