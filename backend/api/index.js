@@ -148,7 +148,6 @@ app.delete('/api/admin/contexts/:id', authenticateUser, authorizeUser(['Admin', 
 app.get('/api/admin/posts/all', authenticateUser, postsCltr.getAllPosts);
 // ✅ Route for fetching a single post by ID
 app.get('/api/admin/posts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), postsCltr.getOne);
-app.get('/api/admin/posts/test/fields', authenticateUser, postsCltr.testFields);
 
 // ✅ Route for fetching all contexts (for Post Form)
 app.get('/api/admin/contexts/all', authenticateUser, contextsCltr.getAllContexts);
