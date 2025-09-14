@@ -6,7 +6,7 @@ import Select from 'react-select';
 
 const DriverForm = ({ handleFormSubmit }) => {
     const { drivers, setIsFormVisible } = useContext(DriverContext);
-    const { images } = useContext(ImageContext);
+    const { images, fetchAllImages } = useContext(ImageContext);
     const [formData, setFormData] = useState({
         driverName: '',
         driverDescription: '',
@@ -14,6 +14,11 @@ const DriverForm = ({ handleFormSubmit }) => {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Fetch images when component mounts
+    useEffect(() => {
+        fetchAllImages();
+    }, [fetchAllImages]);
 
     useEffect(() => {
         if (drivers.editId) {
@@ -123,6 +128,7 @@ const DriverForm = ({ handleFormSubmit }) => {
                         isClearable
                         placeholder="Select an icon from the image library..."
                         className="theme-select"
+                        noOptionsMessage={() => "No images available. Please add images to the image library first."}
                     />
                 </div>
 
