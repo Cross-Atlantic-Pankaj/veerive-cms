@@ -29,6 +29,8 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import HelpIcon from '@mui/icons-material/Help';
 import SearchIcon from '@mui/icons-material/Search';
 import TimelineIcon from '@mui/icons-material/Timeline';
+import ImageIcon from '@mui/icons-material/Image';
+import DriveEtaIcon from '@mui/icons-material/DriveEta';
 
 // Styled components with the new blue color
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
@@ -182,6 +184,19 @@ const HeaderComponent = () => {
             label: 'Market Data',
             path: '/market-data',
             icon: <TimelineIcon />
+        },
+        { divider: true },
+        {
+            id: 'images',
+            label: 'Images',
+            path: '/images',
+            icon: <ImageIcon />
+        },
+        {
+            id: 'drivers',
+            label: 'Driver',
+            path: '/drivers',
+            icon: <DriveEtaIcon />
         }
     ];
 
