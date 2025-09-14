@@ -1,20 +1,32 @@
 import { useState, useContext, useEffect } from 'react';
 import axios from '../../config/axios';
 import RegionContext from '../../context/RegionContext';
+import ImageContext from '../../context/ImageContext';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import Select from 'react-select';
+import styles from '../../html/css/Theme.module.css';
 
 export default function RegionForm() {
     const { regions, regionsDispatch, handleFormSubmit, setIsFormVisible, isFormVisible } = useContext(RegionContext);
+    const { images } = useContext(ImageContext);
 
     const [regionName, setRegionName] = useState('');
+    const [regionIcon, setRegionIcon] = useState('');
+    const [regionDescription, setRegionDescription] = useState('');
     const [generalComment, setGeneralComment] = useState('');
 
     useEffect(() => {
         if (regions.editId) {
             const region = regions.data.find((ele) => ele._id === regions.editId);
-            setRegionName(region.regionName);
-            setGeneralComment(region.generalComment);
+            setRegionName(region.regionName || '');
+            setRegionIcon(region.regionIcon || '');
+            setRegionDescription(region.regionDescription || '');
+            setGeneralComment(region.generalComment || '');
         } else {
             setRegionName('');
+            setRegionIcon('');
+            setRegionDescription('');
             setGeneralComment('');
         }
     }, [regions.editId]);
@@ -23,6 +35,8 @@ export default function RegionForm() {
         e.preventDefault();
         const formData = {
             regionName,
+            regionIcon,
+            regionDescription,
             generalComment,
         };
         if (regions.editId) {
@@ -48,30 +62,113 @@ export default function RegionForm() {
     }
 
     return (
-        <div className="region-form-container">
-            <button type="button" className="submit-btn" onClick={handleHomeNav}>Region Home</button>
-            <form onSubmit={handleSubmit} className="region-form">
-                <h2>{regions.editId ? 'Edit Region' : 'Add Region'}</h2>
-                <label htmlFor="regionName">Region Name <span style={{color: 'red'}}>*</span></label>
-                <input id="enterregionname" name="enterregionname"
-                    type="text"
-                    placeholder="Enter region name"
-                    name="regionName"
-                    value={regionName}
-                    onChange={(e) => setRegionName(e.target.value)}
-                    className="region-input"
-                    required
-                />
-                <textarea id="entercomment" name="entercomment"
-                    placeholder="Enter comment"
-                    name="generalComment"
-                    value={generalComment}
-                    onChange={(e) => setGeneralComment(e.target.value)}
-                    className="region-textarea"
-                />
-                <button type="submit" className="region-submit-btn">
-                    {regions.editId ? 'Update Region' : 'Add Region'}
-                </button>
+        <div className={styles.companyFormContainer}>
+            <button type="button" className={styles.cancelBtn} style={{ marginBottom: 20 }} onClick={handleHomeNav}>
+                ← Back to Regions
+            </button>
+            <h2>{regions.editId ? 'Edit Region' : 'Add Region'}</h2>
+
+            <form onSubmit={handleSubmit} className={styles.companyForm}>
+                {/* Region Name */}
+                <div className="form-group">
+                    <label htmlFor="regionName"><b>Region Name</b> <span style={{color: 'red'}}>*</span></label>
+                    <input
+                        id="regionName"
+                        type="text"
+                        placeholder="Enter region name"
+                        name="regionName"
+                        value={regionName}
+                        onChange={(e) => setRegionName(e.target.value)}
+                        className="theme-input"
+                        required
+                    />
+                </div>
+
+                {/* Region Icon */}
+                <div className="form-group">
+                    <label><b>Region Icon</b></label>
+                    <Select
+                        value={regionIcon ? { value: regionIcon, label: (images.allImages?.find(img => img.imageLink === regionIcon)?.imageTitle) || 'Selected Image' } : null}
+                        onChange={(option) => setRegionIcon(option ? option.value : '')}
+                        options={(images.allImages || []).map(img => ({ 
+                            value: img.imageLink, 
+                            label: img.imageTitle 
+                        }))}
+                        formatOptionLabel={({ label, value }) => (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <img 
+                                    src={value} 
+                                    alt={label} 
+                                    style={{ 
+                                        width: 30, 
+                                        height: 30, 
+                                        objectFit: 'contain',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '4px'
+                                    }} 
+                                />
+                                <span>{label}</span>
+                            </div>
+                        )}
+                        isClearable
+                        placeholder="Select an icon from the image library..."
+                        className="theme-select"
+                    />
+                </div>
+
+                {/* Region Description */}
+                <div className="form-group">
+                    <label htmlFor="regionDescription"><b>Region Description</b></label>
+                    <ReactQuill
+                        id="regionDescription"
+                        value={regionDescription}
+                        onChange={setRegionDescription}
+                        className="theme-quill-editor"
+                        placeholder="Enter region description..."
+                        modules={{
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline'],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                ['link'],
+                                ['clean']
+                            ]
+                        }}
+                    />
+                </div>
+
+                {/* General Comment */}
+                <div className="form-group">
+                    <label htmlFor="generalComment"><b>General Comment</b></label>
+                    <ReactQuill
+                        id="generalComment"
+                        value={generalComment}
+                        onChange={setGeneralComment}
+                        className="theme-quill-editor"
+                        placeholder="Enter general comment..."
+                        modules={{
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline'],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                ['link'],
+                                ['clean']
+                            ]
+                        }}
+                    />
+                </div>
+
+                {/* Submit Button */}
+                <div className={styles.buttonGroup}>
+                    <button type="submit" className={styles.companySubmitBtn}>
+                        {regions.editId ? 'Update Region' : 'Add Region'}
+                    </button>
+                    <button type="button" onClick={handleHomeNav} className={styles.cancelBtn}>
+                        Cancel
+                    </button>
+                </div>
             </form>
         </div>
     );

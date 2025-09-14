@@ -18,6 +18,8 @@ import { ContextProvider } from './components/ContextProvider';
 import { PostProvider } from './components/PostProvider';
 import { TileTemplateProvider } from './components/TileTemplateProvider';
 import { MarketDataProvider } from './components/MarketDataProvider';
+import { DriverProvider } from './components/DriverProvider';
+import { ImageProvider } from './components/ImageProvider';
 import { MasterDataProvider } from './context/MasterDataContext';
 import Login from './pages/Login';
 import HeaderComponent from './pages/HeaderComponent';
@@ -52,6 +54,8 @@ import QueryRefinerList from './pages/QueryRefiner/QueryRefinerList';
 import QueryRefinerForm from './pages/QueryRefiner/QueryRefinerForm';
 import MarketDataList from './pages/MarketData/MarketDataList';
 import MarketDataForm from './pages/MarketData/MarketDataForm';
+import DriverPage from './pages/Driver/DriverPage';
+import ImagePage from './pages/Image/ImagePage';
 
 function App() {
   const { state, loading  } = useContext(AuthContext);
@@ -98,8 +102,10 @@ function App() {
                       <ThemeProvider>
                         <ContextProvider>
                           <MarketDataProvider>
-                            <PostProvider>
-                              <TileTemplateProvider>
+                            <DriverProvider>
+                              <ImageProvider>
+                                <PostProvider>
+                                  <TileTemplateProvider>
                               <div>
                                 {shouldShowHeader && <HeaderComponent />}
                                 
@@ -250,12 +256,16 @@ function App() {
                                   <Route path="/market-data" element={<PrivateRoute><MarketDataList /></PrivateRoute>} />
                                   <Route path="/market-data/add" element={<PrivateRoute><MarketDataForm /></PrivateRoute>} />
                                   <Route path="/market-data/edit/:id" element={<PrivateRoute><MarketDataForm /></PrivateRoute>} />
+                                  <Route path="/drivers" element={<PrivateRoute><DriverPage /></PrivateRoute>} />
+                                  <Route path="/images" element={<PrivateRoute><ImagePage /></PrivateRoute>} />
                                 </Routes>
 
                                 <ToastContainer />
                               </div>
                               </TileTemplateProvider>
-                            </PostProvider>
+                                </PostProvider>
+                              </ImageProvider>
+                            </DriverProvider>
                           </MarketDataProvider>
                         </ContextProvider>
                       </ThemeProvider>

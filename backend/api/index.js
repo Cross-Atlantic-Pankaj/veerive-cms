@@ -46,17 +46,13 @@ import ensureSuperAdmin from '../utils/superAdmin.js';
 import { bulkUploadClarificationGuidance, bulkUploadQueryRefiner, bulkUploadMarketData } from '../app/controllers/bulkUploadController.js';
 import tileTemplatesCltr from '../app/controllers/tileTemplates-cltr.js'
 import imageUploadRoutes from '../app/routes/imageUploadRoutes.js'
+import { uploadSingleImageForMaster } from '../utils/s3Upload.js'
+import imagesCltr from '../app/controllers/images-cltr.js'
+import driversCltr from '../app/controllers/drivers-cltr.js'
 
 dotenv.config()
 
 const app = express()
-
-  PORT: process.env.PORT,
-  DB_URL: process.env.DB_URL,
-  EMAIL_HOST: process.env.EMAIL_HOST,
-  EMAIL_PORT: process.env.EMAIL_PORT,
-  EMAIL_USER: process.env.EMAIL_USER,
-});
 
 // Allow all origins for maximum compatibility
 app.use(
@@ -285,6 +281,26 @@ app.post('/api/admin/market-data/bulk', authenticateUser, authorizeUser(['admin'
 
 // Image upload routes
 app.use('/api/images', imageUploadRoutes);
+
+// Images CRUD (metadata records)
+app.get('/api/admin/images', authenticateUser, imagesCltr.list)
+app.post('/api/admin/images', authenticateUser, authorizeUser(['Admin','SuperAdmin']), imagesCltr.create)
+app.put('/api/admin/images/:id', authenticateUser, authorizeUser(['Admin','SuperAdmin']), imagesCltr.update)
+app.delete('/api/admin/images/:id', authenticateUser, authorizeUser(['Admin','SuperAdmin']), imagesCltr.delete)
+
+// Image upload for Images master page (dedicated S3 directory)
+app.post('/api/admin/images/upload', 
+    authenticateUser, 
+    authorizeUser(['Admin','SuperAdmin']),
+    uploadSingleImageForMaster('image'),
+    imagesCltr.upload
+)
+
+// Drivers CRUD (metadata records)
+app.get('/api/admin/drivers', authenticateUser, driversCltr.list)
+app.post('/api/admin/drivers', authenticateUser, authorizeUser(['Admin','SuperAdmin']), driversCltr.create)
+app.put('/api/admin/drivers/:id', authenticateUser, authorizeUser(['Admin','SuperAdmin']), driversCltr.update)
+app.delete('/api/admin/drivers/:id', authenticateUser, authorizeUser(['Admin','SuperAdmin']), driversCltr.delete)
 
 // Route to serve data deletion instructions
 app.get('/data-deletion.html', (req, res) => {

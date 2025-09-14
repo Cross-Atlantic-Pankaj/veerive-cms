@@ -2,6 +2,8 @@ import {Schema, model} from 'mongoose'
 
 const regionSchema = new Schema ({
     regionName: { type: String, required: true },
+    regionIcon: { type: String, required: false },
+    regionDescription: { type: String, required: false },
     generalComment: { type: String, required: false },
 }, {timestamps: true})
 

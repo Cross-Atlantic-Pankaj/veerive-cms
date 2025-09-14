@@ -135,4 +135,54 @@ export const getImageUrl = (uploadResult) => {
   return null;
 };
 
+// Specialized upload for Images master page - saves to dedicated directory
+export const uploadImageForMaster = multer({
+  storage: s3Client ? multerS3({
+    s3: s3Client,
+    bucket: process.env.AWS_S3_BUCKET_NAME,
+    key: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const fileExtension = path.extname(file.originalname);
+      const fileName = `master-images/${file.fieldname}-${uniqueSuffix}${fileExtension}`;
+      cb(null, fileName);
+    },
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    metadata: function (req, file, cb) {
+      cb(null, { 
+        fieldName: file.fieldname,
+        originalName: file.originalname,
+        uploadedAt: new Date().toISOString(),
+        source: 'images-master'
+      });
+    }
+  }) : multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files (JPEG, JPG, PNG, GIF, WebP) are allowed!'));
+    }
+  }
+});
+
+// Middleware for single image upload for Images master
+export const uploadSingleImageForMaster = (fieldName) => {
+  return (req, res, next) => {
+    uploadImageForMaster.single(fieldName)(req, res, (err) => {
+      if (err) {
+        console.error('Multer error for master image:', err);
+        return next(err);
+      }
+      next();
+    });
+  };
+};
+
 export default upload;
