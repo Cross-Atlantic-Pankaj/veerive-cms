@@ -69,7 +69,8 @@ const themeSchema = new Schema ({
                     impactArea: { type: String },
                     impactRating: { type: String }
                 },
-                content: { type: String }
+                content: { type: String },
+                value: { type: String }
             },
             trendMomentum: {
                 highLowContainer: {
@@ -77,7 +78,8 @@ const themeSchema = new Schema ({
                     impactArea: { type: String },
                     impactRating: { type: String }
                 },
-                content: { type: String }
+                content: { type: String },
+                value: { type: String }
             }
         },
         regionalDynamics: {

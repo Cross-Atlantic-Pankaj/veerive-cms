@@ -60,10 +60,12 @@ export default function ThemeForm({ handleFormSubmit }) {
             disruptivePotential: {
                 highLowContainer: { icon: '', impactArea: '', impactRating: '' },
                 content: '',
+                value: '',
             },
             trendMomentum: {
                 highLowContainer: { icon: '', impactArea: '', impactRating: '' },
                 content: '',
+                value: '',
             },
         },
         regionalDynamics: {
@@ -265,6 +267,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                                 impactRating: theme?.trendAnalysis?.impactAndOpinions?.disruptivePotential?.highLowContainer?.impactRating || '',
                             },
                             content: theme?.trendAnalysis?.impactAndOpinions?.disruptivePotential?.content || '',
+                            value: theme?.trendAnalysis?.impactAndOpinions?.disruptivePotential?.value || '',
                         },
                         trendMomentum: {
                             highLowContainer: {
@@ -273,6 +276,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                                 impactRating: theme?.trendAnalysis?.impactAndOpinions?.trendMomentum?.highLowContainer?.impactRating || '',
                             },
                             content: theme?.trendAnalysis?.impactAndOpinions?.trendMomentum?.content || '',
+                            value: theme?.trendAnalysis?.impactAndOpinions?.trendMomentum?.value || '',
                         },
                     },
                     regionalDynamics: {
@@ -334,8 +338,8 @@ export default function ThemeForm({ handleFormSubmit }) {
                 driversAndSignals: { keyDrivers: [], signalsInAction: [] },
                 impactAndOpinions: {
                     title: { content: '', explanation: '' },
-                    disruptivePotential: { highLowContainer: { icon: '', impactArea: '', impactRating: '' }, content: '' },
-                    trendMomentum: { highLowContainer: { icon: '', impactArea: '', impactRating: '' }, content: '' },
+                    disruptivePotential: { highLowContainer: { icon: '', impactArea: '', impactRating: '' }, content: '', value: '' },
+                    trendMomentum: { highLowContainer: { icon: '', impactArea: '', impactRating: '' }, content: '', value: '' },
                 },
                 regionalDynamics: {
                     heatMapChartSection: [],
@@ -991,6 +995,19 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                 }))}
                                             />
                                         </div>
+                                        <div className="form-group">
+                                            <label><b>Value</b></label>
+                                            <input
+                                                type="text"
+                                                className="theme-input"
+                                                value={trendAnalysis.impactAndOpinions.disruptivePotential.value}
+                                                onChange={(e) => setTrendAnalysis(prev => ({
+                                                    ...prev,
+                                                    impactAndOpinions: { ...prev.impactAndOpinions, disruptivePotential: { ...prev.impactAndOpinions.disruptivePotential, value: e.target.value } }
+                                                }))}
+                                                placeholder="Enter value for disruptive potential"
+                                            />
+                                        </div>
                                     </div>
                                 </details>
 
@@ -1039,6 +1056,19 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                     ...prev,
                                                     impactAndOpinions: { ...prev.impactAndOpinions, trendMomentum: { ...prev.impactAndOpinions.trendMomentum, content: val } }
                                                 }))}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label><b>Value</b></label>
+                                            <input
+                                                type="text"
+                                                className="theme-input"
+                                                value={trendAnalysis.impactAndOpinions.trendMomentum.value}
+                                                onChange={(e) => setTrendAnalysis(prev => ({
+                                                    ...prev,
+                                                    impactAndOpinions: { ...prev.impactAndOpinions, trendMomentum: { ...prev.impactAndOpinions.trendMomentum, value: e.target.value } }
+                                                }))}
+                                                placeholder="Enter value for trend momentum"
                                             />
                                         </div>
                                     </div>
