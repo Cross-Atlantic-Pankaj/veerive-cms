@@ -10,25 +10,16 @@ import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 import PostContext from '../../context/PostContext';
 import ThemeContext from '../../context/ThemeContext';
 import TileTemplateContext from '../../context/TileTemplateContext';
-import SectorContext from '../../context/SectorContext';
-import SubSectorContext from '../../context/SubSectorContext';
-import SignalContext from '../../context/SignalContext';
-import SubSignalContext from '../../context/SubSignalContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ImageUpload from '../../components/ImageUpload';
 
 export default function ContextForm({ handleFormSubmit }) {
-    const { contexts, contextsDispatch, sectors: sectorsData, subSectors: subSectorsData, signals: signalsData, subSignals: subSignalsData, themes: themesData, setIsFormVisible, isFormVisible, allThemes, fetchAllThemes } = useContext(ContextContext);
+    const { contexts, contextsDispatch, sectors: sectorsData, subSectors: subSectorsData, signals: signalsData, subSignals: subSignalsData, themes: themesData, setIsFormVisible, isFormVisible } = useContext(ContextContext);
     const{  fetchPosts} = useContext(PostContext)
+    const { allThemes } = useContext(ContextContext); // ✅ Get all themes
     const themeCtx = useContext(ThemeContext);
-    const { handleEditClick: handleThemeEditClick, fetchAllThemes: fetchThemesFromThemeContext, fetchThemesPageData } = themeCtx;
+    const { handleEditClick: handleThemeEditClick, fetchAllThemes } = themeCtx;
     const { tileTemplates, fetchTileTemplates } = useContext(TileTemplateContext);
-    
-    // ✅ Get fetch functions from all dependency contexts
-    const { fetchSectors } = useContext(SectorContext);
-    const { fetchSubSectors } = useContext(SubSectorContext);
-    const { fetchSignals } = useContext(SignalContext);
-    const { fetchSubSignals } = useContext(SubSignalContext);
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
@@ -73,50 +64,10 @@ export default function ContextForm({ handleFormSubmit }) {
     const [isRefreshingPosts, setIsRefreshingPosts] = useState(false);
     const [isRefreshingTileTemplates, setIsRefreshingTileTemplates] = useState(false);
 
-    // ✅ Comprehensive function to load all required data for the form
-    const fetchAllFormData = async () => {
-        try {
-            // Load sectors if not already loaded
-            if (fetchSectors && sectorsData.data.length === 0) {
-                await fetchSectors();
-            }
-            
-            // Load sub-sectors if not already loaded
-            if (fetchSubSectors && subSectorsData.data.length === 0) {
-                await fetchSubSectors();
-            }
-            
-            // Load signals if not already loaded
-            if (fetchSignals && signalsData.data.length === 0) {
-                await fetchSignals();
-            }
-            
-            // Load sub-signals if not already loaded
-            if (fetchSubSignals && subSignalsData.data.length === 0) {
-                await fetchSubSignals();
-            }
-            
-            // Load themes if not already loaded
-            if (!allThemes || allThemes.length === 0) {
-                await fetchAllThemes();
-            }
-            
-            // Load posts if not already loaded
-            if (!posts || posts.length === 0) {
-                await fetchAllPosts();
-            }
-            
-            // Load tile templates if not already loaded
-            if (fetchTileTemplates && (!tileTemplates || tileTemplates.length === 0)) {
-                await fetchTileTemplates();
-            }
-        } catch (err) {
-            console.error("Error loading form data:", err);
-        }
-    };
+   // ✅ Fix: Fetch posts only if they are not already fetched
 
     const fetchAllPosts = async () => {
-        const token = sessionStorage.getItem("token");
+        const token = localStorage.getItem("token");
 
         if (!token) {
             return;
@@ -135,15 +86,21 @@ export default function ContextForm({ handleFormSubmit }) {
         }
     };
 
-
-    // ✅ Load all form data when component mounts
     useEffect(() => {
-        fetchAllFormData();
-    }, []);
+        if (!posts || posts.length === 0) {
+            fetchAllPosts();
+        }
+    }, [posts]);
+
+    // Fetch tile templates on mount
+    useEffect(() => {
+        if (!tileTemplates || tileTemplates.length === 0) {
+            fetchTileTemplates();
+        }
+    }, [tileTemplates, fetchTileTemplates]);
 
     useEffect(() => {
         const editId = editIdFromQuery || contexts.editId;
-        
         if (!editId) {
             // Clear form when not editing
             setContextTitle('');
@@ -180,8 +137,12 @@ export default function ContextForm({ handleFormSubmit }) {
             return;
         }
 
-        // Wait for contexts.data to be available
+        // Wait for both contexts.data and posts to be available
         if (!Array.isArray(contexts.data) || contexts.data.length === 0) {
+            return;
+        }
+
+        if (!Array.isArray(posts) || posts.length === 0) {
             return;
         }
 
@@ -214,27 +175,16 @@ export default function ContextForm({ handleFormSubmit }) {
                     };
                 })
             );
-            // Handle posts - if posts are not loaded yet, store the post IDs and update later
-            if (Array.isArray(posts) && posts.length > 0) {
-                setSelectedPosts(
-                    (context.posts || [])
-                        .map(post => {
-                            const matchedPost = posts.find(p => p._id === post.postId);
-                            return matchedPost
-                                ? { value: matchedPost._id, label: matchedPost.postTitle }
-                                : null;
-                        })
-                        .filter(Boolean)
-                );
-            } else {
-                // If posts are not loaded yet, store the post IDs for later processing
-                setSelectedPosts(
-                    (context.posts || []).map(post => ({
-                        value: post.postId,
-                        label: `Loading... (${post.postId})`
-                    }))
-                );
-            }
+            setSelectedPosts(
+                (context.posts || [])
+                    .map(post => {
+                        const matchedPost = posts.find(p => p._id === post.postId);
+                        return matchedPost
+                            ? { value: matchedPost._id, label: matchedPost.postTitle }
+                            : null;
+                    })
+                    .filter(Boolean)
+            );
             setBannerShow(context.bannerShow || false);
             setHomePageShow(context.homePageShow || false);
             setBannerImage(context.bannerImage || '');
@@ -270,26 +220,15 @@ export default function ContextForm({ handleFormSubmit }) {
     // Update selectedPosts when posts change
     useEffect(() => {
         if (!Array.isArray(posts) || posts.length === 0) return;
-        
-        // Get the current context being edited
-        const editId = editIdFromQuery || contexts.editId;
-        if (!editId) return;
-        
-        const context = contexts.data.find((ele) => ele._id === editId);
-        if (!context) return;
-        
-        // Update selectedPosts with proper post titles
-        setSelectedPosts(
-            (context.posts || [])
-                .map(post => {
-                    const matchedPost = posts.find(p => p._id === post.postId);
-                    return matchedPost
-                        ? { value: matchedPost._id, label: matchedPost.postTitle }
-                        : null;
-                })
-                .filter(Boolean)
+        setSelectedPosts(selectedPosts =>
+            selectedPosts.map(post => {
+                const matchedPost = posts.find(p => p._id === post.value);
+                return matchedPost
+                    ? { value: matchedPost._id, label: matchedPost.postTitle }
+                    : post;
+            })
         );
-    }, [posts, editIdFromQuery, contexts.editId, contexts.data]);
+    }, [posts]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -943,7 +882,7 @@ useEffect(() => {
                                     return (
                                         <div key={slideNumber} className="slide">
                                             <label htmlFor={`${slideNumber}Title`}><b>Slide {index + 1} Title</b></label>
-                                            <input name="textField" id={`${slideNumber}Title`}
+                                            <input name="textField" id="textField" id={`${slideNumber}Title`}
                                                 type="text"
                                                 placeholder={`Slide ${index + 1} Title`}
                                                 value={slides[slideNumber]?.title || ''}

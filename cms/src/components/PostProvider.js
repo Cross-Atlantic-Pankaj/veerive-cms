@@ -59,8 +59,7 @@ export const PostProvider = ({ children }) => {
     // Retrieve other necessary contexts
     //const { contexts } = useContext(ContextContext);
     const contextData = useContext(ContextContext) || {}; // ✅ Ensure it doesn't crash
-    const { contexts: contextsData = { data: [] } } = contextData; // ✅ Get contexts object with data property
-    const contexts = contextsData.data || []; // ✅ Extract the actual contexts array
+    const { contexts = [] } = contextData; // ✅ Default to an empty array if undefined
 
     const { countries } = useContext(CountryContext);
     const { companies } = useContext(CompanyContext);
@@ -82,7 +81,7 @@ export const PostProvider = ({ children }) => {
     }, [page]);
 
     const fetchPosts = async (currentPage) => {
-        const token = sessionStorage.getItem("token"); // ✅ Get token from sessionStorage
+        const token = localStorage.getItem("token"); // ✅ Get token
 
         if (!token) {
             return; // Stop API call if no token
@@ -103,7 +102,7 @@ export const PostProvider = ({ children }) => {
     };
 
     const fetchAllPosts = async () => {
-        const token = sessionStorage.getItem("token");
+        const token = localStorage.getItem("token");
     
         if (!token) {
             console.error("❌ No token found, user might be logged out.");
@@ -124,7 +123,7 @@ export const PostProvider = ({ children }) => {
 
     // ✅ New function to fetch a single post for editing
     const fetchSinglePost = async (postId) => {
-        const token = sessionStorage.getItem("token");
+        const token = localStorage.getItem("token");
     
         if (!token) {
             console.error("❌ No token found, user might be logged out.");

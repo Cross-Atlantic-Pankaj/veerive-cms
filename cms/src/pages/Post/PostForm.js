@@ -11,10 +11,6 @@ import 'react-toastify/dist/ReactToastify.css'; // ✅ Import toast styles
 import CreatableSelect from 'react-select/creatable';
 import ContextContext from '../../context/ContextContext';
 import TileTemplateContext from '../../context/TileTemplateContext';
-import CountryContext from '../../context/CountryContext';
-import CompanyContext from '../../context/CompanyContext';
-import SourceContext from '../../context/SourceContext';
-import MarketDataContext from '../../context/MarketDataContext';
 import JsxParser from 'react-jsx-parser';
 import Tile from '../../components/Tile';
 import ImageUpload from '../../components/ImageUpload';
@@ -82,15 +78,9 @@ const formatOptionLabel = ({ label, jsxCode }) => (
   );
 
 export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
-    const { posts, postsDispatch,fetchPosts,  countries, companies, sources, marketData, setIsFormVisible, isFormVisible, contexts } = useContext(PostContext);
-    const { contextsDispatch } = useContext(ContextContext);
-    const { tileTemplates, fetchTileTemplates } = useContext(TileTemplateContext);
-    
-    // ✅ Get fetch functions from all dependency contexts
-    const { fetchCountries } = useContext(CountryContext);
-    const { fetchCompanies } = useContext(CompanyContext);
-    const { fetchSources } = useContext(SourceContext);
-    const { fetchAllMarketData } = useContext(MarketDataContext);
+    const { posts, postsDispatch,fetchPosts,  countries, companies, sources, marketData, setIsFormVisible, isFormVisible } = useContext(PostContext);
+    const { contexts, contextsDispatch } = useContext(ContextContext);
+    const { tileTemplates } = useContext(TileTemplateContext);
     const [postTitle, setPostTitle] = useState('');
     const [date, setDate] = useState('');
     const [postType, setPostType] = useState('');
@@ -116,63 +106,26 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
         // ImageUrl state updated
     }, [imageUrl]);
 
-    // ✅ Comprehensive function to load all required data for the form
-    const fetchAllFormData = async () => {
-        try {
-            // Load contexts if not already loaded
-            if (!Array.isArray(contexts) || contexts.length === 0) {
-                await fetchAllContexts();
-            }
-            
-            // Load countries if not already loaded
-            if (fetchCountries && countries.data.length === 0) {
-                await fetchCountries();
-            }
-            
-            // Load companies if not already loaded
-            if (fetchCompanies && companies.data.length === 0) {
-                await fetchCompanies();
-            }
-            
-            // Load sources if not already loaded
-            if (fetchSources && sources.data.length === 0) {
-                await fetchSources();
-            }
-            
-            // Load market data if not already loaded
-            if (fetchAllMarketData && marketData.data.length === 0) {
-                await fetchAllMarketData();
-            }
-            
-            // Load tile templates if not already loaded
-            if (fetchTileTemplates && (!tileTemplates || tileTemplates.length === 0)) {
-                await fetchTileTemplates();
-            }
-        } catch (err) {
-            console.error("Error loading form data:", err);
-        }
-    };
-
     const fetchAllContexts = async () => {
         try {
             const response = await axios.get("/api/admin/contexts/all", {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
     
             if (response.data.success && Array.isArray(response.data.contexts)) {
+
                 contextsDispatch({ type: "SET_CONTEXTS", payload: { contexts: response.data.contexts } });
             } else {
                 contextsDispatch({ type: "SET_CONTEXTS", payload: { contexts: [] } }); // ✅ Fallback to empty array
             }
         } catch (err) {
-            console.error('PostForm - Error fetching contexts:', err);
             contextsDispatch({ type: "SET_CONTEXTS", payload: { contexts: [] } }); // ✅ Fallback to empty array
         }
     };
     
-    // ✅ Load all form data when component mounts
+    // ✅ Fetch all contexts when the form loads
     useEffect(() => {
-        fetchAllFormData();
+        fetchAllContexts();
     }, []);
     
     useEffect(() => {
@@ -188,7 +141,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                         // Handle both cases: when ctx is an object or just an ID
                         if (typeof ctx === 'string') {
                             // ctx is just an ID, find the corresponding context data
-                            const contextData = Array.isArray(contexts) ? contexts.find(c => c._id === ctx) : null;
+                            const contextData = contexts?.data?.find(c => c._id === ctx);
                             return contextData ? {
                                 value: contextData._id,
                                 label: contextData.contextTitle
@@ -370,10 +323,10 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
         return null; // Prevents rendering the form if isFormVisible is false
     }
 
-    const contextOptions = Array.isArray(contexts) ? contexts.map(ctx => ({
+    const contextOptions = (contexts?.data || []).map(ctx => ({
         value: ctx._id,
-        label: ctx.contextTitle || 'Unknown Context'
-    })) : [];
+        label: ctx.contextTitle
+    }));
 
     const handleSelectChange = (selectedOptions) => {
         setSelectedContexts(selectedOptions || []); // ✅ Allow multiple selections
