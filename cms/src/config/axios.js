@@ -25,7 +25,7 @@
 import axios from 'axios';
 
 // Simple configuration - always use production URL
-const baseURL = 'http://3.111.213.47:3050';
+const baseURL = 'http://13.201.16.204:3050';
 
 // If you want to use local development, uncomment the line below and comment the line above
 // const baseURL = 'http://localhost:3050';
