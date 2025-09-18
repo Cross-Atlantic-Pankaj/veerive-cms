@@ -11,7 +11,7 @@ import JsxParser from 'react-jsx-parser';
 import Tile from '../../components/Tile';
 
 export default function ThemeForm({ handleFormSubmit }) {
-    const { themes, themesDispatch, sectors: sectorsData, subSectors: subSectorsData, setIsFormVisible, isFormVisible } = useContext(ThemeContext);
+    const { themes, themesDispatch, sectors: sectorsData, subSectors: subSectorsData, setIsFormVisible } = useContext(ThemeContext);
     const { tileTemplates } = useContext(TileTemplateContext);
     const navigate = useNavigate();
 
@@ -348,7 +348,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                 consumerDynamics: { behavioralInsights: [], impactAnalyser: [] },
             });
         }
-    }, [themes.editId, themes.data, themes.allThemes, subSectorsData.data, tileTemplates, sectorOptions.length, allSubSectorOptions.length]);
+    }, [themes.editId, themes.data, themes.allThemes, subSectorsData.data, tileTemplates, sectorOptions, allSubSectorOptions]);
 
     // Update filteredSubSectors when selectedSectors changes
     useEffect(() => {

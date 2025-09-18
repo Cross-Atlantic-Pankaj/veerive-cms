@@ -18,10 +18,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import ImageUpload from '../../components/ImageUpload';
 
 export default function ContextForm({ handleFormSubmit }) {
-    const { contexts, contextsDispatch, sectors: sectorsData, subSectors: subSectorsData, signals: signalsData, subSignals: subSignalsData, themes: themesData, setIsFormVisible, isFormVisible, allThemes, fetchAllThemes } = useContext(ContextContext);
+    const { contexts, contextsDispatch, sectors: sectorsData, subSectors: subSectorsData, signals: signalsData, subSignals: subSignalsData, setIsFormVisible, allThemes, fetchAllThemes } = useContext(ContextContext);
     const{  fetchPosts} = useContext(PostContext)
-    const themeCtx = useContext(ThemeContext);
-    const { handleEditClick: handleThemeEditClick, fetchAllThemes: fetchThemesFromThemeContext, fetchThemesPageData } = themeCtx;
     const { tileTemplates, fetchTileTemplates } = useContext(TileTemplateContext);
     
     // ✅ Get fetch functions from all dependency contexts
@@ -29,7 +27,6 @@ export default function ContextForm({ handleFormSubmit }) {
     const { fetchSubSectors } = useContext(SubSectorContext);
     const { fetchSignals } = useContext(SignalContext);
     const { fetchSubSignals } = useContext(SubSignalContext);
-    const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const editIdFromQuery = queryParams.get('editId');
@@ -141,7 +138,7 @@ export default function ContextForm({ handleFormSubmit }) {
     // ✅ Load all form data when component mounts
     useEffect(() => {
         fetchAllFormData();
-    }, []);
+    }, [fetchAllFormData]);
 
     useEffect(() => {
         const editId = editIdFromQuery || contexts.editId;
@@ -496,9 +493,6 @@ export default function ContextForm({ handleFormSubmit }) {
         { value: 'Type-Num', label: 'Type-Num' },
     ];
 
-    const handleHomeNav = () => {
-        setIsFormVisible(false);
-    }
 
     const handleSlideChange = (slideNumber, field, value) => {
         setSlides(prevSlides => ({

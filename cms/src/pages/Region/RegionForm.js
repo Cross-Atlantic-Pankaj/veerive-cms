@@ -8,7 +8,7 @@ import Select from 'react-select';
 import styles from '../../html/css/Theme.module.css';
 
 export default function RegionForm() {
-    const { regions, regionsDispatch, handleFormSubmit, setIsFormVisible, isFormVisible } = useContext(RegionContext);
+    const { regions, regionsDispatch, handleFormSubmit, setIsFormVisible } = useContext(RegionContext);
     const { images, fetchAllImages } = useContext(ImageContext);
 
     const [regionName, setRegionName] = useState('');
@@ -26,7 +26,7 @@ export default function RegionForm() {
             setRegionIcon('');
             setRegionDescription('');
         }
-    }, [regions.editId]);
+    }, [regions.editId, regions.data]);
 
     // Ensure images are loaded for the icon dropdown
     useEffect(() => {
