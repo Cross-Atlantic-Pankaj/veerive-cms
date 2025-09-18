@@ -43,14 +43,11 @@ const contextSchema = new Schema ({
     slide7: { title: { type: String, required: false }, description: { type: String, required: false } },
     slide8: { title: { type: String, required: false }, description: { type: String, required: false } },
     slide9: { title: { type: String, required: false }, description: { type: String, required: false } },
-    slide10: { title: { type: String, required: false }, description: { type: String, required: false } },   
+    slide10: { title: { type: String, required: false }, description1: { type: String, required: false } },   
     generalComment: { type: String, required: false },
     
     // Image URL for context
     imageUrl: { type: String, required: false },
-    
-    // PPT URL for complete presentation
-    pptUrl: { type: String, required: false },
     
     seoData: {
         seoURL: { type: String, required: false }, 

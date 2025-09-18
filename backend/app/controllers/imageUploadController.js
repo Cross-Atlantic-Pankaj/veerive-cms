@@ -1,4 +1,4 @@
-import { uploadSingleImage, getImageUrl, deleteImageFromS3, uploadSinglePpt } from '../../utils/s3Upload.js';
+import { uploadSingleImage, getImageUrl, deleteImageFromS3 } from '../../utils/s3Upload.js';
 import multer from 'multer';
 
 // Upload single image
@@ -53,45 +53,6 @@ export const uploadImage = async (req, res) => {
       message: 'Error uploading image',
       error: error.message
     });
-  }
-};
-
-// Upload PPT
-export const uploadPpt = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No PPT file provided' });
-    }
-
-    const awsConfigured = process.env.AWS_ACCESS_KEY_ID &&
-      process.env.AWS_ACCESS_KEY_ID !== 'your_aws_access_key_here' &&
-      process.env.AWS_SECRET_ACCESS_KEY &&
-      process.env.AWS_SECRET_ACCESS_KEY !== 'your_aws_secret_key_here';
-
-    if (!awsConfigured) {
-      return res.status(503).json({ success: false, message: 'Upload service not configured. Please configure AWS S3 credentials.' });
-    }
-
-    const pptUrl = req.file.location || null;
-    if (!pptUrl) {
-      return res.status(500).json({ success: false, message: 'Failed to get PPT URL from upload' });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'PPT uploaded successfully',
-      data: {
-        pptUrl,
-        fileName: req.file.originalname,
-        fileSize: req.file.size,
-        mimeType: req.file.mimetype,
-        s3Key: req.file.key,
-        s3Bucket: req.file.bucket,
-      }
-    });
-  } catch (error) {
-    console.error('PPT upload error:', error);
-    res.status(500).json({ success: false, message: 'Error uploading PPT', error: error.message });
   }
 };
 

@@ -1,6 +1,6 @@
 import express from 'express';
-import { uploadImage, deleteImage, handleImageUploadError, uploadPpt } from '../controllers/imageUploadController.js';
-import { uploadSingleImage, uploadSinglePpt } from '../../utils/s3Upload.js';
+import { uploadImage, deleteImage, handleImageUploadError } from '../controllers/imageUploadController.js';
+import { uploadSingleImage } from '../../utils/s3Upload.js';
 import { authenticateUser } from '../middlewares/authenticateUser.js';
 
 const router = express.Router();
@@ -10,14 +10,6 @@ router.post('/upload',
   authenticateUser, 
   uploadSingleImage('image'), 
   uploadImage, 
-  handleImageUploadError
-);
-
-// Upload single PPT route
-router.post('/upload-ppt',
-  authenticateUser,
-  uploadSinglePpt('ppt'),
-  uploadPpt,
   handleImageUploadError
 );
 
