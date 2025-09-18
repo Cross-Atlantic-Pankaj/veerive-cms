@@ -22,8 +22,8 @@ const themeSchema = new Schema ({
 
     // New structured sections
     overviewSnapshot: {
-        executiveSummary: {
-            executiveSummaryIcon: { type: String },
+        trendSnapshot: {
+            trendSnapshotIcon: { type: String },
             trendSignificance: {
                 content: { type: String }
             },

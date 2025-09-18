@@ -42,8 +42,8 @@ export default function ThemeForm({ handleFormSubmit }) {
 
     // New: Complex nested state per updated theme-model.js
     const [overviewSnapshot, setOverviewSnapshot] = useState({
-        executiveSummary: {
-            executiveSummaryIcon: '',
+        trendSnapshot: {
+            trendSnapshotIcon: '',
             trendSignificance: { content: '' },
             potentialChallenges: { content: '' },
         },
@@ -227,10 +227,10 @@ export default function ThemeForm({ handleFormSubmit }) {
 
                 // Prefill complex sections
                 setOverviewSnapshot({
-                    executiveSummary: {
-                        executiveSummaryIcon: theme?.overviewSnapshot?.executiveSummary?.executiveSummaryIcon || '',
-                        trendSignificance: { content: theme?.overviewSnapshot?.executiveSummary?.trendSignificance?.content || '' },
-                        potentialChallenges: { content: theme?.overviewSnapshot?.executiveSummary?.potentialChallenges?.content || '' },
+                    trendSnapshot: {
+                        trendSnapshotIcon: theme?.overviewSnapshot?.trendSnapshot?.trendSnapshotIcon || theme?.overviewSnapshot?.executiveSummary?.executiveSummaryIcon || '',
+                        trendSignificance: { content: theme?.overviewSnapshot?.trendSnapshot?.trendSignificance?.content || theme?.overviewSnapshot?.executiveSummary?.trendSignificance?.content || '' },
+                        potentialChallenges: { content: theme?.overviewSnapshot?.trendSnapshot?.potentialChallenges?.content || theme?.overviewSnapshot?.executiveSummary?.potentialChallenges?.content || '' },
                     },
                     marketMetrics: Array.isArray(theme?.overviewSnapshot?.marketMetrics) ? theme.overviewSnapshot.marketMetrics.map(mm => ({
                         icon: mm.icon || '',
@@ -327,8 +327,8 @@ export default function ThemeForm({ handleFormSubmit }) {
             setTileTemplateId(null);
 
             setOverviewSnapshot({
-                executiveSummary: {
-                    executiveSummaryIcon: '',
+                trendSnapshot: {
+                    trendSnapshotIcon: '',
                     trendSignificance: { content: '' },
                     potentialChallenges: { content: '' },
                 },
@@ -533,24 +533,24 @@ export default function ThemeForm({ handleFormSubmit }) {
                                         color: '#374151', 
                                         fontSize: '1rem'
                                     }}>
-                                        Executive Summary
+                                        Trend Snapshot
                                     </summary>
                                     <div style={{ padding: '12px 0' }}>
                                 <ImageSelector
-                                    label="Executive Summary Icon"
-                                    value={overviewSnapshot.executiveSummary.executiveSummaryIcon}
+                                    label="Trend Snapshot Icon"
+                                    value={overviewSnapshot.trendSnapshot.trendSnapshotIcon}
                                     onChange={(url) => setOverviewSnapshot(prev => ({
                                         ...prev,
-                                        executiveSummary: { ...prev.executiveSummary, executiveSummaryIcon: url }
+                                        trendSnapshot: { ...prev.trendSnapshot, trendSnapshotIcon: url }
                                     }))}
                                 />
                                 <div className="form-group">
                                     <label><b>Trend Significance</b></label>
                                     <ReactQuill
-                                        value={overviewSnapshot.executiveSummary.trendSignificance.content}
+                                        value={overviewSnapshot.trendSnapshot.trendSignificance.content}
                                         onChange={(val) => setOverviewSnapshot(prev => ({
                                             ...prev,
-                                            executiveSummary: { ...prev.executiveSummary, trendSignificance: { content: val } }
+                                            trendSnapshot: { ...prev.trendSnapshot, trendSignificance: { content: val } }
                                         }))}
                                         modules={{
                                             toolbar: [
@@ -567,10 +567,10 @@ export default function ThemeForm({ handleFormSubmit }) {
                                 <div className="form-group">
                                     <label><b>Potential Challenges</b></label>
                                     <ReactQuill
-                                        value={overviewSnapshot.executiveSummary.potentialChallenges.content}
+                                        value={overviewSnapshot.trendSnapshot.potentialChallenges.content}
                                         onChange={(val) => setOverviewSnapshot(prev => ({
                                             ...prev,
-                                            executiveSummary: { ...prev.executiveSummary, potentialChallenges: { content: val } }
+                                            trendSnapshot: { ...prev.trendSnapshot, potentialChallenges: { content: val } }
                                         }))}
                                         modules={{
                                             toolbar: [
