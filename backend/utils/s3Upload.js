@@ -185,4 +185,54 @@ export const uploadSingleImageForMaster = (fieldName) => {
   };
 };
 
+// ===== PPT Upload Support =====
+// Separate multer instance for PPT/PPTX uploads
+export const uploadPpt = multer({
+  storage: s3Client ? multerS3({
+    s3: s3Client,
+    bucket: process.env.AWS_S3_BUCKET_NAME,
+    key: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const fileExtension = path.extname(file.originalname);
+      const fileName = `ppt/${file.fieldname}-${uniqueSuffix}${fileExtension}`;
+      cb(null, fileName);
+    },
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    metadata: function (req, file, cb) {
+      cb(null, {
+        fieldName: file.fieldname,
+        originalName: file.originalname,
+        uploadedAt: new Date().toISOString(),
+        type: 'ppt'
+      });
+    }
+  }) : multer.memoryStorage(),
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB
+  },
+  fileFilter: function (req, file, cb) {
+    const allowedMime = /vnd\.ms-powerpoint|vnd\.openxmlformats-officedocument\.presentationml\.presentation/;
+    const allowedExt = /\.ppt$|\.pptx$/i;
+    const extname = allowedExt.test(path.extname(file.originalname));
+    const mimetype = allowedMime.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only PPT/PPTX files are allowed!'));
+    }
+  }
+});
+
+export const uploadSinglePpt = (fieldName) => {
+  return (req, res, next) => {
+    uploadPpt.single(fieldName)(req, res, (err) => {
+      if (err) {
+        console.error('Multer error for PPT upload:', err);
+        return next(err);
+      }
+      next();
+    });
+  };
+};
+
 export default upload;

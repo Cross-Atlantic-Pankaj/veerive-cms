@@ -69,6 +69,8 @@ export default function ContextForm({ handleFormSubmit }) {
         slide9: { title: '', description: '' },
         slide10: { title: '', description: '' }
     });
+    const [pptUrl, setPptUrl] = useState('');
+    const [contentType, setContentType] = useState('slides'); // 'slides' or 'ppt'
     const [isRefreshingThemes, setIsRefreshingThemes] = useState(false);
     const [isRefreshingPosts, setIsRefreshingPosts] = useState(false);
     const [isRefreshingTileTemplates, setIsRefreshingTileTemplates] = useState(false);
@@ -177,6 +179,8 @@ export default function ContextForm({ handleFormSubmit }) {
                 slide9: { title: '', description: '' },
                 slide10: { title: '', description: '' }
             });
+            setPptUrl('');
+            setContentType('slides');
             return;
         }
 
@@ -255,6 +259,9 @@ export default function ContextForm({ handleFormSubmit }) {
                 slide9: context.slide9 || { title: '', description: '' },
                 slide10: context.slide10 || { title: '', description: '' }
             });
+            setPptUrl(context.pptUrl || '');
+            // Determine content type based on existing data
+            setContentType(context.pptUrl ? 'ppt' : 'slides');
         }
     }, [editIdFromQuery, contexts.editId, contexts.data, posts, allThemes, tileTemplates]);
 
@@ -403,18 +410,19 @@ export default function ContextForm({ handleFormSubmit }) {
                 otherImage,
                 dataForTypeNum,
                 imageUrl,
+                pptUrl: contentType === 'ppt' ? pptUrl : '',
                 summary,
                 hasSlider,
-                slide1: slides.slide1,
-                slide2: slides.slide2,
-                slide3: slides.slide3,
-                slide4: slides.slide4,
-                slide5: slides.slide5,
-                slide6: slides.slide6,
-                slide7: slides.slide7,
-                slide8: slides.slide8,
-                slide9: slides.slide9,
-                slide10: slides.slide10,
+                slide1: contentType === 'slides' ? slides.slide1 : { title: '', description: '' },
+                slide2: contentType === 'slides' ? slides.slide2 : { title: '', description: '' },
+                slide3: contentType === 'slides' ? slides.slide3 : { title: '', description: '' },
+                slide4: contentType === 'slides' ? slides.slide4 : { title: '', description: '' },
+                slide5: contentType === 'slides' ? slides.slide5 : { title: '', description: '' },
+                slide6: contentType === 'slides' ? slides.slide6 : { title: '', description: '' },
+                slide7: contentType === 'slides' ? slides.slide7 : { title: '', description: '' },
+                slide8: contentType === 'slides' ? slides.slide8 : { title: '', description: '' },
+                slide9: contentType === 'slides' ? slides.slide9 : { title: '', description: '' },
+                slide10: contentType === 'slides' ? slides.slide10 : { title: '', description: '' },
             };
             if (contexts.editId) {
                 const response = await axios.put(`/api/admin/contexts/${contexts.editId}`, formData, {
@@ -937,30 +945,107 @@ useEffect(() => {
                     {hasSlider && (
                         <div className="slider-section">
                             <h3>Slider Content</h3>
-                            <div className="slides-container">
-                                {[...Array(10)].map((_, index) => {
-                                    const slideNumber = `slide${index + 1}`;
-                                    return (
-                                        <div key={slideNumber} className="slide">
-                                            <label htmlFor={`${slideNumber}Title`}><b>Slide {index + 1} Title</b></label>
-                                            <input name="textField" id={`${slideNumber}Title`}
-                                                type="text"
-                                                placeholder={`Slide ${index + 1} Title`}
-                                                value={slides[slideNumber]?.title || ''}
-                                                onChange={(e) => handleSlideChange(slideNumber, 'title', e.target.value)}
-                                                className="context-input"
+                            
+                            {/* Content Type Selection */}
+                            <div className="field-group">
+                                <div style={{ flex: 1 }}>
+                                    <label><b>Choose Content Type:</b></label>
+                                    <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                            <input
+                                                type="radio"
+                                                name="contentType"
+                                                value="slides"
+                                                checked={contentType === 'slides'}
+                                                onChange={(e) => setContentType(e.target.value)}
                                             />
-                                            <label htmlFor={`${slideNumber}Description`}><b>Slide {index + 1} Description</b></label>
-                                            <Quill
-                                                id={`${slideNumber}Description`}
-                                                value={slides[slideNumber]?.description || ''}
-                                                onChange={(value) => handleSlideChange(slideNumber, 'description', value)}
-                                                theme="snow"
+                                            <span>Individual Slide Content (Title & Description)</span>
+                                        </label>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                            <input
+                                                type="radio"
+                                                name="contentType"
+                                                value="ppt"
+                                                checked={contentType === 'ppt'}
+                                                onChange={(e) => setContentType(e.target.value)}
                                             />
-                                        </div>
-                                    );
-                                })}
+                                            <span>Upload Complete PPT Presentation</span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
+
+                            {/* Conditional Content Based on Selection */}
+                            {contentType === 'ppt' ? (
+                                /* PPT Upload Section */
+                                <div className="field-group">
+                                    <div style={{ flex: 1 }}>
+                                        <label><b>Upload Complete Presentation (PPT/PPTX)</b></label>
+                                        <input
+                                            type="file"
+                                            accept=".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                                            onChange={async (e) => {
+                                                const file = e.target.files && e.target.files[0];
+                                                if (!file) return;
+                                                const formData = new FormData();
+                                                formData.append('ppt', file);
+                                                try {
+                                                    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+                                                    const res = await fetch('http://3.111.213.47:3050/api/images/upload-ppt', {
+                                                        method: 'POST',
+                                                        headers: { Authorization: `Bearer ${token}` },
+                                                        body: formData
+                                                    });
+                                                    const data = await res.json();
+                                                    if (data.success && data.data?.pptUrl) {
+                                                        setPptUrl(data.data.pptUrl);
+                                                        toast.success('✅ PPT uploaded successfully!');
+                                                    } else {
+                                                        toast.error(data.message || 'Failed to upload PPT');
+                                                    }
+                                                } catch (err) {
+                                                    console.error('PPT upload failed', err);
+                                                    toast.error('PPT upload failed');
+                                                }
+                                            }}
+                                            style={{ marginBottom: '10px' }}
+                                        />
+                                        {pptUrl ? (
+                                            <div style={{ marginTop: 6 }}>
+                                                <a href={pptUrl} target="_blank" rel="noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>
+                                                    📄 View Uploaded Presentation
+                                                </a>
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            ) : (
+                                /* Individual Slides Section */
+                                <div className="slides-container">
+                                    {[...Array(10)].map((_, index) => {
+                                        const slideNumber = `slide${index + 1}`;
+                                        return (
+                                            <div key={slideNumber} className="slide">
+                                                <label htmlFor={`${slideNumber}Title`}><b>Slide {index + 1} Title</b></label>
+                                                <input name="textField" id={`${slideNumber}Title`}
+                                                    type="text"
+                                                    placeholder={`Slide ${index + 1} Title`}
+                                                    value={slides[slideNumber]?.title || ''}
+                                                    onChange={(e) => handleSlideChange(slideNumber, 'title', e.target.value)}
+                                                    className="context-input"
+                                                />
+                                                <label htmlFor={`${slideNumber}Description`}><b>Slide {index + 1} Description</b></label>
+                                                <Quill
+                                                    id={`${slideNumber}Description`}
+                                                    value={slides[slideNumber]?.description || ''}
+                                                    onChange={(value) => handleSlideChange(slideNumber, 'description', value)}
+                                                    theme="snow"
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
 

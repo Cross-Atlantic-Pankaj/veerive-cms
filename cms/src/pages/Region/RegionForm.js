@@ -9,12 +9,11 @@ import styles from '../../html/css/Theme.module.css';
 
 export default function RegionForm() {
     const { regions, regionsDispatch, handleFormSubmit, setIsFormVisible, isFormVisible } = useContext(RegionContext);
-    const { images } = useContext(ImageContext);
+    const { images, fetchAllImages } = useContext(ImageContext);
 
     const [regionName, setRegionName] = useState('');
     const [regionIcon, setRegionIcon] = useState('');
     const [regionDescription, setRegionDescription] = useState('');
-    const [generalComment, setGeneralComment] = useState('');
 
     useEffect(() => {
         if (regions.editId) {
@@ -22,14 +21,19 @@ export default function RegionForm() {
             setRegionName(region.regionName || '');
             setRegionIcon(region.regionIcon || '');
             setRegionDescription(region.regionDescription || '');
-            setGeneralComment(region.generalComment || '');
         } else {
             setRegionName('');
             setRegionIcon('');
             setRegionDescription('');
-            setGeneralComment('');
         }
     }, [regions.editId]);
+
+    // Ensure images are loaded for the icon dropdown
+    useEffect(() => {
+        fetchAllImages && fetchAllImages();
+        // we intentionally don't add images to deps to avoid refetch loops
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fetchAllImages]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -37,7 +41,6 @@ export default function RegionForm() {
             regionName,
             regionIcon,
             regionDescription,
-            generalComment,
         };
         if (regions.editId) {
             try {
@@ -139,26 +142,7 @@ export default function RegionForm() {
                 </div>
 
                 {/* General Comment */}
-                <div className="form-group">
-                    <label htmlFor="generalComment"><b>General Comment</b></label>
-                    <ReactQuill
-                        id="generalComment"
-                        value={generalComment}
-                        onChange={setGeneralComment}
-                        className="theme-quill-editor"
-                        placeholder="Enter general comment..."
-                        modules={{
-                            toolbar: [
-                                [{ 'header': [1, 2, 3, false] }],
-                                ['bold', 'italic', 'underline'],
-                                [{ 'color': [] }, { 'background': [] }],
-                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                ['link'],
-                                ['clean']
-                            ]
-                        }}
-                    />
-                </div>
+                
 
                 {/* Submit Button */}
                 <div className={styles.buttonGroup}>
