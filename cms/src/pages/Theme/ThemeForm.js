@@ -17,6 +17,7 @@ export default function ThemeForm({ handleFormSubmit }) {
 
     const [themeTitle, setThemeTitle] = useState('');
     const [isTrending, setIsTrending] = useState(false);
+    const [doNotPublish, setDoNotPublish] = useState(false);
     const [selectedSectors, setSelectedSectors] = useState([]);
     const [selectedSubSectors, setSelectedSubSectors] = useState([]);
     const [themeDescription, setThemeDescription] = useState(''); // New state
@@ -185,7 +186,7 @@ export default function ThemeForm({ handleFormSubmit }) {
     const subSectorOptions = filteredSubSectors.map(subSector => ({ value: subSector._id, label: subSector.subSectorName, sectorId: subSector.sectorId }));
 
     useEffect(() => {
-        if (themes.editId && sectorOptions.length > 0 && allSubSectorOptions.length > 0) {
+        if (themes.editId && sectorsData.data?.length > 0 && subSectorsData.data?.length > 0) {
             let theme = themes.data.find((ele) => ele._id === themes.editId);
             if (!theme && themes.allThemes) {
                 theme = themes.allThemes.find((ele) => ele._id === themes.editId);
@@ -193,13 +194,14 @@ export default function ThemeForm({ handleFormSubmit }) {
             if (theme) {
                 setThemeTitle(theme.themeTitle || '');
                 setIsTrending(theme.isTrending || false);
+                setDoNotPublish(theme.doNotPublish || false);
                 setSelectedSectors((theme.sectors || []).map(id => {
-                    const sector = sectorOptions.find(opt => String(opt.value) === String(id));
-                    return sector || { value: id, label: id };
+                    const sector = sectorsData.data?.find(s => String(s._id) === String(id));
+                    return sector ? { value: sector._id, label: sector.sectorName } : { value: id, label: id };
                 }));
                 setSelectedSubSectors((theme.subSectors || []).map(id => {
-                    const subSector = allSubSectorOptions.find(opt => String(opt.value) === String(id));
-                    return subSector || { value: id, label: id };
+                    const subSector = subSectorsData.data?.find(s => String(s._id) === String(id));
+                    return subSector ? { value: subSector._id, label: subSector.subSectorName, sectorId: subSector.sectorId } : { value: id, label: id };
                 }));
                 setThemeDescription(theme.themeDescription || '');
                 setTeaser(theme.teaser || '');
@@ -312,6 +314,7 @@ export default function ThemeForm({ handleFormSubmit }) {
             // Reset form for new theme
             setThemeTitle('');
             setIsTrending(false);
+            setDoNotPublish(false);
             setSelectedSectors([]);
             setSelectedSubSectors([]);
             setThemeDescription('');
@@ -348,7 +351,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                 consumerDynamics: { behavioralInsights: [], impactAnalyser: [] },
             });
         }
-    }, [themes.editId, themes.data, themes.allThemes, subSectorsData.data, tileTemplates, sectorOptions, allSubSectorOptions]);
+    }, [themes.editId, themes.data, themes.allThemes, subSectorsData.data, tileTemplates]);
 
     // Update filteredSubSectors when selectedSectors changes
     useEffect(() => {
@@ -366,6 +369,7 @@ export default function ThemeForm({ handleFormSubmit }) {
         const formData = {
             themeTitle,
             isTrending,
+            doNotPublish,
             sectors: selectedSectors.map(s => s.value),
             subSectors: selectedSubSectors.map(s => s.value),
             themeDescription, // Include themeDescription
@@ -1438,14 +1442,98 @@ export default function ThemeForm({ handleFormSubmit }) {
                     </details>
                 </div>
 
-                <div className="form-group checkbox-group">
-                    <label htmlFor="isTrending"><b>Is Trending?</b></label>
-                    <input name="checkboxField" id="isTrending"
-                        type="checkbox"
-                        checked={isTrending}
-                        onChange={(e) => setIsTrending(e.target.checked)}
-                        className="theme-checkbox"
-                    />
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <label style={{ 
+                            position: 'relative', 
+                            display: 'inline-block', 
+                            width: '45px', 
+                            height: '24px',
+                            cursor: 'pointer'
+                        }}>
+                            <input
+                                type="checkbox"
+                                checked={isTrending}
+                                onChange={(e) => setIsTrending(e.target.checked)}
+                                style={{ opacity: 0, width: 0, height: 0 }}
+                            />
+                            <span style={{
+                                position: 'absolute',
+                                cursor: 'pointer',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: isTrending ? '#3b82f6' : '#ccc',
+                                transition: '.4s',
+                                borderRadius: '24px',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                            }}>
+                                <span style={{
+                                    position: 'absolute',
+                                    content: '""',
+                                    height: '18px',
+                                    width: '18px',
+                                    left: isTrending ? '24px' : '3px',
+                                    bottom: '3px',
+                                    backgroundColor: 'white',
+                                    transition: '.4s',
+                                    borderRadius: '50%',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                                }}></span>
+                            </span>
+                        </label>
+                        <span style={{ color: '#333', fontSize: '14px' }}>
+                            Is Trending?
+                        </span>
+                    </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <label style={{ 
+                            position: 'relative', 
+                            display: 'inline-block', 
+                            width: '45px', 
+                            height: '24px',
+                            cursor: 'pointer'
+                        }}>
+                            <input
+                                type="checkbox"
+                                checked={!doNotPublish}
+                                onChange={(e) => setDoNotPublish(!e.target.checked)}
+                                style={{ opacity: 0, width: 0, height: 0 }}
+                            />
+                            <span style={{
+                                position: 'absolute',
+                                cursor: 'pointer',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: doNotPublish ? '#ccc' : '#3b82f6',
+                                transition: '.4s',
+                                borderRadius: '24px',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                            }}>
+                                <span style={{
+                                    position: 'absolute',
+                                    content: '""',
+                                    height: '18px',
+                                    width: '18px',
+                                    left: doNotPublish ? '3px' : '24px',
+                                    bottom: '3px',
+                                    backgroundColor: 'white',
+                                    transition: '.4s',
+                                    borderRadius: '50%',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                                }}></span>
+                            </span>
+                        </label>
+                        <span style={{ color: '#333', fontSize: '14px' }}>
+                            {doNotPublish ? 'Do Not Publish' : 'Publish'}
+                        </span>
+                    </div>
                 </div>
 
                 <div className="form-group scores-group">

@@ -46,6 +46,7 @@ export default function ContextForm({ handleFormSubmit }) {
     const [selectedTileTemplates, setSelectedTileTemplates] = useState([]);
     const [bannerShow, setBannerShow] = useState(false);
     const [homePageShow, setHomePageShow] = useState(false);
+    const [doNotPublish, setDoNotPublish] = useState(false);
     const [bannerImage, setBannerImage] = useState('');
     const [otherImage, setOtherImage] = useState('');
     const [dataForTypeNum, setDataForTypeNum] = useState('');
@@ -66,8 +67,9 @@ export default function ContextForm({ handleFormSubmit }) {
         slide9: { title: '', description: '' },
         slide10: { title: '', description: '' }
     });
-    const [pptUrl, setPptUrl] = useState('');
-    const [contentType, setContentType] = useState('slides'); // 'slides' or 'ppt'
+    const [pdfUrl, setPdfUrl] = useState('');
+    const [pdfFile, setPdfFile] = useState(null); // Store PDF file data
+    const [contentType, setContentType] = useState('slides'); // 'slides' or 'pdf'
     const [isRefreshingThemes, setIsRefreshingThemes] = useState(false);
     const [isRefreshingPosts, setIsRefreshingPosts] = useState(false);
     const [isRefreshingTileTemplates, setIsRefreshingTileTemplates] = useState(false);
@@ -159,6 +161,7 @@ export default function ContextForm({ handleFormSubmit }) {
             setSelectedPosts([]);
             setBannerShow(false);
             setHomePageShow(false);
+            setDoNotPublish(false);
             setBannerImage('');
             setOtherImage('');
             setDataForTypeNum('');
@@ -176,7 +179,8 @@ export default function ContextForm({ handleFormSubmit }) {
                 slide9: { title: '', description: '' },
                 slide10: { title: '', description: '' }
             });
-            setPptUrl('');
+            setPdfUrl('');
+            setPdfFile(null);
             setContentType('slides');
             return;
         }
@@ -238,6 +242,7 @@ export default function ContextForm({ handleFormSubmit }) {
             }
             setBannerShow(context.bannerShow || false);
             setHomePageShow(context.homePageShow || false);
+            setDoNotPublish(context.doNotPublish || false);
             setBannerImage(context.bannerImage || '');
             setOtherImage(context.otherImage || '');
             setDataForTypeNum(context.dataForTypeNum || '');
@@ -256,9 +261,10 @@ export default function ContextForm({ handleFormSubmit }) {
                 slide9: context.slide9 || { title: '', description: '' },
                 slide10: context.slide10 || { title: '', description: '' }
             });
-            setPptUrl(context.pptUrl || '');
+            setPdfUrl(context.pdfUrl || '');
+            setPdfFile(context.pdfFile || null);
             // Determine content type based on existing data
-            setContentType(context.pptUrl ? 'ppt' : 'slides');
+            setContentType((context.pdfUrl || context.pdfFile) ? 'pdf' : 'slides');
         }
     }, [editIdFromQuery, contexts.editId, contexts.data, posts, allThemes, tileTemplates]);
 
@@ -403,11 +409,13 @@ export default function ContextForm({ handleFormSubmit }) {
                 posts: updatedPosts,
                 bannerShow,
                 homePageShow,
+                doNotPublish,
                 bannerImage,
                 otherImage,
                 dataForTypeNum,
                 imageUrl,
-                pptUrl: contentType === 'ppt' ? pptUrl : '',
+                pdfUrl: contentType === 'pdf' ? pdfUrl : '',
+                pdfFile: contentType === 'pdf' ? pdfFile : null,
                 summary,
                 hasSlider,
                 slide1: contentType === 'slides' ? slides.slide1 : { title: '', description: '' },
@@ -502,6 +510,16 @@ export default function ContextForm({ handleFormSubmit }) {
                 [field]: value
             }
         }));
+    };
+
+    // Function to convert file to base64
+    const fileToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
     };
 
     // Convert themesData into a format suitable for react-select
@@ -656,6 +674,52 @@ useEffect(() => {
                                     className="context-checkbox"
                                 />
                                 <label htmlFor="isTrending" className="checkbox-label">Is Trending?</label>
+                            </div>
+                            <div className="toggle-container">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <label style={{ 
+                                        position: 'relative', 
+                                        display: 'inline-block', 
+                                        width: '45px', 
+                                        height: '24px',
+                                        cursor: 'pointer'
+                                    }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={!doNotPublish}
+                                            onChange={(e) => setDoNotPublish(!e.target.checked)}
+                                            style={{ opacity: 0, width: 0, height: 0 }}
+                                        />
+                                        <span style={{
+                                            position: 'absolute',
+                                            cursor: 'pointer',
+                                            top: 0,
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            backgroundColor: doNotPublish ? '#ccc' : '#3b82f6',
+                                            transition: '.4s',
+                                            borderRadius: '24px',
+                                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                                        }}>
+                                            <span style={{
+                                                position: 'absolute',
+                                                content: '""',
+                                                height: '18px',
+                                                width: '18px',
+                                                left: doNotPublish ? '3px' : '24px',
+                                                bottom: '3px',
+                                                backgroundColor: 'white',
+                                                transition: '.4s',
+                                                borderRadius: '50%',
+                                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                                            }}></span>
+                                        </span>
+                                    </label>
+                                    <span style={{ color: '#333', fontSize: '14px' }}>
+                                        {doNotPublish ? 'Do Not Publish' : 'Publish'}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -959,55 +1023,80 @@ useEffect(() => {
                                             <input
                                                 type="radio"
                                                 name="contentType"
-                                                value="ppt"
-                                                checked={contentType === 'ppt'}
+                                                value="pdf"
+                                                checked={contentType === 'pdf'}
                                                 onChange={(e) => setContentType(e.target.value)}
                                             />
-                                            <span>Upload Complete PPT Presentation</span>
+                                            <span>Upload Complete PDF Document</span>
                                         </label>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Conditional Content Based on Selection */}
-                            {contentType === 'ppt' ? (
-                                /* PPT Upload Section */
+                            {contentType === 'pdf' ? (
+                                /* PDF Upload Section */
                                 <div className="field-group">
                                     <div style={{ flex: 1 }}>
-                                        <label><b>Upload Complete Presentation (PPT/PPTX)</b></label>
+                                        <label><b>Upload Complete Document (PDF)</b></label>
+                                        <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
+                                            Maximum file size: 25MB
+                                        </div>
                                         <input
                                             type="file"
-                                            accept=".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                                            accept=".pdf,application/pdf"
                                             onChange={async (e) => {
                                                 const file = e.target.files && e.target.files[0];
                                                 if (!file) return;
-                                                const formData = new FormData();
-                                                formData.append('ppt', file);
+                                                
+                                                // Check file size (limit to 25MB to stay well under 50MB server limit)
+                                                const maxSize = 25 * 1024 * 1024; // 25MB in bytes
+                                                if (file.size > maxSize) {
+                                                    toast.error(`File size too large. Maximum allowed size is 25MB. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB.`);
+                                                    e.target.value = ''; // Clear the input
+                                                    return;
+                                                }
+                                                
                                                 try {
-                                                    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-                                                    const res = await fetch('http://3.111.213.47:3050/api/images/upload-ppt', {
-                                                        method: 'POST',
-                                                        headers: { Authorization: `Bearer ${token}` },
-                                                        body: formData
-                                                    });
-                                                    const data = await res.json();
-                                                    if (data.success && data.data?.pptUrl) {
-                                                        setPptUrl(data.data.pptUrl);
-                                                        toast.success('✅ PPT uploaded successfully!');
-                                                    } else {
-                                                        toast.error(data.message || 'Failed to upload PPT');
-                                                    }
+                                                    // Convert file to base64
+                                                    const base64Data = await fileToBase64(file);
+                                                    
+                                                    // Create file data object
+                                                    const fileData = {
+                                                        data: base64Data,
+                                                        contentType: file.type,
+                                                        fileName: file.name,
+                                                        fileSize: file.size
+                                                    };
+                                                    
+                                                    setPdfFile(fileData);
+                                                    setPdfUrl(''); // Clear old URL if any
+                                                    toast.success('✅ PDF file ready for upload!');
                                                 } catch (err) {
-                                                    console.error('PPT upload failed', err);
-                                                    toast.error('PPT upload failed');
+                                                    console.error('PDF file processing failed', err);
+                                                    toast.error('Failed to process PDF file');
                                                 }
                                             }}
                                             style={{ marginBottom: '10px' }}
                                         />
-                                        {pptUrl ? (
+                                        {pdfFile ? (
                                             <div style={{ marginTop: 6 }}>
-                                                <a href={pptUrl} target="_blank" rel="noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>
-                                                    📄 View Uploaded Presentation
+                                                <div style={{ color: '#059669', fontSize: '14px', marginBottom: '8px' }}>
+                                                    📄 File: {pdfFile.fileName} ({(pdfFile.fileSize / 1024 / 1024).toFixed(2)} MB)
+                                                </div>
+                                                <a 
+                                                    href={`/api/admin/contexts/${contexts.editId || editIdFromQuery}/pdf`}
+                                                    target="_blank" 
+                                                    rel="noreferrer" 
+                                                    style={{ color: '#3b82f6', textDecoration: 'underline', fontSize: '14px' }}
+                                                >
+                                                    📥 Download PDF File
+                                                </a>
+                                            </div>
+                                        ) : pdfUrl ? (
+                                            <div style={{ marginTop: 6 }}>
+                                                <a href={pdfUrl} target="_blank" rel="noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>
+                                                    📄 View Uploaded Document
                                                 </a>
                                             </div>
                                         ) : null}

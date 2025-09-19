@@ -6,6 +6,7 @@ const themeSchema = new Schema ({
     teaser: { type: String, required: false },
     methodology: { type: String, required: false },
     isTrending: {type: Boolean, default: false},
+    doNotPublish: {type: Boolean, default: false},
     sectors: [{ type: Schema.Types.ObjectId, ref: 'Sector', required: true}],
     subSectors: [{ type: Schema.Types.ObjectId, ref: 'SubSector', required: false}],
     overallScore: {type: Number, default: 0},

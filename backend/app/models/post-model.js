@@ -8,6 +8,7 @@ const postSchema = new Schema ({
     isTrending: {type: Boolean, default: false},
     includeInContainer: {type: Boolean, default: false},
     homePageShow: {type: Boolean, default: false},
+    doNotPublish: {type: Boolean, default: false},
     contexts: [{ type: Schema.Types.ObjectId, ref: 'Context', required: true}],
     countries: [{ type: Schema.Types.ObjectId, ref: 'Country', required: true}],
     summary: { type: String, required: true },

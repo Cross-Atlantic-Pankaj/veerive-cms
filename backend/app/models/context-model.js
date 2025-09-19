@@ -29,6 +29,7 @@ const contextSchema = new Schema ({
   
     bannerShow: {type: Boolean, default: false},
     homePageShow: {type: Boolean, default: false},
+    doNotPublish: {type: Boolean, default: false},
     bannerImage: {type: String, required: false},
     otherImage: {type: String, required: false},
     dataForTypeNum: { type: String, required: false },
@@ -49,8 +50,16 @@ const contextSchema = new Schema ({
     // Image URL for context
     imageUrl: { type: String, required: false },
     
-    // PPT URL for complete presentation
-    pptUrl: { type: String, required: false },
+    // PDF URL for complete presentation (deprecated - use pdfFile instead)
+    pdfUrl: { type: String, required: false },
+    
+    // PDF file stored directly in database
+    pdfFile: {
+        data: { type: Buffer, required: false },
+        contentType: { type: String, required: false },
+        fileName: { type: String, required: false },
+        fileSize: { type: Number, required: false }
+    },
     
     seoData: {
         seoURL: { type: String, required: false }, 

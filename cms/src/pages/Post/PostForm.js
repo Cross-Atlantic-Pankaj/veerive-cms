@@ -96,6 +96,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
     const [postType, setPostType] = useState('');
     const [isTrending, setIsTrending] = useState(false);
     const [homePageShow, setHomePageShow] = useState(false);
+    const [doNotPublish, setDoNotPublish] = useState(false);
     const [selectedContexts, setSelectedContexts] = useState([]); // ✅ Multiple contexts
     const [selectedCountries, setSelectedCountries] = useState([]);
     const [summary, setSummary] = useState('');
@@ -219,6 +220,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                 setPostType(post.postType);
                 setIsTrending(post.isTrending);
                 setHomePageShow(post.homePageShow);
+                setDoNotPublish(post.doNotPublish || false);
                 setSelectedCountries(
                     post.countries && Array.isArray(post.countries)
                         ? post.countries.map(country => {
@@ -347,6 +349,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
             postType,
             isTrending,
             homePageShow,
+            doNotPublish,
             contexts: selectedContexts.map(c => c.value),
             countries: selectedCountries.map(c => c.value),
             summary,
@@ -439,6 +442,7 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
         setPostType('');
         setIsTrending(false);
         setHomePageShow(false);
+        setDoNotPublish(false);
         setSelectedContexts([]);
         setSelectedCountries([]);
         setSummary('');
@@ -521,20 +525,138 @@ export default function PostForm({ handleFormSubmit, handleGoToPostList }) {
                     label="Post Image"
                 />
                 
-                <label htmlFor="isTrending"><b>Is Trending?</b></label>
-                <input name="checkboxField" id="isTrending"
-                    type="checkbox"
-                    checked={isTrending}
-                    onChange={(e) => setIsTrending(e.target.checked)}
-                    className={styles.postCheckbox}
-                />
-                <label htmlFor="homePageShow"><b>Show on Home Page?</b></label>
-                <input name="checkboxField" id="homePageShow"
-                    type="checkbox"
-                    checked={homePageShow}
-                    onChange={(e) => setHomePageShow(e.target.checked)}
-                    className={styles.postCheckbox}
-                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                    <label style={{ 
+                        position: 'relative', 
+                        display: 'inline-block', 
+                        width: '45px', 
+                        height: '24px',
+                        cursor: 'pointer'
+                    }}>
+                        <input
+                            type="checkbox"
+                            checked={isTrending}
+                            onChange={(e) => setIsTrending(e.target.checked)}
+                            style={{ opacity: 0, width: 0, height: 0 }}
+                        />
+                        <span style={{
+                            position: 'absolute',
+                            cursor: 'pointer',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: isTrending ? '#3b82f6' : '#ccc',
+                            transition: '.4s',
+                            borderRadius: '24px',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                        }}>
+                            <span style={{
+                                position: 'absolute',
+                                content: '""',
+                                height: '18px',
+                                width: '18px',
+                                left: isTrending ? '24px' : '3px',
+                                bottom: '3px',
+                                backgroundColor: 'white',
+                                transition: '.4s',
+                                borderRadius: '50%',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                            }}></span>
+                        </span>
+                    </label>
+                    <span style={{ color: '#333', fontSize: '14px' }}>
+                        Is Trending?
+                    </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                    <label style={{ 
+                        position: 'relative', 
+                        display: 'inline-block', 
+                        width: '45px', 
+                        height: '24px',
+                        cursor: 'pointer'
+                    }}>
+                        <input
+                            type="checkbox"
+                            checked={homePageShow}
+                            onChange={(e) => setHomePageShow(e.target.checked)}
+                            style={{ opacity: 0, width: 0, height: 0 }}
+                        />
+                        <span style={{
+                            position: 'absolute',
+                            cursor: 'pointer',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: homePageShow ? '#3b82f6' : '#ccc',
+                            transition: '.4s',
+                            borderRadius: '24px',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                        }}>
+                            <span style={{
+                                position: 'absolute',
+                                content: '""',
+                                height: '18px',
+                                width: '18px',
+                                left: homePageShow ? '24px' : '3px',
+                                bottom: '3px',
+                                backgroundColor: 'white',
+                                transition: '.4s',
+                                borderRadius: '50%',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                            }}></span>
+                        </span>
+                    </label>
+                    <span style={{ color: '#333', fontSize: '14px' }}>
+                        Show on Home Page?
+                    </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <label style={{ 
+                        position: 'relative', 
+                        display: 'inline-block', 
+                        width: '45px', 
+                        height: '24px',
+                        cursor: 'pointer'
+                    }}>
+                        <input
+                            type="checkbox"
+                            checked={!doNotPublish}
+                            onChange={(e) => setDoNotPublish(!e.target.checked)}
+                            style={{ opacity: 0, width: 0, height: 0 }}
+                        />
+                        <span style={{
+                            position: 'absolute',
+                            cursor: 'pointer',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: doNotPublish ? '#ccc' : '#3b82f6',
+                            transition: '.4s',
+                            borderRadius: '24px',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                        }}>
+                            <span style={{
+                                position: 'absolute',
+                                content: '""',
+                                height: '18px',
+                                width: '18px',
+                                left: doNotPublish ? '3px' : '24px',
+                                bottom: '3px',
+                                backgroundColor: 'white',
+                                transition: '.4s',
+                                borderRadius: '50%',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                            }}></span>
+                        </span>
+                    </label>
+                    <span style={{ color: '#333', fontSize: '14px' }}>
+                        {doNotPublish ? 'Do Not Publish' : 'Publish'}
+                    </span>
+                </div>
                 <label htmlFor="contexts">Contexts <span style={{color: 'red'}}>*</span></label>
                     <Select
                         id="contexts"

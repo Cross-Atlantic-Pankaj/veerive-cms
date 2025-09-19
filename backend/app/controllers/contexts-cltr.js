@@ -143,10 +143,36 @@ contextsCltr.create = async (req, res) => {
         // Explicitly handle imageUrl to ensure it's not lost
         const imageUrlValue = req.body.imageUrl || null;
         
+        // Handle PDF file data - convert base64 to Buffer if present
+        let pdfFileData = null;
+        if (req.body.pdfFile && req.body.pdfFile.data) {
+            try {
+                // Convert base64 data URL to Buffer
+                const base64Data = req.body.pdfFile.data.replace(/^data:.*,/, '');
+                pdfFileData = {
+                    data: Buffer.from(base64Data, 'base64'),
+                    contentType: req.body.pdfFile.contentType,
+                    fileName: req.body.pdfFile.fileName,
+                    fileSize: req.body.pdfFile.fileSize
+                };
+            } catch (pdfError) {
+                console.error('Error processing PDF file:', pdfError);
+                return res.status(400).json({ error: 'Invalid PDF file data' });
+            }
+        }
+        
         const contextData = {
             ...req.body,
-            imageUrl: imageUrlValue // ✅ Explicitly set imageUrl
+            imageUrl: imageUrlValue, // ✅ Explicitly set imageUrl
+            pdfFile: pdfFileData // ✅ Set PDF file data
         };
+        
+        // Remove pdfFile from req.body to avoid duplication
+        delete contextData.pdfFile;
+        if (pdfFileData) {
+            contextData.pdfFile = pdfFileData;
+        }
+        
         const context = new Context(contextData);
         
         // Explicitly set imageUrl to ensure it's not lost
@@ -183,10 +209,35 @@ contextsCltr.update = async (req, res) => {
         // Explicitly handle imageUrl for context update
         const imageUrlValue = body.imageUrl || null;
         
+        // Handle PDF file data - convert base64 to Buffer if present
+        let pdfFileData = null;
+        if (body.pdfFile && body.pdfFile.data) {
+            try {
+                // Convert base64 data URL to Buffer
+                const base64Data = body.pdfFile.data.replace(/^data:.*,/, '');
+                pdfFileData = {
+                    data: Buffer.from(base64Data, 'base64'),
+                    contentType: body.pdfFile.contentType,
+                    fileName: body.pdfFile.fileName,
+                    fileSize: body.pdfFile.fileSize
+                };
+            } catch (pdfError) {
+                console.error('Error processing PDF file:', pdfError);
+                return res.status(400).json({ error: 'Invalid PDF file data' });
+            }
+        }
+        
         const updateData = {
             ...body,
-            imageUrl: imageUrlValue // ✅ Explicitly set imageUrl
+            imageUrl: imageUrlValue, // ✅ Explicitly set imageUrl
+            pdfFile: pdfFileData // ✅ Set PDF file data
         };
+        
+        // Remove pdfFile from body to avoid duplication
+        delete updateData.pdfFile;
+        if (pdfFileData) {
+            updateData.pdfFile = pdfFileData;
+        }
         
         // Ensure imageUrl is explicitly set in the context update
         if (imageUrlValue) {
@@ -308,6 +359,42 @@ contextsCltr.getEditContextData = async (req, res) => {
     } catch (err) {
         console.error('Error fetching edit context data:', err);
         res.status(500).json({ error: 'Server Error' });
+    }
+};
+
+// Endpoint to retrieve PDF file from database
+contextsCltr.getPdfFile = async (req, res) => {
+    try {
+        const contextId = req.params.id;
+        
+        // Validate ObjectId format
+        if (!contextId.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ message: 'Invalid Context ID format' });
+        }
+        
+        const context = await Context.findById(contextId).select('pdfFile');
+        
+        if (!context) {
+            return res.status(404).json({ message: 'Context not found' });
+        }
+        
+        if (!context.pdfFile || !context.pdfFile.data) {
+            return res.status(404).json({ message: 'PDF file not found for this context' });
+        }
+        
+        // Set appropriate headers for file download
+        res.set({
+            'Content-Type': context.pdfFile.contentType || 'application/pdf',
+            'Content-Disposition': `attachment; filename="${context.pdfFile.fileName || 'document.pdf'}"`,
+            'Content-Length': context.pdfFile.data.length
+        });
+        
+        // Send the file data
+        res.send(context.pdfFile.data);
+        
+    } catch (err) {
+        console.error('Error retrieving PDF file:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
     }
 };
 

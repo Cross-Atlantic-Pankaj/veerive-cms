@@ -74,8 +74,9 @@ app.options('*', cors()); // Preflight requests for all routes
 setupOAuthStrategies();
 app.use(passport.initialize());
 
-// Middleware to parse JSON
-app.use(express.json())
+// Middleware to parse JSON with increased limit for large PPT files
+app.use(express.json({ limit: '50mb' }))
+app.use(express.urlencoded({ limit: '50mb', extended: true }))
 
 
 // User routes

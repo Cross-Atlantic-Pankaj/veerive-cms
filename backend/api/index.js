@@ -78,8 +78,9 @@ configDB().then(() => {
   console.error('Database connection error:', error);
 });
 
-// Middleware to parse JSON
-app.use(express.json())
+// Middleware to parse JSON with increased limit for large PPT files
+app.use(express.json({ limit: '50mb' }))
+app.use(express.urlencoded({ limit: '50mb', extended: true }))
 
 // Debug middleware to log all incoming requests
 app.use((req, res, next) => {
@@ -121,6 +122,8 @@ app.post('/api/admin/contexts', authenticateUser, contextsCltr.create)
 app.put('/api/admin/contexts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), contextsCltr.update)
 app.put('/api/admin/contexts/:contextId/postId', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), contextsCltr.updatePostId) // for updating postId in context when a post is saved
 app.delete('/api/admin/contexts/:id', authenticateUser, authorizeUser(['Admin', 'Moderator', 'SuperAdmin']), contextsCltr.delete)
+// Route for retrieving PDF file from database
+app.get('/api/admin/contexts/:id/pdf', authenticateUser, contextsCltr.getPdfFile)
 // ✅ Route for fetching all posts (for Context Form)
 app.get('/api/admin/posts/all', authenticateUser, postsCltr.getAllPosts);
 // ✅ Route for fetching a single post by ID
