@@ -10,10 +10,113 @@ import Select from 'react-select';
 import JsxParser from 'react-jsx-parser';
 import Tile from '../../components/Tile';
 
+// Utility function to clean and normalize HTML content from ReactQuill
+const cleanHtmlContent = (html) => {
+    if (!html || html === '<p><br></p>' || html === '<p></p>') {
+        return '';
+    }
+    
+    // More aggressive cleaning to remove all unwanted line breaks and empty paragraphs
+    let cleaned = html
+        // Remove all variations of empty paragraphs with line breaks
+        .replace(/<p><br><\/p>/g, '') // Remove empty paragraphs with just line breaks
+        .replace(/<p><\/p>/g, '') // Remove completely empty paragraphs
+        .replace(/<p>\s*<\/p>/g, '') // Remove paragraphs with only whitespace
+        .replace(/\s*<p>\s*<br>\s*<\/p>\s*/g, '') // Remove paragraphs with just line breaks and whitespace
+        .replace(/\s*<p>\s*<\/p>\s*/g, '') // Remove empty paragraphs with whitespace
+        .replace(/<p>\s*<br>\s*<\/p>/g, '') // Remove paragraphs with line breaks and whitespace
+        .replace(/\s*<p>\s*<br>\s*<\/p>\s*/g, '') // Remove paragraphs with line breaks and surrounding whitespace
+        // Remove multiple consecutive line breaks
+        .replace(/(<br\s*\/?>){2,}/g, '<br>') // Replace multiple <br> tags with single one
+        .replace(/<p>\s*<br>\s*<\/p>/g, '') // Remove paragraphs containing only <br>
+        .replace(/<p>\s*<br\s*\/?>\s*<\/p>/g, '') // Remove paragraphs containing only <br> with optional self-closing
+        // Remove empty paragraphs that might contain only whitespace and line breaks
+        .replace(/<p>\s*<br\s*\/?>\s*<\/p>/g, '') // Remove paragraphs with <br> and whitespace
+        .replace(/<p>\s*<br\s*\/?>\s*<\/p>/g, '') // Remove paragraphs with <br> and whitespace (duplicate for safety)
+        // Remove any remaining empty paragraphs
+        .replace(/<p>\s*<\/p>/g, '') // Remove any remaining empty paragraphs
+        .replace(/<p><br\s*\/?><\/p>/g, '') // Remove paragraphs with just <br> tags
+        .trim();
+    
+    // If the content is empty after cleaning, return empty string
+    if (cleaned === '' || cleaned === '<p></p>' || cleaned === '<p><br></p>') {
+        return '';
+    }
+    
+    return cleaned;
+};
+
+// Specific function to clean methodology content and remove unwanted gaps
+const cleanMethodologyContent = (html) => {
+    if (!html || html === '<p><br></p>' || html === '<p></p>') {
+        return '';
+    }
+    
+    // First apply the general cleaning
+    let cleaned = cleanHtmlContent(html);
+    
+    // Additional specific cleaning for methodology content
+    cleaned = cleaned
+        // Remove any remaining empty paragraphs between content and lists
+        .replace(/<\/p>\s*<p>\s*<br>\s*<\/p>\s*<ul>/g, '</p><ul>') // Remove empty paragraph between paragraph and list
+        .replace(/<\/p>\s*<p>\s*<\/p>\s*<ul>/g, '</p><ul>') // Remove empty paragraph between paragraph and list
+        .replace(/<\/p>\s*<p>\s*<br\s*\/?>\s*<\/p>\s*<ul>/g, '</p><ul>') // Remove empty paragraph with <br> between paragraph and list
+        // Remove any empty paragraphs that might be between the main content and bullet points
+        .replace(/(<p>.*?<\/p>)\s*<p>\s*<br>\s*<\/p>\s*(<ul>)/g, '$1$2') // Remove empty paragraph between content and list
+        .replace(/(<p>.*?<\/p>)\s*<p>\s*<\/p>\s*(<ul>)/g, '$1$2') // Remove empty paragraph between content and list
+        .replace(/(<p>.*?<\/p>)\s*<p>\s*<br\s*\/?>\s*<\/p>\s*(<ul>)/g, '$1$2') // Remove empty paragraph with <br> between content and list
+        .trim();
+    
+    return cleaned;
+};
+
+// Utility function to clean nested HTML content in complex objects
+const cleanNestedHtmlContent = (obj) => {
+    if (!obj || typeof obj !== 'object') return obj;
+    
+    const cleaned = { ...obj };
+    
+    // Recursively clean all string properties that might contain HTML
+    for (const key in cleaned) {
+        if (typeof cleaned[key] === 'string') {
+            cleaned[key] = cleanHtmlContent(cleaned[key]);
+        } else if (typeof cleaned[key] === 'object' && cleaned[key] !== null) {
+            cleaned[key] = cleanNestedHtmlContent(cleaned[key]);
+        }
+    }
+    
+    return cleaned;
+};
+
 export default function ThemeForm({ handleFormSubmit }) {
     const { themes, themesDispatch, sectors: sectorsData, subSectors: subSectorsData, setIsFormVisible } = useContext(ThemeContext);
     const { tileTemplates } = useContext(TileTemplateContext);
     const navigate = useNavigate();
+
+    // Function to clean methodology content for display
+    const cleanMethodologyForDisplay = (htmlContent) => {
+        if (!htmlContent) return '';
+
+        // Remove empty paragraphs that contain only <br> tags and other variations
+        let cleaned = htmlContent
+            .replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '') // <p><br></p>
+            .replace(/<p>\s*<\/p>/gi, '') // <p></p>
+            .replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '') // <p><br/></p>
+            .replace(/<p><br\s*\/?><\/p>/gi, '') // <p><br></p> (alternative format)
+            .replace(/<p><br\s*\/>\s*<\/p>/gi, '') // <p><br/></p> (self-closing)
+            .replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '') // Multiple spaces version
+            .replace(/<p[^>]*>\s*<br\s*\/?>\s*<\/p>/gi, '') // With attributes
+            .replace(/<p[^>]*>\s*<\/p>/gi, ''); // Any empty paragraphs with attributes
+
+        // Additional cleaning for gaps between paragraphs and lists
+        cleaned = cleaned
+            .replace(/\s*<p[^>]*>\s*<br\s*\/?>\s*<\/p>\s*<ul>/gi, '<ul>') // Remove empty paragraph before list
+            .replace(/\s*<p[^>]*>\s*<\/p>\s*<ul>/gi, '<ul>') // Remove empty paragraph before list
+            .replace(/<\/p>\s*<p[^>]*>\s*<br\s*\/?>\s*<\/p>\s*<ul>/gi, '</p><ul>') // Remove empty paragraph between content and list
+            .replace(/<\/p>\s*<p[^>]*>\s*<\/p>\s*<ul>/gi, '</p><ul>'); // Remove empty paragraph between content and list
+
+        return cleaned;
+    };
 
     const [themeTitle, setThemeTitle] = useState('');
     const [isTrending, setIsTrending] = useState(false);
@@ -205,7 +308,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                 }));
                 setThemeDescription(theme.themeDescription || '');
                 setTeaser(theme.teaser || '');
-                setMethodology(theme.methodology || '');
+                setMethodology(cleanMethodologyForDisplay(theme.methodology || ''));
                 setTrendingScore(theme.trendingScore || 0);
                 setImpactScore(theme.impactScore || 0);
                 setPredictiveMomentumScore(theme.predictiveMomentumScore || 0);
@@ -282,20 +385,19 @@ export default function ThemeForm({ handleFormSubmit }) {
                         },
                     },
                     regionalDynamics: {
-                        heatMapChartSection: Array.isArray(theme?.trendAnalysis?.regionalDynamics?.heatMapChartSection) ? theme.trendAnalysis.regionalDynamics.heatMapChartSection.map(hm => ({
-                            nameOfRegion: hm.nameOfRegion || '',
-                            values: typeof hm.values === 'number' ? hm.values : 0,
-                        })) : [],
+                        overallIcon: theme?.trendAnalysis?.regionalDynamics?.overallIcon || '',
                         regionalInsights: {
                             overallSummary: theme?.trendAnalysis?.regionalDynamics?.regionalInsights?.overallSummary || '',
                             regions: Array.isArray(theme?.trendAnalysis?.regionalDynamics?.regionalInsights?.regions) ? theme.trendAnalysis.regionalDynamics.regionalInsights.regions.map(r => ({
                                 regionMapIcon: r.regionMapIcon || '',
                                 regionName: r.regionName || '',
                                 regionDescription: r.regionDescription || '',
+                                regionScore: typeof r.regionScore === 'number' ? r.regionScore : 0,
                             })) : [],
                         },
                     },
                     consumerDynamics: {
+                        overallIcon: theme?.trendAnalysis?.consumerDynamics?.overallIcon || '',
                         behavioralInsights: Array.isArray(theme?.trendAnalysis?.consumerDynamics?.behavioralInsights) ? theme.trendAnalysis.consumerDynamics.behavioralInsights.map(b => ({
                             heading: b.heading || '',
                             icon: b.icon || '',
@@ -319,7 +421,7 @@ export default function ThemeForm({ handleFormSubmit }) {
             setSelectedSubSectors([]);
             setThemeDescription('');
             setTeaser('');
-            setMethodology('');
+            setMethodology(''); // Will be cleaned by cleanMethodologyForDisplay if needed
             setFilteredSubSectors([]);
             setTrendingScore(0);
             setImpactScore(0);
@@ -344,11 +446,11 @@ export default function ThemeForm({ handleFormSubmit }) {
                     disruptivePotential: { highLowContainer: { icon: '', impactArea: '', impactRating: '' }, content: '', value: '' },
                     trendMomentum: { highLowContainer: { icon: '', impactArea: '', impactRating: '' }, content: '', value: '' },
                 },
-                regionalDynamics: {
-                    heatMapChartSection: [],
-                    regionalInsights: { overallSummary: '', regions: [] },
-                },
-                consumerDynamics: { behavioralInsights: [], impactAnalyser: [] },
+                    regionalDynamics: {
+                        overallIcon: '',
+                        regionalInsights: { overallSummary: '', regions: [] },
+                    },
+                consumerDynamics: { overallIcon: '', behavioralInsights: [], impactAnalyser: [] },
             });
         }
     }, [themes.editId, themes.data, themes.allThemes, subSectorsData.data, tileTemplates]);
@@ -366,15 +468,26 @@ export default function ThemeForm({ handleFormSubmit }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Debug: Log the original methodology content and cleaned version
+        if (methodology && methodology.includes('<p>') && methodology.includes('<ul>')) {
+            console.log('=== METHODOLOGY DEBUG ===');
+            console.log('Original methodology HTML:', methodology);
+            const cleanedMethodology = cleanMethodologyForDisplay(methodology);
+            console.log('Cleaned methodology HTML:', cleanedMethodology);
+            console.log('HTML is clean - gap is caused by CSS margins');
+            console.log('Check browser DevTools for .methodology-editor CSS rules');
+        }
+        
         const formData = {
             themeTitle,
             isTrending,
             doNotPublish,
             sectors: selectedSectors.map(s => s.value),
             subSectors: selectedSubSectors.map(s => s.value),
-            themeDescription, // Include themeDescription
-            teaser,
-            methodology,
+            themeDescription, // Raw HTML content without cleaning
+            teaser, // Raw HTML content without cleaning
+            methodology, // Raw HTML content (cleaning applied during display)
             overallScore: overallScoreCalc,
             trendingScore,
             impactScore,
@@ -383,8 +496,8 @@ export default function ThemeForm({ handleFormSubmit }) {
             impactScoreImage,
             predictiveMomentumScoreImage,
             tileTemplateId: tileTemplateId ? tileTemplateId.value : null,
-            overviewSnapshot,
-            trendAnalysis,
+            overviewSnapshot, // Raw nested content without cleaning
+            trendAnalysis, // Raw nested content without cleaning
         };
 
         try {
@@ -448,7 +561,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                         id="themeDescription"
                         value={themeDescription}
                         onChange={setThemeDescription}
-                        className="theme-quill-editor"
+                        className="theme-quill-editor no-gap-editor"
                         modules={{
                             toolbar: [
                                 [{ 'header': [1, 2, 3, false] }],
@@ -468,7 +581,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                         id="teaser"
                         value={teaser}
                         onChange={setTeaser}
-                        className="theme-quill-editor"
+                        className="theme-quill-editor no-gap-editor"
                         modules={{
                             toolbar: [
                                 [{ 'header': [1, 2, 3, false] }],
@@ -488,7 +601,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                         id="methodology"
                         value={methodology}
                         onChange={setMethodology}
-                        className="theme-quill-editor"
+                        className="theme-quill-editor no-gap-editor"
                         modules={{
                             toolbar: [
                                 [{ 'header': [1, 2, 3, false] }],
@@ -556,6 +669,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                                             ...prev,
                                             trendSnapshot: { ...prev.trendSnapshot, trendSignificance: { content: val } }
                                         }))}
+                                        className="theme-quill-editor no-gap-editor"
                                         modules={{
                                             toolbar: [
                                                 [{ 'header': [1, 2, 3, false] }],
@@ -576,6 +690,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                                             ...prev,
                                             trendSnapshot: { ...prev.trendSnapshot, potentialChallenges: { content: val } }
                                         }))}
+                                        className="theme-quill-editor no-gap-editor"
                                         modules={{
                                             toolbar: [
                                                 [{ 'header': [1, 2, 3, false] }],
@@ -658,6 +773,12 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                     ...prev,
                                                     marketMetrics: prev.marketMetrics.map((m, i) => i === idx ? { ...m, text: val } : m)
                                                 }))}
+                                                className="theme-quill-editor no-gap-editor"
+                                                style={{
+                                                    '--quill-editor-p-margin': '0',
+                                                    '--quill-editor-ul-margin': '0',
+                                                    '--quill-editor-gap': '0'
+                                                }}
                                                 modules={{
                                                     toolbar: [
                                                         [{ 'header': [1, 2, 3, false] }],
@@ -800,6 +921,12 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                             ...prev,
                                                             driversAndSignals: { ...prev.driversAndSignals, keyDrivers: prev.driversAndSignals.keyDrivers.map((k, i) => i === idx ? { ...k, description: val } : k) }
                                                         }))}
+                                                        className="theme-quill-editor no-gap-editor"
+                                                        style={{
+                                                            '--quill-editor-p-margin': '0',
+                                                            '--quill-editor-ul-margin': '0',
+                                                            '--quill-editor-gap': '0'
+                                                        }}
                                                     />
                                                 </div>
                                             </div>
@@ -872,6 +999,12 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                             ...prev,
                                                             driversAndSignals: { ...prev.driversAndSignals, signalsInAction: prev.driversAndSignals.signalsInAction.map((s, i) => i === idx ? { ...s, description: val } : s) }
                                                         }))}
+                                                        className="theme-quill-editor no-gap-editor"
+                                                        style={{
+                                                            '--quill-editor-p-margin': '0',
+                                                            '--quill-editor-ul-margin': '0',
+                                                            '--quill-editor-gap': '0'
+                                                        }}
                                                     />
                                                 </div>
                                                 <div className="form-group">
@@ -882,6 +1015,12 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                             ...prev,
                                                             driversAndSignals: { ...prev.driversAndSignals, signalsInAction: prev.driversAndSignals.signalsInAction.map((s, i) => i === idx ? { ...s, initiative: { description: val } } : s) }
                                                         }))}
+                                                        className="theme-quill-editor no-gap-editor"
+                                                        style={{
+                                                            '--quill-editor-p-margin': '0',
+                                                            '--quill-editor-ul-margin': '0',
+                                                            '--quill-editor-gap': '0'
+                                                        }}
                                                     />
                                                 </div>
                                                 <div className="form-group">
@@ -892,6 +1031,12 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                             ...prev,
                                                             driversAndSignals: { ...prev.driversAndSignals, signalsInAction: prev.driversAndSignals.signalsInAction.map((s, i) => i === idx ? { ...s, strategicImperative: { description: val } } : s) }
                                                         }))}
+                                                        className="theme-quill-editor no-gap-editor"
+                                                        style={{
+                                                            '--quill-editor-p-margin': '0',
+                                                            '--quill-editor-ul-margin': '0',
+                                                            '--quill-editor-gap': '0'
+                                                        }}
                                                     />
                                                 </div>
                                             </div>
@@ -949,6 +1094,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                                             ...prev,
                                             impactAndOpinions: { ...prev.impactAndOpinions, title: { ...prev.impactAndOpinions.title, explanation: val } }
                                         }))}
+                                        className="theme-quill-editor no-gap-editor"
                                     />
                                 </div>
 
@@ -997,6 +1143,12 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                     ...prev,
                                                     impactAndOpinions: { ...prev.impactAndOpinions, disruptivePotential: { ...prev.impactAndOpinions.disruptivePotential, content: val } }
                                                 }))}
+                                                className="theme-quill-editor no-gap-editor"
+                                                style={{
+                                                    '--quill-editor-p-margin': '0',
+                                                    '--quill-editor-ul-margin': '0',
+                                                    '--quill-editor-gap': '0'
+                                                }}
                                             />
                                         </div>
                                         <div className="form-group">
@@ -1060,6 +1212,12 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                     ...prev,
                                                     impactAndOpinions: { ...prev.impactAndOpinions, trendMomentum: { ...prev.impactAndOpinions.trendMomentum, content: val } }
                                                 }))}
+                                                className="theme-quill-editor no-gap-editor"
+                                                style={{
+                                                    '--quill-editor-p-margin': '0',
+                                                    '--quill-editor-ul-margin': '0',
+                                                    '--quill-editor-gap': '0'
+                                                }}
                                             />
                                         </div>
                                         <div className="form-group">
@@ -1099,69 +1257,14 @@ export default function ThemeForm({ handleFormSubmit }) {
                                         🌍 3. Regional Dynamics
                                     </summary>
                                     <div style={{ padding: '12px 0' }}>
-                                <details style={{ marginBottom: 20 }}>
-                                    <summary style={{ cursor: 'pointer', fontWeight: 600, padding: '8px 12px', backgroundColor: '#f3f4f6', borderRadius: 4, marginBottom: 12 }}>
-                                        HeatMap Chart Datasets
-                                    </summary>
-                                    <div style={{ padding: '12px 0' }}>
-                                        {trendAnalysis.regionalDynamics.heatMapChartSection.map((hm, idx) => (
-                                            <div key={idx} style={{ 
-                                                border: '1px solid #d1d5db', 
-                                                padding: 16, 
-                                                marginBottom: 12, 
-                                                borderRadius: 6,
-                                                backgroundColor: '#f9fafb'
-                                            }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                                                    <h5 style={{ margin: 0, color: '#6b7280' }}>Dataset #{idx + 1}</h5>
-                                                    <button 
-                                                        type="button" 
-                                                        className={styles.cancelBtn} 
-                                                        onClick={() => setTrendAnalysis(prev => ({
-                                                            ...prev,
-                                                            regionalDynamics: { ...prev.regionalDynamics, heatMapChartSection: prev.regionalDynamics.heatMapChartSection.filter((_, i) => i !== idx) }
-                                                        }))}
-                                                        style={{ padding: '4px 8px', fontSize: '0.8rem' }}
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </div>
-                                                <div className="form-group">
-                                                    <label><b>Region Name</b></label>
-                                                    <input
-                                                        type="text"
-                                                        className="theme-input"
-                                                        value={hm.nameOfRegion}
-                                                        onChange={(e) => setTrendAnalysis(prev => ({
-                                                            ...prev,
-                                                            regionalDynamics: { ...prev.regionalDynamics, heatMapChartSection: prev.regionalDynamics.heatMapChartSection.map((h, i) => i === idx ? { ...h, nameOfRegion: e.target.value } : h) }
-                                                        }))}
-                                                    />
-                                                </div>
-                                                <div className="form-group">
-                                                    <label><b>Values</b></label>
-                                                    <input
-                                                        type="number"
-                                                        className="theme-input"
-                                                        value={hm.values}
-                                                        onChange={(e) => setTrendAnalysis(prev => ({
-                                                            ...prev,
-                                                            regionalDynamics: { ...prev.regionalDynamics, heatMapChartSection: prev.regionalDynamics.heatMapChartSection.map((h, i) => i === idx ? { ...h, values: Number(e.target.value) } : h) }
-                                                        }))}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                        <button 
-                                            type="button" 
-                                            className={styles.primaryButton} 
-                                            onClick={() => setTrendAnalysis(prev => ({ ...prev, regionalDynamics: { ...prev.regionalDynamics, heatMapChartSection: [...prev.regionalDynamics.heatMapChartSection, { nameOfRegion: '', values: 0 }] } }))}
-                                            style={{ marginTop: 8 }}
-                                        >
-                                            + Add Dataset
-                                        </button>
-                                    </div>
-                                </details>
+                                <ImageSelector
+                                    label="Overall Icon"
+                                    value={trendAnalysis.regionalDynamics.overallIcon}
+                                    onChange={(url) => setTrendAnalysis(prev => ({
+                                        ...prev,
+                                        regionalDynamics: { ...prev.regionalDynamics, overallIcon: url }
+                                    }))}
+                                />
 
                                 <details style={{ marginBottom: 20 }}>
                                     <summary style={{ cursor: 'pointer', fontWeight: 600, padding: '8px 12px', backgroundColor: '#f3f4f6', borderRadius: 4, marginBottom: 12 }}>
@@ -1176,6 +1279,12 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                     ...prev,
                                                     regionalDynamics: { ...prev.regionalDynamics, regionalInsights: { ...prev.regionalDynamics.regionalInsights, overallSummary: val } }
                                                 }))}
+                                                className="theme-quill-editor no-gap-editor"
+                                                style={{
+                                                    '--quill-editor-p-margin': '0',
+                                                    '--quill-editor-ul-margin': '0',
+                                                    '--quill-editor-gap': '0'
+                                                }}
                                             />
                                         </div>
                                         {trendAnalysis.regionalDynamics.regionalInsights.regions.map((r, idx) => (
@@ -1257,11 +1366,11 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                 {r.regionDescription && (
                                                     <div className="form-group">
                                                         <label><b>Region Description</b></label>
-                                                        <div 
-                                                            style={{ 
-                                                                border: '1px solid #d1d5db', 
-                                                                borderRadius: 4, 
-                                                                padding: 12, 
+                                                        <div
+                                                            style={{
+                                                                border: '1px solid #d1d5db',
+                                                                borderRadius: 4,
+                                                                padding: 12,
                                                                 backgroundColor: '#f9fafb',
                                                                 color: '#6b7280',
                                                                 minHeight: 60
@@ -1270,12 +1379,33 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                         />
                                                     </div>
                                                 )}
+                                                <div className="form-group">
+                                                    <label><b>Region Score</b></label>
+                                                    <input
+                                                        type="number"
+                                                        className="theme-input"
+                                                        value={r.regionScore || 0}
+                                                        onChange={(e) => setTrendAnalysis(prev => ({
+                                                            ...prev,
+                                                            regionalDynamics: {
+                                                                ...prev.regionalDynamics,
+                                                                regionalInsights: {
+                                                                    ...prev.regionalDynamics.regionalInsights,
+                                                                    regions: prev.regionalDynamics.regionalInsights.regions.map((x, i) => i === idx ? { ...x, regionScore: Number(e.target.value) } : x)
+                                                                }
+                                                            }
+                                                        }))}
+                                                        placeholder="Enter region score"
+                                                        min="0"
+                                                        max="100"
+                                                    />
+                                                </div>
                                             </div>
                                         ))}
                                         <button 
                                             type="button" 
                                             className={styles.primaryButton} 
-                                            onClick={() => setTrendAnalysis(prev => ({ ...prev, regionalDynamics: { ...prev.regionalDynamics, regionalInsights: { ...prev.regionalDynamics.regionalInsights, regions: [...prev.regionalDynamics.regionalInsights.regions, { regionMapIcon: '', regionName: '', regionDescription: '' }] } } }))}
+                                            onClick={() => setTrendAnalysis(prev => ({ ...prev, regionalDynamics: { ...prev.regionalDynamics, regionalInsights: { ...prev.regionalDynamics.regionalInsights, regions: [...prev.regionalDynamics.regionalInsights.regions, { regionMapIcon: '', regionName: '', regionDescription: '', regionScore: 0 }] } } }))}
                                             style={{ marginTop: 8 }}
                                         >
                                             + Add Region
@@ -1304,6 +1434,14 @@ export default function ThemeForm({ handleFormSubmit }) {
                                         👥 4. Consumer Dynamics
                                     </summary>
                                     <div style={{ padding: '12px 0' }}>
+                                <ImageSelector
+                                    label="Overall Icon"
+                                    value={trendAnalysis.consumerDynamics.overallIcon}
+                                    onChange={(url) => setTrendAnalysis(prev => ({
+                                        ...prev,
+                                        consumerDynamics: { ...prev.consumerDynamics, overallIcon: url }
+                                    }))}
+                                />
                                 <details style={{ marginBottom: 20 }}>
                                     <summary style={{ cursor: 'pointer', fontWeight: 600, padding: '8px 12px', backgroundColor: '#f3f4f6', borderRadius: 4, marginBottom: 12 }}>
                                         Behavioral Insights
@@ -1339,6 +1477,12 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                             ...prev,
                                                             consumerDynamics: { ...prev.consumerDynamics, behavioralInsights: prev.consumerDynamics.behavioralInsights.map((x, i) => i === idx ? { ...x, heading: val } : x) }
                                                         }))}
+                                                        className="theme-quill-editor no-gap-editor"
+                                                        style={{
+                                                            '--quill-editor-p-margin': '0',
+                                                            '--quill-editor-ul-margin': '0',
+                                                            '--quill-editor-gap': '0'
+                                                        }}
                                                     />
                                                 </div>
                                                 <ImageSelector
@@ -1357,6 +1501,12 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                             ...prev,
                                                             consumerDynamics: { ...prev.consumerDynamics, behavioralInsights: prev.consumerDynamics.behavioralInsights.map((x, i) => i === idx ? { ...x, text: val } : x) }
                                                         }))}
+                                                        className="theme-quill-editor no-gap-editor"
+                                                        style={{
+                                                            '--quill-editor-p-margin': '0',
+                                                            '--quill-editor-ul-margin': '0',
+                                                            '--quill-editor-gap': '0'
+                                                        }}
                                                     />
                                                 </div>
                                             </div>
