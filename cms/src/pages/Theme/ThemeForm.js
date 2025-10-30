@@ -90,7 +90,7 @@ const cleanNestedHtmlContent = (obj) => {
 
 export default function ThemeForm({ handleFormSubmit }) {
     const { themes, themesDispatch, sectors: sectorsData, subSectors: subSectorsData, setIsFormVisible } = useContext(ThemeContext);
-    const { tileTemplates } = useContext(TileTemplateContext);
+    const { tileTemplates, fetchTileTemplates } = useContext(TileTemplateContext);
     const navigate = useNavigate();
 
     // Function to clean methodology content for display
@@ -186,6 +186,13 @@ export default function ThemeForm({ handleFormSubmit }) {
     });
 
     // Helper: fetch datasets
+    useEffect(() => {
+        // Ensure tile templates are loaded for the dropdown, especially on hard refresh
+        if (Array.isArray(tileTemplates) && tileTemplates.length === 0 && typeof fetchTileTemplates === 'function') {
+            fetchTileTemplates();
+        }
+    }, [tileTemplates.length, fetchTileTemplates]);
+
     useEffect(() => {
         const fetchDatasets = async () => {
             try {
