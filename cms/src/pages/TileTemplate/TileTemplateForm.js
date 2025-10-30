@@ -8,7 +8,7 @@ import styles from '../../html/css/TileTemplate.module.css';
 
 const TileTemplateForm = ({ onClose }) => {
     const { id } = useParams();
-    const { tileTemplates, loading, addTileTemplate, updateTileTemplate } = useContext(TileTemplateContext);
+    const { tileTemplates, loading, addTileTemplate, updateTileTemplate, fetchTileTemplates } = useContext(TileTemplateContext);
     
     const [name, setName] = useState('');
     const [type, setType] = useState('');
@@ -19,6 +19,13 @@ const TileTemplateForm = ({ onClose }) => {
     const [iconSize, setIconSize] = useState(32);
     const [jsxCode, setJsxCode] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        // If editing and templates are not yet loaded (e.g., opened in a new window), fetch them
+        if (id && tileTemplates.length === 0 && typeof fetchTileTemplates === 'function') {
+            fetchTileTemplates();
+        }
+    }, [id, tileTemplates.length, fetchTileTemplates]);
 
     useEffect(() => {
         if (id) {
