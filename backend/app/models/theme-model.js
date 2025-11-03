@@ -5,6 +5,7 @@ const themeSchema = new Schema ({
     themeDescription: { type: String, required: true },
     teaser: { type: String, required: false },
     methodology: { type: String, required: false },
+    methodologyIcon: { type: String, required: false },
     isTrending: {type: Boolean, default: false},
     doNotPublish: {type: Boolean, default: false},
     sectors: [{ type: Schema.Types.ObjectId, ref: 'Sector', required: true}],
@@ -65,39 +66,29 @@ const themeSchema = new Schema ({
                 explanation: { type: String }
             },
             disruptivePotential: {
-                highLowContainer: {
-                    icon: { type: String },
-                    impactArea: { type: String },
-                    impactRating: { type: String }
-                },
                 content: { type: String },
                 value: { type: String }
             },
             trendMomentum: {
-                highLowContainer: {
-                    icon: { type: String },
-                    impactArea: { type: String },
-                    impactRating: { type: String }
-                },
                 content: { type: String },
                 value: { type: String }
             }
         },
         regionalDynamics: {
-            overallIcon: { type: String },
+            methodologyIcon: { type: String },
             regionalInsights: {
                 overallSummary: { type: String },
                 regions: [{
                     regionId: { type: Schema.Types.ObjectId, ref: 'Region', required: false },
                     regionMapIcon: { type: String },
                     regionName: { type: String },
-                    regionDescription: { type: String },
+                    regionInsight: { type: String },
                     regionScore: { type: Number, default: 0 }
                 }]
             }
         },
         consumerDynamics: {
-            overallIcon: { type: String },
+            methodologyIcon: { type: String },
             behavioralInsights: [{
                 heading: { type: String },
                 icon: { type: String },

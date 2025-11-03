@@ -126,6 +126,7 @@ export default function ThemeForm({ handleFormSubmit }) {
     const [themeDescription, setThemeDescription] = useState(''); // New state
     const [teaser, setTeaser] = useState('');
     const [methodology, setMethodology] = useState('');
+    const [methodologyIcon, setMethodologyIcon] = useState('');
     const [filteredSubSectors, setFilteredSubSectors] = useState([]);
 
     // New state for additional fields
@@ -162,24 +163,25 @@ export default function ThemeForm({ handleFormSubmit }) {
         impactAndOpinions: {
             title: { content: '', explanation: '' },
             disruptivePotential: {
-                highLowContainer: { icon: '', impactArea: '', impactRating: '' },
+                highLowContainer: { icon: '' },
                 content: '',
                 value: '',
             },
             trendMomentum: {
-                highLowContainer: { icon: '', impactArea: '', impactRating: '' },
+                highLowContainer: { icon: '' },
                 content: '',
                 value: '',
             },
         },
         regionalDynamics: {
-            heatMapChartSection: [], // { nameOfRegion, values }
+            methodologyIcon: '',
             regionalInsights: {
                 overallSummary: '',
-                regions: [], // { regionMapIcon, regionName, regionDescription }
+                regions: [], // { regionMapIcon, regionName, regionInsight }
             },
         },
         consumerDynamics: {
+            methodologyIcon: '',
             behavioralInsights: [], // { heading, icon, text }
             impactAnalyser: [], // { consumerSegmentName, impactScore }
         },
@@ -316,6 +318,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                 setThemeDescription(theme.themeDescription || '');
                 setTeaser(theme.teaser || '');
                 setMethodology(cleanMethodologyForDisplay(theme.methodology || ''));
+                setMethodologyIcon(theme.methodologyIcon || '');
                 setTrendingScore(theme.trendingScore || 0);
                 setImpactScore(theme.impactScore || 0);
                 setPredictiveMomentumScore(theme.predictiveMomentumScore || 0);
@@ -375,8 +378,6 @@ export default function ThemeForm({ handleFormSubmit }) {
                         disruptivePotential: {
                             highLowContainer: {
                                 icon: theme?.trendAnalysis?.impactAndOpinions?.disruptivePotential?.highLowContainer?.icon || '',
-                                impactArea: theme?.trendAnalysis?.impactAndOpinions?.disruptivePotential?.highLowContainer?.impactArea || '',
-                                impactRating: theme?.trendAnalysis?.impactAndOpinions?.disruptivePotential?.highLowContainer?.impactRating || '',
                             },
                             content: theme?.trendAnalysis?.impactAndOpinions?.disruptivePotential?.content || '',
                             value: theme?.trendAnalysis?.impactAndOpinions?.disruptivePotential?.value || '',
@@ -384,27 +385,25 @@ export default function ThemeForm({ handleFormSubmit }) {
                         trendMomentum: {
                             highLowContainer: {
                                 icon: theme?.trendAnalysis?.impactAndOpinions?.trendMomentum?.highLowContainer?.icon || '',
-                                impactArea: theme?.trendAnalysis?.impactAndOpinions?.trendMomentum?.highLowContainer?.impactArea || '',
-                                impactRating: theme?.trendAnalysis?.impactAndOpinions?.trendMomentum?.highLowContainer?.impactRating || '',
                             },
                             content: theme?.trendAnalysis?.impactAndOpinions?.trendMomentum?.content || '',
                             value: theme?.trendAnalysis?.impactAndOpinions?.trendMomentum?.value || '',
                         },
                     },
                     regionalDynamics: {
-                        overallIcon: theme?.trendAnalysis?.regionalDynamics?.overallIcon || '',
+                        methodologyIcon: theme?.trendAnalysis?.regionalDynamics?.methodologyIcon || '',
                         regionalInsights: {
                             overallSummary: theme?.trendAnalysis?.regionalDynamics?.regionalInsights?.overallSummary || '',
                             regions: Array.isArray(theme?.trendAnalysis?.regionalDynamics?.regionalInsights?.regions) ? theme.trendAnalysis.regionalDynamics.regionalInsights.regions.map(r => ({
                                 regionMapIcon: r.regionMapIcon || '',
                                 regionName: r.regionName || '',
-                                regionDescription: r.regionDescription || '',
+                                regionInsight: r.regionInsight || '',
                                 regionScore: typeof r.regionScore === 'number' ? r.regionScore : 0,
                             })) : [],
                         },
                     },
                     consumerDynamics: {
-                        overallIcon: theme?.trendAnalysis?.consumerDynamics?.overallIcon || '',
+                        methodologyIcon: theme?.trendAnalysis?.consumerDynamics?.methodologyIcon || '',
                         behavioralInsights: Array.isArray(theme?.trendAnalysis?.consumerDynamics?.behavioralInsights) ? theme.trendAnalysis.consumerDynamics.behavioralInsights.map(b => ({
                             heading: b.heading || '',
                             icon: b.icon || '',
@@ -429,6 +428,7 @@ export default function ThemeForm({ handleFormSubmit }) {
             setThemeDescription('');
             setTeaser('');
             setMethodology(''); // Will be cleaned by cleanMethodologyForDisplay if needed
+            setMethodologyIcon('');
             setFilteredSubSectors([]);
             setTrendingScore(0);
             setImpactScore(0);
@@ -450,14 +450,14 @@ export default function ThemeForm({ handleFormSubmit }) {
                 driversAndSignals: { keyDrivers: [], signalsInAction: [] },
                 impactAndOpinions: {
                     title: { content: '', explanation: '' },
-                    disruptivePotential: { highLowContainer: { icon: '', impactArea: '', impactRating: '' }, content: '', value: '' },
-                    trendMomentum: { highLowContainer: { icon: '', impactArea: '', impactRating: '' }, content: '', value: '' },
+                    disruptivePotential: { highLowContainer: { icon: '' }, content: '', value: '' },
+                    trendMomentum: { highLowContainer: { icon: '' }, content: '', value: '' },
                 },
                     regionalDynamics: {
-                        overallIcon: '',
+                        methodologyIcon: '',
                         regionalInsights: { overallSummary: '', regions: [] },
                     },
-                consumerDynamics: { overallIcon: '', behavioralInsights: [], impactAnalyser: [] },
+                consumerDynamics: { methodologyIcon: '', behavioralInsights: [], impactAnalyser: [] },
             });
         }
     }, [themes.editId, themes.data, themes.allThemes, subSectorsData.data, tileTemplates]);
@@ -495,6 +495,7 @@ export default function ThemeForm({ handleFormSubmit }) {
             themeDescription, // Raw HTML content without cleaning
             teaser, // Raw HTML content without cleaning
             methodology, // Raw HTML content (cleaning applied during display)
+            methodologyIcon,
             overallScore: overallScoreCalc,
             trendingScore,
             impactScore,
@@ -604,6 +605,11 @@ export default function ThemeForm({ handleFormSubmit }) {
 
                 <div className="form-group">
                     <label htmlFor="methodology"><b>Methodology</b></label>
+                    <ImageSelector
+                        label="Methodology Icon"
+                        value={methodologyIcon}
+                        onChange={setMethodologyIcon}
+                    />
                     <ReactQuill
                         id="methodology"
                         value={methodology}
@@ -1119,30 +1125,6 @@ export default function ThemeForm({ handleFormSubmit }) {
                                             }))}
                                         />
                                         <div className="form-group">
-                                            <label><b>Impact Area</b></label>
-                                            <input
-                                                type="text"
-                                                className="theme-input"
-                                                value={trendAnalysis.impactAndOpinions.disruptivePotential.highLowContainer.impactArea}
-                                                onChange={(e) => setTrendAnalysis(prev => ({
-                                                    ...prev,
-                                                    impactAndOpinions: { ...prev.impactAndOpinions, disruptivePotential: { ...prev.impactAndOpinions.disruptivePotential, highLowContainer: { ...prev.impactAndOpinions.disruptivePotential.highLowContainer, impactArea: e.target.value } } }
-                                                }))}
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <label><b>Impact Rating</b></label>
-                                            <input
-                                                type="text"
-                                                className="theme-input"
-                                                value={trendAnalysis.impactAndOpinions.disruptivePotential.highLowContainer.impactRating}
-                                                onChange={(e) => setTrendAnalysis(prev => ({
-                                                    ...prev,
-                                                    impactAndOpinions: { ...prev.impactAndOpinions, disruptivePotential: { ...prev.impactAndOpinions.disruptivePotential, highLowContainer: { ...prev.impactAndOpinions.disruptivePotential.highLowContainer, impactRating: e.target.value } } }
-                                                }))}
-                                            />
-                                        </div>
-                                        <div className="form-group">
                                             <label><b>Content</b></label>
                                             <ReactQuill
                                                 value={trendAnalysis.impactAndOpinions.disruptivePotential.content}
@@ -1156,19 +1138,6 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                     '--quill-editor-ul-margin': '0',
                                                     '--quill-editor-gap': '0'
                                                 }}
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <label><b>Value</b></label>
-                                            <input
-                                                type="text"
-                                                className="theme-input"
-                                                value={trendAnalysis.impactAndOpinions.disruptivePotential.value}
-                                                onChange={(e) => setTrendAnalysis(prev => ({
-                                                    ...prev,
-                                                    impactAndOpinions: { ...prev.impactAndOpinions, disruptivePotential: { ...prev.impactAndOpinions.disruptivePotential, value: e.target.value } }
-                                                }))}
-                                                placeholder="Enter value for disruptive potential"
                                             />
                                         </div>
                                     </div>
@@ -1188,30 +1157,6 @@ export default function ThemeForm({ handleFormSubmit }) {
                                             }))}
                                         />
                                         <div className="form-group">
-                                            <label><b>Impact Area</b></label>
-                                            <input
-                                                type="text"
-                                                className="theme-input"
-                                                value={trendAnalysis.impactAndOpinions.trendMomentum.highLowContainer.impactArea}
-                                                onChange={(e) => setTrendAnalysis(prev => ({
-                                                    ...prev,
-                                                    impactAndOpinions: { ...prev.impactAndOpinions, trendMomentum: { ...prev.impactAndOpinions.trendMomentum, highLowContainer: { ...prev.impactAndOpinions.trendMomentum.highLowContainer, impactArea: e.target.value } } }
-                                                }))}
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <label><b>Impact Rating</b></label>
-                                            <input
-                                                type="text"
-                                                className="theme-input"
-                                                value={trendAnalysis.impactAndOpinions.trendMomentum.highLowContainer.impactRating}
-                                                onChange={(e) => setTrendAnalysis(prev => ({
-                                                    ...prev,
-                                                    impactAndOpinions: { ...prev.impactAndOpinions, trendMomentum: { ...prev.impactAndOpinions.trendMomentum, highLowContainer: { ...prev.impactAndOpinions.trendMomentum.highLowContainer, impactRating: e.target.value } } }
-                                                }))}
-                                            />
-                                        </div>
-                                        <div className="form-group">
                                             <label><b>Content</b></label>
                                             <ReactQuill
                                                 value={trendAnalysis.impactAndOpinions.trendMomentum.content}
@@ -1225,19 +1170,6 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                     '--quill-editor-ul-margin': '0',
                                                     '--quill-editor-gap': '0'
                                                 }}
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <label><b>Value</b></label>
-                                            <input
-                                                type="text"
-                                                className="theme-input"
-                                                value={trendAnalysis.impactAndOpinions.trendMomentum.value}
-                                                onChange={(e) => setTrendAnalysis(prev => ({
-                                                    ...prev,
-                                                    impactAndOpinions: { ...prev.impactAndOpinions, trendMomentum: { ...prev.impactAndOpinions.trendMomentum, value: e.target.value } }
-                                                }))}
-                                                placeholder="Enter value for trend momentum"
                                             />
                                         </div>
                                     </div>
@@ -1265,11 +1197,11 @@ export default function ThemeForm({ handleFormSubmit }) {
                                     </summary>
                                     <div style={{ padding: '12px 0' }}>
                                 <ImageSelector
-                                    label="Overall Icon"
-                                    value={trendAnalysis.regionalDynamics.overallIcon}
+                                    label="Methodology Icon"
+                                    value={trendAnalysis.regionalDynamics.methodologyIcon}
                                     onChange={(url) => setTrendAnalysis(prev => ({
                                         ...prev,
-                                        regionalDynamics: { ...prev.regionalDynamics, overallIcon: url }
+                                        regionalDynamics: { ...prev.regionalDynamics, methodologyIcon: url }
                                     }))}
                                 />
 
@@ -1338,7 +1270,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                                             regionId: opt ? opt.value : null,
                                                                             regionMapIcon: selectedRegion?.regionIcon || '',
                                                                             regionName: selectedRegion?.regionName || '',
-                                                                            regionDescription: selectedRegion?.regionDescription || ''
+                                                                            regionInsight: selectedRegion?.regionInsight || ''
                                                                         } : x) 
                                                                     } 
                                                                 } 
@@ -1370,22 +1302,33 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                         />
                                                     </div>
                                                 )}
-                                                {r.regionDescription && (
-                                                    <div className="form-group">
-                                                        <label><b>Region Description</b></label>
-                                                        <div
-                                                            style={{
-                                                                border: '1px solid #d1d5db',
-                                                                borderRadius: 4,
-                                                                padding: 12,
-                                                                backgroundColor: '#f9fafb',
-                                                                color: '#6b7280',
-                                                                minHeight: 60
-                                                            }}
-                                                            dangerouslySetInnerHTML={{ __html: r.regionDescription }}
-                                                        />
-                                                    </div>
-                                                )}
+                                                <div className="form-group">
+                                                    <label><b>Region Insight</b></label>
+                                                    <ReactQuill
+                                                        value={r.regionInsight || ''}
+                                                        onChange={(val) => setTrendAnalysis(prev => ({
+                                                            ...prev,
+                                                            regionalDynamics: {
+                                                                ...prev.regionalDynamics,
+                                                                regionalInsights: {
+                                                                    ...prev.regionalDynamics.regionalInsights,
+                                                                    regions: prev.regionalDynamics.regionalInsights.regions.map((x, i) => i === idx ? { ...x, regionInsight: val } : x)
+                                                                }
+                                                            }
+                                                        }))}
+                                                        className="theme-quill-editor no-gap-editor"
+                                                        modules={{
+                                                            toolbar: [
+                                                                [{ 'header': [1, 2, 3, false] }],
+                                                                ['bold', 'italic', 'underline'],
+                                                                [{ 'color': [] }, { 'background': [] }],
+                                                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                                                ['link'],
+                                                                ['clean']
+                                                            ]
+                                                        }}
+                                                    />
+                                                </div>
                                                 <div className="form-group">
                                                     <label><b>Region Score</b></label>
                                                     <input
@@ -1405,6 +1348,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                         placeholder="Enter region score"
                                                         min="0"
                                                         max="100"
+                                                        step="any"
                                                     />
                                                 </div>
                                             </div>
@@ -1412,7 +1356,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                                         <button 
                                             type="button" 
                                             className={styles.primaryButton} 
-                                            onClick={() => setTrendAnalysis(prev => ({ ...prev, regionalDynamics: { ...prev.regionalDynamics, regionalInsights: { ...prev.regionalDynamics.regionalInsights, regions: [...prev.regionalDynamics.regionalInsights.regions, { regionMapIcon: '', regionName: '', regionDescription: '', regionScore: 0 }] } } }))}
+                                            onClick={() => setTrendAnalysis(prev => ({ ...prev, regionalDynamics: { ...prev.regionalDynamics, regionalInsights: { ...prev.regionalDynamics.regionalInsights, regions: [...prev.regionalDynamics.regionalInsights.regions, { regionMapIcon: '', regionName: '', regionInsight: '', regionScore: 0 }] } } }))}
                                             style={{ marginTop: 8 }}
                                         >
                                             + Add Region
@@ -1442,11 +1386,11 @@ export default function ThemeForm({ handleFormSubmit }) {
                                     </summary>
                                     <div style={{ padding: '12px 0' }}>
                                 <ImageSelector
-                                    label="Overall Icon"
-                                    value={trendAnalysis.consumerDynamics.overallIcon}
+                                    label="Methodology Icon"
+                                    value={trendAnalysis.consumerDynamics.methodologyIcon}
                                     onChange={(url) => setTrendAnalysis(prev => ({
                                         ...prev,
-                                        consumerDynamics: { ...prev.consumerDynamics, overallIcon: url }
+                                        consumerDynamics: { ...prev.consumerDynamics, methodologyIcon: url }
                                     }))}
                                 />
                                 <details style={{ marginBottom: 20 }}>
@@ -1578,6 +1522,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                                                             ...prev,
                                                             consumerDynamics: { ...prev.consumerDynamics, impactAnalyser: prev.consumerDynamics.impactAnalyser.map((x, ix) => ix === idx ? { ...x, impactScore: Number(e.target.value) } : x) }
                                                         }))}
+                                                        step="any"
                                                     />
                                                 </div>
                                             </div>
@@ -1715,6 +1660,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                             value={impactScore}
                             onChange={(e) => setImpactScore(Number(e.target.value))}
                             className="theme-input"
+                            step="any"
                         />
                     </div>
 
