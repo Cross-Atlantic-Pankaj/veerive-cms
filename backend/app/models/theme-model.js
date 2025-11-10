@@ -61,6 +61,7 @@ const themeSchema = new Schema ({
             }]
         },
         impactAndOpinions: {
+            info: { type: String }, // New info field
             title: {
                 content: { type: String },
                 explanation: { type: String }
@@ -75,6 +76,7 @@ const themeSchema = new Schema ({
             }
         },
         regionalDynamics: {
+            info: { type: String }, // New info field
             methodologyIcon: { type: String },
             regionalInsights: {
                 overallSummary: { type: String },
@@ -94,10 +96,13 @@ const themeSchema = new Schema ({
                 icon: { type: String },
                 text: { type: String }
             }],
-            impactAnalyser: [{
-                consumerSegmentName: { type: String },
-                impactScore: { type: Number } // in percentage
-            }]
+            impactAnalyser: {
+                info: { type: String }, // New info field
+                data: [{
+                    consumerSegmentName: { type: String },
+                    impactScore: { type: Number } // in percentage
+                }]
+            }
         }
     },
 
