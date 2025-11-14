@@ -183,10 +183,10 @@ export default function ThemeForm({ handleFormSubmit }) {
             },
         },
         consumerDynamics: {
+            info: '', // New info field
             methodologyIcon: '',
             behavioralInsights: [], // { heading, icon, text }
             impactAnalyser: {
-                info: '', // New info field
                 data: [] // { consumerSegmentName, impactScore }
             },
         },
@@ -410,6 +410,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                         },
                     },
                     consumerDynamics: {
+                        info: theme?.trendAnalysis?.consumerDynamics?.info || '', // New info field
                         methodologyIcon: theme?.trendAnalysis?.consumerDynamics?.methodologyIcon || '',
                         behavioralInsights: Array.isArray(theme?.trendAnalysis?.consumerDynamics?.behavioralInsights) ? theme.trendAnalysis.consumerDynamics.behavioralInsights.map(b => ({
                             heading: b.heading || '',
@@ -417,7 +418,6 @@ export default function ThemeForm({ handleFormSubmit }) {
                             text: b.text || '',
                         })) : [],
                         impactAnalyser: {
-                            info: theme?.trendAnalysis?.consumerDynamics?.impactAnalyser?.info || '', // New info field
                             data: Array.isArray(theme?.trendAnalysis?.consumerDynamics?.impactAnalyser?.data) ? theme.trendAnalysis.consumerDynamics.impactAnalyser.data.map(i => ({
                                 consumerSegmentName: i.consumerSegmentName || '',
                                 impactScore: typeof i.impactScore === 'number' ? i.impactScore : 0,
@@ -470,7 +470,7 @@ export default function ThemeForm({ handleFormSubmit }) {
                         methodologyIcon: '',
                         regionalInsights: { overallSummary: '', regions: [] },
                     },
-                consumerDynamics: { methodologyIcon: '', behavioralInsights: [], impactAnalyser: [] },
+                consumerDynamics: { info: '', methodologyIcon: '', behavioralInsights: [], impactAnalyser: { data: [] } },
             });
         }
     }, [themes.editId, themes.data, themes.allThemes, subSectorsData.data, tileTemplates]);
@@ -1442,6 +1442,28 @@ export default function ThemeForm({ handleFormSubmit }) {
                                         👥 4. Consumer Dynamics
                                     </summary>
                                     <div style={{ padding: '12px 0' }}>
+                                        <div className="form-group">
+                                            <label htmlFor="consumerDynamicsInfo"><b>Info</b></label>
+                                            <ReactQuill
+                                                id="consumerDynamicsInfo"
+                                                value={trendAnalysis.consumerDynamics.info}
+                                                onChange={(value) => setTrendAnalysis(prev => ({
+                                                    ...prev,
+                                                    consumerDynamics: { ...prev.consumerDynamics, info: value }
+                                                }))}
+                                                className="theme-quill-editor no-gap-editor"
+                                                modules={{
+                                                    toolbar: [
+                                                        [{ 'header': [1, 2, 3, false] }],
+                                                        ['bold', 'italic', 'underline'],
+                                                        [{ 'color': [] }, { 'background': [] }],
+                                                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                                        ['link'],
+                                                        ['clean']
+                                                    ]
+                                                }}
+                                            />
+                                        </div>
                                 <ImageSelector
                                     label="Methodology Icon"
                                     value={trendAnalysis.consumerDynamics.methodologyIcon}
@@ -1535,34 +1557,6 @@ export default function ThemeForm({ handleFormSubmit }) {
                                         Impact Analyser
                                     </summary>
                                     <div style={{ padding: '12px 0' }}>
-                                        <div className="form-group">
-                                            <label htmlFor="impactAnalyserInfo"><b>Info</b></label>
-                                            <ReactQuill
-                                                id="impactAnalyserInfo"
-                                                value={trendAnalysis.consumerDynamics.impactAnalyser.info}
-                                                onChange={(value) => setTrendAnalysis(prev => ({
-                                                    ...prev,
-                                                    consumerDynamics: { 
-                                                        ...prev.consumerDynamics, 
-                                                        impactAnalyser: { 
-                                                            ...prev.consumerDynamics.impactAnalyser, 
-                                                            info: value 
-                                                        } 
-                                                    }
-                                                }))}
-                                                className="theme-quill-editor no-gap-editor"
-                                                modules={{
-                                                    toolbar: [
-                                                        [{ 'header': [1, 2, 3, false] }],
-                                                        ['bold', 'italic', 'underline'],
-                                                        [{ 'color': [] }, { 'background': [] }],
-                                                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                                        ['link'],
-                                                        ['clean']
-                                                    ]
-                                                }}
-                                            />
-                                        </div>
                                         {trendAnalysis.consumerDynamics.impactAnalyser.data.map((i, idx) => (
                                             <div key={idx} style={{ 
                                                 border: '1px solid #d1d5db', 

@@ -90,6 +90,7 @@ const themeSchema = new Schema ({
             }
         },
         consumerDynamics: {
+            info: { type: String }, // New info field
             methodologyIcon: { type: String },
             behavioralInsights: [{
                 heading: { type: String },
@@ -97,7 +98,6 @@ const themeSchema = new Schema ({
                 text: { type: String }
             }],
             impactAnalyser: {
-                info: { type: String }, // New info field
                 data: [{
                     consumerSegmentName: { type: String },
                     impactScore: { type: Number } // in percentage
