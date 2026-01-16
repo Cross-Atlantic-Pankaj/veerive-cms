@@ -24,11 +24,10 @@
 // });
 import axios from 'axios';
 
-// Simple configuration - always use production URL
-const baseURL = 'http://13.201.16.204:3050';
-
-// If you want to use local development, uncomment the line below and comment the line above
-// const baseURL = 'http://localhost:3050';
+// Use relative URL - works for both development and production
+// If backend is on the same domain, use empty string or '/api'
+// If backend is on a different path, adjust accordingly
+const baseURL = process.env.REACT_APP_API_BASE_URL || '/api';
 
 const axiosInstance = axios.create({
   baseURL,

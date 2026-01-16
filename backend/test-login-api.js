@@ -9,7 +9,9 @@ const testLogin = async () => {
         };
         
         
-        const response = await axios.post('http://localhost:3050/api/users/login', loginData, {
+        // Use environment variable for base URL, default to relative URL for same-domain requests
+        const baseURL = process.env.API_BASE_URL || '';
+        const response = await axios.post(`${baseURL}/api/users/login`, loginData, {
             headers: {
                 'Content-Type': 'application/json'
             }

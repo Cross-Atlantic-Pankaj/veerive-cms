@@ -7,14 +7,14 @@ const testLogin = () => {
     });
 
     const options = {
-        hostname: 'localhost',
-        port: 3050,
+        hostname: process.env.API_HOST || 'localhost',
+        port: process.env.API_PORT || 3050,
         path: '/api/users/login',
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Content-Length': Buffer.byteLength(postData),
-            'Origin': 'http://localhost:3002'
+            'Origin': process.env.ORIGIN || 'http://localhost:3002'
         }
     };
 

@@ -191,12 +191,17 @@ usersCltr.forgotPassword = async (req, res) => {
 
         await user.save();
 
+        // Construct reset password URL using request origin
+        const protocol = req.protocol || 'http';
+        const host = req.get('host') || 'localhost:3001';
+        const resetUrl = `${protocol}://${host}/reset-password?token=${token}`;
+
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
             subject: 'Password Reset Request',
             text: `You requested a password reset. Click the link below to reset your password:
-            http://localhost:3001/reset-password?token=${token}`
+            ${resetUrl}`
         };
 
         await transporter.sendMail(mailOptions);
